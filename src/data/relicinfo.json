@@ -1,0 +1,149 @@
+{
+    "ELEMENTS": [
+        "Physical",
+        "Burn",
+        "Electric",
+        "Freeze",
+        "Corrosion",
+        "Hydro",
+        "Corrosive",
+        "Burning",
+        "Freezing"
+    ],
+    "RARITIES": {
+        "T4": {
+            "priority": 3,
+            "label": "Legendary"
+        },
+        "T3": {
+            "priority": 2,
+            "label": "Epic"
+        },
+        "T2": {
+            "priority": 1,
+            "label": "Rare"
+        }
+    },
+    "DOLL_NAMES": [
+        "Alva",
+        "Andoris",
+        "Balthilde",
+        "Basti",
+        "Belka",
+        "Centaureissi",
+        "Cheeta",
+        "Cheyanne",
+        "Colphne",
+        "Daiyan",
+        "Dushevnaya",
+        "Faye",
+        "Florence",
+        "Groza",
+        "Harpsy",
+        "Helen",
+        "Jiangyu",
+        "Klukai",
+        "Krolik",
+        "Ksenia",
+        "Lainie",
+        "Lenna",
+        "Leva",
+        "Lewis",
+        "Lind",
+        "Littara",
+        "Liushih",
+        "Loreley",
+        "Lotta",
+        "Makiatto",
+        "Mechty",
+        "Mosin Nagant",
+        "Nagant",
+        "Nemesis",
+        "Nikketa",
+        "Papasha",
+        "Peri",
+        "Peritya",
+        "Phaetusa",
+        "Qiuhua",
+        "Qiongjiu",
+        "Robella",
+        "Sabrina",
+        "Sakura",
+        "Sextans",
+        "Sharkry",
+        "Springfield",
+        "Suomi",
+        "Tololo",
+        "Ullrid",
+        "Vector",
+        "Vepley",
+        "Yoohee",
+        "Zhaohui"
+    ],
+    "RELIC_TYPES": {
+        "Bulwark": {
+            "main_skills": [
+                "Pinpoint Defense",
+                "Annular Defense",
+                "Defense Boost",
+                "HP Boost"
+            ],
+            "aux_skills": {
+                "Lone Rider Countermeasures": 5,
+                "Breakout Countermeasures": 5,
+                "Lex Talionis": 3,
+                "Boss Countermeasures": 2,
+                "{Element} Resistance": 5,
+                "Melee Countermeasures": 5
+            }
+        },
+        "Vanguard": {
+            "main_skills": [
+                "Smite Boost",
+                "Beheading Blade",
+                "Precision Blow",
+                "Area Smite"
+            ],
+            "aux_skills": {
+                "Ambush Mastery": 5,
+                "Onslaught Mastery": 5,
+                "CQC Elite": 3,
+                "Bloodthirst": 3,
+                "Shock and Awe": 2,
+                "{Element} Smite": 5
+            }
+        },
+        "Support": {
+            "main_skills": [
+                "Attack Unity",
+                "HP Unity",
+                "Healing Boost",
+                "Fighting Spirit"
+            ],
+            "aux_skills": {
+                "Ichor Resonance": 5,
+                "Ichor Conversion": 5,
+                "Purification Feedback": 3,
+                "Life Recovery": 3,
+                "Equilibrium Recovery": 2,
+                "{Element} Unity": 5
+            }
+        },
+        "Sentinel": {
+            "main_skills": [
+                "Attack Boost",
+                "Thronebreaker",
+                "Pinpoint Specialization",
+                "Area Specialization"
+            ],
+            "aux_skills": {
+                "Raid Stance": 5,
+                "Onslaught Stance": 5,
+                "Critical Boost": 3,
+                "Follow-Up Strike": 2,
+                "Headhunter": 3,
+                "{Element} Boost": 5
+            }
+        }
+    }
+}

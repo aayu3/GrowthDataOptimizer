@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/relicdatabaseviewer.tsx","./src/db/database.ts","./src/optimizer/solver.ts","./src/optimizer/types.ts","./src/worker/optimizer.worker.ts"],"version":"5.9.3"}

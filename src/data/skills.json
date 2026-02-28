@@ -1,0 +1,27 @@
+{
+    "HP Boost": {
+        "maxlevel": 6,
+        "type": "Bulwark",
+        "description": "Max HP is increased by {0.4 + 0.4*lvl}%"
+    },
+    "Pinpoint Defense": {
+        "maxlevel": 6,
+        "type": "Bulwark",
+        "description": "Increases Pinpoint Defense by {0.5 + 0.3*lvl}%"
+    },
+    "Annular Defense": {
+        "maxlevel": 6,
+        "type": "Bulwark",
+        "description": "Increases Annular Defense by {0.5 + 0.3*lvl}%"
+    },
+    "Smite Boost": {
+        "maxlevel": 6,
+        "type": "Vanguard",
+        "description": "Increases Smite damage by {1.0 + 0.5*lvl}%"
+    },
+    "Attack Unity": {
+        "maxlevel": 6,
+        "type": "Support",
+        "description": "Increases Attack for all allies by {0.2 + 0.2*lvl}%"
+    }
+}
