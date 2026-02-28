@@ -275,9 +275,6 @@ function App() {
                                 );
                             })}
                         </div>
-                        <p className="hint" style={{ marginTop: '1rem' }}>
-                            Currently, functional slot configurations are primarily loaded for Suomi. Other characters will become fully functional as data is added.
-                        </p>
                     </section>
                 </main>
             </div>
