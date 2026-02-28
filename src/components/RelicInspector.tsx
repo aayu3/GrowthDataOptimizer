@@ -1,6 +1,6 @@
 import React from 'react';
 import { Relic } from '../optimizer/types';
-import { getSkillDescription } from '../utils/relicUtils';
+import { getSkillDescription, getDollImageUrl } from '../utils/relicUtils';
 
 interface RelicInspectorProps {
     selectedRelic: Relic | null;
@@ -76,7 +76,7 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
                         <div className="inspector-skill-title">Status</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
                             <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
-                                <img src={`/src/assets/doll_images/${selectedRelic.equipped}.png`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={selectedRelic.equipped} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                <img src={getDollImageUrl(selectedRelic.equipped)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={selectedRelic.equipped} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                             </div>
                             <span style={{ color: 'var(--text-secondary)' }}>Equipped by <strong style={{ color: 'white' }}>{selectedRelic.equipped}</strong></span>
                         </div>
