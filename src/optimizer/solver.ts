@@ -66,15 +66,44 @@ export class RelicSolver {
                     score += skill.level * 2; // Category matches get good score
                 }
                 if (this.constraints.targetSkillLevels[skill.name]) {
-                    score += skill.level * 5; // Specific skill targets get very high score
+                    score += skill.level * 10; // Specific skill targets get very high priority
                 }
             }
             return { relic: r, score };
         });
 
-        // Sort by score descending and take top 40 to avoid combinatorial explosion (C(40,6) = 3.8M)
-        scoredRelics.sort((a, b) => b.score - a.score);
-        this.relics = scoredRelics.slice(0, 40).map(item => item.relic);
+        // Ensure diversity: Take top 15 from each required slot type to ensure we can always form a full build
+        const topDiverseRelics: Relic[] = [];
+        const requiredCategories = this.constraints.allowedSlots ? Object.keys(this.constraints.allowedSlots) : ['Bulwark', 'Vanguard', 'Support', 'Sentinel'];
+
+        const groupedByCat: Record<string, typeof scoredRelics> = {};
+        scoredRelics.forEach(item => {
+            const cat = item.relic.type;
+            if (!groupedByCat[cat]) groupedByCat[cat] = [];
+            groupedByCat[cat].push(item);
+        });
+
+        for (const cat of requiredCategories) {
+            const candidates = (groupedByCat[cat] || [])
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 15);
+            candidates.forEach(c => topDiverseRelics.push(c.relic));
+        }
+
+        // De-duplicate in case some relics were added via multiple categories (unlikely but safe)
+        const uniqueTop = Array.from(new Set(topDiverseRelics));
+
+        // If we still have room or no specific required slots, pad with best remaining overall
+        if (uniqueTop.length < 50) {
+            const additional = scoredRelics
+                .filter(i => !uniqueTop.includes(i.relic))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 50 - uniqueTop.length);
+            uniqueTop.push(...additional.map(i => i.relic));
+        }
+
+        this.relics = uniqueTop;
+        console.log(`Optimization starting with ${this.relics.length} candidate relics.`);
 
         this.backtrack([], 0, 0);
         // Sort by some heuristic, e.g. most total levels

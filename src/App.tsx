@@ -30,6 +30,8 @@ function App() {
     const [activeSkillFilters, setActiveSkillFilters] = useState<string[]>([]);
     const [includeOtherEquipped, setIncludeOtherEquipped] = useState(true);
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
 
     const workerRef = useRef<Worker | null>(null);
 
@@ -213,7 +215,9 @@ function App() {
     }
 
     if (!selectedDoll) {
-        const availableDolls = Object.keys(dollsData);
+        const availableDolls = Object.keys(dollsData).filter(doll =>
+            doll.toLowerCase().includes(searchQuery.toLowerCase())
+        );
         return (
             <div className="app-container">
                 <header className="header-glow">
@@ -234,7 +238,16 @@ function App() {
 
                 <main className="main-content">
                     <section className="card glassmorphism">
-                        <h2>Available Dolls</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h2 style={{ margin: 0 }}>Available Dolls</h2>
+                            <input
+                                type="text"
+                                placeholder="Search dolls..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{ padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.3)', color: 'white', width: '250px' }}
+                            />
+                        </div>
                         <div className="doll-grid">
                             {availableDolls.map(doll => {
                                 // Determine image path (adjusting for special chars if needed)
@@ -249,6 +262,15 @@ function App() {
                                             <img src={imgPath} alt={doll} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                         </div>
                                         <span>{doll}</span>
+                                        {relics.filter(r => r.equipped === doll).length > 0 && (
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'center', marginTop: '4px' }}>
+                                                {relics.filter(r => r.equipped === doll).map(r => (
+                                                    <div key={r.id} style={{ width: '24px', height: '24px' }}>
+                                                        <RelicThumbnail relic={r} />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </button>
                                 );
                             })}
@@ -383,58 +405,88 @@ function App() {
                         </div>
                     </section>
 
-                    <section className="card glassmorphism" style={{ position: 'sticky', top: '2rem' }}>
-                        <h2 style={{ fontSize: '1.25rem' }}>Character Passives</h2>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {selectedDollData.bonuses && selectedDollData.bonuses.map((bonus: any, idx: number) => {
-                                // Determine if passive is active based on current USER TARGET constraints
-                                let isActive = true;
-                                const requirements: Record<string, number> = {};
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: '2rem' }}>
+                        <section className="card glassmorphism">
+                            <h2 style={{ fontSize: '1.25rem' }}>Currently Equipped</h2>
+                            {relics.filter(r => r.equipped === selectedDoll).length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {relics.filter(r => r.equipped === selectedDoll).map(r => (
+                                        <div key={r.id} style={{ width: '64px', height: '64px' }}>
+                                            <RelicThumbnail
+                                                relic={r}
+                                                isSelected={selectedEquippedRelic?.id === r.id}
+                                                onClick={() => setSelectedEquippedRelic(r)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="hint" style={{ margin: 0 }}>No relics equipped.</p>
+                            )}
 
-                                for (const [key, val] of Object.entries(bonus)) {
-                                    if (key !== 'tier' && key !== 'description') {
-                                        requirements[key] = val as number;
-                                        const targetLvl = constraints.targetCategoryLevels[key] || 0;
-                                        if (targetLvl < (val as number)) {
-                                            isActive = false;
+                            {selectedEquippedRelic && (
+                                <div style={{ marginTop: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <RelicInspector
+                                        selectedRelic={selectedEquippedRelic}
+                                        onClose={() => setSelectedEquippedRelic(null)}
+                                    />
+                                </div>
+                            )}
+                        </section>
+
+                        <section className="card glassmorphism">
+                            <h2 style={{ fontSize: '1.25rem' }}>Character Passives</h2>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {selectedDollData.bonuses && selectedDollData.bonuses.map((bonus: any, idx: number) => {
+                                    // Determine if passive is active based on current USER TARGET constraints
+                                    let isActive = true;
+                                    const requirements: Record<string, number> = {};
+
+                                    for (const [key, val] of Object.entries(bonus)) {
+                                        if (key !== 'tier' && key !== 'description') {
+                                            requirements[key] = val as number;
+                                            const targetLvl = constraints.targetCategoryLevels[key] || 0;
+                                            if (targetLvl < (val as number)) {
+                                                isActive = false;
+                                            }
                                         }
                                     }
-                                }
 
-                                return (
-                                    <div
-                                        key={idx}
-                                        className="bonus-tier-card"
-                                        onClick={() => applyBonusRequirements(bonus)}
-                                        style={{
-                                            padding: '1rem',
-                                            background: isActive ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)',
-                                            border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)'}`,
-                                            borderRadius: '8px',
-                                            transition: 'all 0.3s ease',
-                                            cursor: 'pointer',
-                                            position: 'relative'
-                                        }}
-                                        title="Click to set as Optimizer Target"
-                                    >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                            <strong style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)' }}>Bonus Tier {bonus.tier}</strong>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                {Object.entries(requirements).map(([cat, req]) => (
-                                                    <span key={cat} style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.3rem', color: (constraints.targetCategoryLevels[cat] || 0) >= req ? 'var(--success)' : 'var(--text-secondary)' }}>
-                                                        <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '14px', height: '14px' }} />
-                                                        {req}
-                                                    </span>
-                                                ))}
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className="bonus-tier-card"
+                                            onClick={() => applyBonusRequirements(bonus)}
+                                            style={{
+                                                padding: '1rem',
+                                                background: isActive ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)',
+                                                border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)'}`,
+                                                borderRadius: '8px',
+                                                transition: 'all 0.3s ease',
+                                                cursor: 'pointer',
+                                                position: 'relative'
+                                            }}
+                                            title="Click to set as Optimizer Target"
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                <strong style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)' }}>Bonus Tier {bonus.tier}</strong>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    {Object.entries(requirements).map(([cat, req]) => (
+                                                        <span key={cat} style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.3rem', color: (constraints.targetCategoryLevels[cat] || 0) >= req ? 'var(--success)' : 'var(--text-secondary)' }}>
+                                                            <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '14px', height: '14px' }} />
+                                                            {req}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
+                                            <div style={{ fontSize: '0.9rem', color: isActive ? 'white' : 'var(--text-secondary)' }}>{bonus.description}</div>
+                                            <div className="bonus-hover-hint">Apply Targets</div>
                                         </div>
-                                        <div style={{ fontSize: '0.9rem', color: isActive ? 'white' : 'var(--text-secondary)' }}>{bonus.description}</div>
-                                        <div className="bonus-hover-hint">Apply Targets</div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </section>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    </div>
                 </div>
 
                 <div className="action-row">
@@ -446,64 +498,68 @@ function App() {
                     </button>
                 </div>
 
-                {results.length > 0 && (
-                    <section className="results-section">
-                        <div className="results-header">
-                            <h2>Results ({results.length} found)</h2>
-                            <button className="export-btn" onClick={handleExportJSON}>
-                                ⬇ Export to JSON
-                            </button>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: selectedRelicInResults ? '1fr 350px' : '1fr', gap: '2rem', alignItems: 'start' }}>
-                            <div className="results-grid" style={{ gridTemplateColumns: selectedRelicInResults ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))' }}>
-                                {results.slice(0, 50).map((res, i) => (
-                                    <div key={i} className="result-card glassmorphism">
-                                        <h3>Build #{i + 1}</h3>
-                                        <div className="stats-row" style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-                                            {Object.entries(res.rawCategoryLevels).map(([cat, lvl]) => (
-                                                <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
-                                                    <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '20px', height: '20px' }} />
-                                                    <span style={{ color: 'var(--text-primary)' }}>{lvl}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="relic-list" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '0.5rem', background: 'none', padding: 0 }}>
-                                            {res.relics.map((r, ri) => (
-                                                <div key={ri} style={{ width: '80px', height: '80px' }}>
-                                                    <RelicThumbnail
-                                                        relic={r}
-                                                        isSelected={selectedRelicInResults?.id === r.id && selectedRelicInResults?.id !== undefined}
-                                                        onClick={() => setSelectedRelicInResults(r)}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                {
+                    results.length > 0 && (
+                        <section className="results-section">
+                            <div className="results-header">
+                                <h2>Results ({results.length} found)</h2>
+                                <button className="export-btn" onClick={handleExportJSON}>
+                                    ⬇ Export to JSON
+                                </button>
                             </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: selectedRelicInResults ? '1fr 350px' : '1fr', gap: '2rem', alignItems: 'start' }}>
+                                <div className="results-grid" style={{ gridTemplateColumns: selectedRelicInResults ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))' }}>
+                                    {results.slice(0, 50).map((res, i) => (
+                                        <div key={i} className="result-card glassmorphism">
+                                            <h3>Build #{i + 1}</h3>
+                                            <div className="stats-row" style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                                                {Object.entries(res.rawCategoryLevels).map(([cat, lvl]) => (
+                                                    <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                                                        <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '20px', height: '20px' }} />
+                                                        <span style={{ color: 'var(--text-primary)' }}>{lvl}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="relic-list" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '0.5rem', background: 'none', padding: 0 }}>
+                                                {res.relics.map((r, ri) => (
+                                                    <div key={ri} style={{ width: '80px', height: '80px' }}>
+                                                        <RelicThumbnail
+                                                            relic={r}
+                                                            isSelected={selectedRelicInResults?.id === r.id && selectedRelicInResults?.id !== undefined}
+                                                            onClick={() => setSelectedRelicInResults(r)}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
 
-                            {selectedRelicInResults && (
-                                <aside className="card glassmorphism" style={{ position: 'sticky', top: '2rem' }}>
-                                    <RelicInspector
-                                        selectedRelic={selectedRelicInResults}
-                                        onClose={() => setSelectedRelicInResults(null)}
-                                    />
-                                </aside>
-                            )}
-                        </div>
-                        {results.length > 50 && <p className="hint">Showing top 50 results...</p>}
-                    </section>
-                )}
+                                {selectedRelicInResults && (
+                                    <aside className="card glassmorphism" style={{ position: 'sticky', top: '2rem' }}>
+                                        <RelicInspector
+                                            selectedRelic={selectedRelicInResults}
+                                            onClose={() => setSelectedRelicInResults(null)}
+                                        />
+                                    </aside>
+                                )}
+                            </div>
+                            {results.length > 50 && <p className="hint">Showing top 50 results...</p>}
+                        </section>
+                    )
+                }
 
-                {hasOptimized && results.length === 0 && !errorMsg && (
-                    <section className="results-section result-empty glassmorphism">
-                        <h2>No Builds Found</h2>
-                        <p>No valid combination of 6 relics matched your exact constraints.</p>
-                        <p className="hint">Try lowering the category constraints or checking if you have enough allowed slot types for this character.</p>
-                    </section>
-                )}
-            </main>
-        </div>
+                {
+                    hasOptimized && results.length === 0 && !errorMsg && (
+                        <section className="results-section result-empty glassmorphism">
+                            <h2>No Builds Found</h2>
+                            <p>No valid combination of 6 relics matched your exact constraints.</p>
+                            <p className="hint">Try lowering the category constraints or checking if you have enough allowed slot types for this character.</p>
+                        </section>
+                    )
+                }
+            </main >
+        </div >
     );
 }
 

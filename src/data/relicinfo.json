@@ -5,10 +5,7 @@
         "Electric",
         "Freeze",
         "Corrosion",
-        "Hydro",
-        "Corrosive",
-        "Burning",
-        "Freezing"
+        "Hydro"
     ],
     "RARITIES": {
         "T4": {
@@ -110,7 +107,12 @@
                 "CQC Elite": 3,
                 "Bloodthirst": 3,
                 "Shock and Awe": 2,
-                "{Element} Smite": 5
+                "Physical Smite": 5,
+                "Burning Smite": 5,
+                "Electric Smite": 5,
+                "Freezing Smite": 5,
+                "Corrosive Smite": 5,
+                "Hydro Smite": 5
             }
         },
         "Support": {
