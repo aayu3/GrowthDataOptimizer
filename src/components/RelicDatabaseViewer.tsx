@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Relic } from '../optimizer/types';
-import { getSkillDescription } from '../utils/relicUtils';
 import { RelicThumbnail } from './RelicThumbnail';
+import { RelicInspector } from './RelicInspector';
 
 export const RelicDatabaseViewer: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -102,67 +102,7 @@ export const RelicDatabaseViewer: React.FC = () => {
 
             {/* Inspector Panel */}
             <div className="db-inspector-section">
-                {selectedRelic ? (
-                    <>
-                        <div className="db-inspector-header">
-                            <div className="db-inspector-title">
-                                {selectedRelic.type} Relic
-                            </div>
-                            <div className="db-inspector-subtitle">
-                                <span className="badge">{selectedRelic.rarity}</span>
-                                <span>Lvl. {selectedRelic.total_level}</span>
-                            </div>
-                        </div>
-
-                        <div className="db-inspector-body">
-                            <div className="inspector-skill-group">
-                                <div className="inspector-skill-title">Main Skill</div>
-                                <div className="inspector-skill-item">
-                                    <div className="inspector-skill-name">
-                                        <span>{selectedRelic.main_skill.name}</span>
-                                        <span className="inspector-skill-level">Lv. {selectedRelic.main_skill.level}</span>
-                                    </div>
-                                    <div className="inspector-skill-desc">
-                                        {getSkillDescription(selectedRelic.main_skill.name, selectedRelic.main_skill.level)}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {selectedRelic.aux_skills.length > 0 && (
-                                <div className="inspector-skill-group">
-                                    <div className="inspector-skill-title">Auxiliary Skills</div>
-                                    {selectedRelic.aux_skills.map((aux, idx) => (
-                                        <div key={idx} className="inspector-skill-item">
-                                            <div className="inspector-skill-name">
-                                                <span>{aux.name}</span>
-                                                <span className="inspector-skill-level">Lv. {aux.level}</span>
-                                            </div>
-                                            <div className="inspector-skill-desc">
-                                                {getSkillDescription(aux.name, aux.level)}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {selectedRelic.equipped && (
-                                <div className="inspector-skill-group">
-                                    <div className="inspector-skill-title">Status</div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
-                                            <img src={`/src/assets/doll_images/${selectedRelic.equipped}.png`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={selectedRelic.equipped} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                        </div>
-                                        <span style={{ color: 'var(--text-secondary)' }}>Equipped by <strong style={{ color: 'white' }}>{selectedRelic.equipped}</strong></span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <div className="empty-inspector">
-                        Select a relic from the inventory to view its details.
-                    </div>
-                )}
+                <RelicInspector selectedRelic={selectedRelic} />
             </div>
         </div>
     );

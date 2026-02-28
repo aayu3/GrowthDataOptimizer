@@ -165,6 +165,19 @@ body {
   box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
+.bg-dropdown {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.bg-dropdown option {
+  background-color: #1a1a2e;
+  color: white;
+}
+
 .action-row {
   display: flex;
   justify-content: center;
@@ -588,6 +601,19 @@ body {
   background: rgba(0, 0, 0, 0.3);
 }
 
+.db-inspector-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 4rem);
+  position: relative;
+}
+
+.inspector-close-btn:hover {
+  color: white !important;
+  transform: scale(1.1);
+}
+
 .db-inspector-title {
   font-size: 1.25rem;
   font-weight: bold;
@@ -650,4 +676,37 @@ body {
   padding: 3rem 1rem;
   text-align: center;
   color: var(--text-secondary);
+}
+
+.bonus-tier-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.bonus-tier-card:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 240, 255, 0.05) !important;
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
+}
+
+.bonus-hover-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--accent-color);
+  color: black;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.bonus-tier-card:hover .bonus-hover-hint {
+  opacity: 1;
 }

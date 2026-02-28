@@ -9,7 +9,9 @@ import relicInfo from './data/relicinfo.json';
 import { OptimizerConstraints, BuildResult, DollDefinition } from './optimizer/types';
 import { RelicDatabaseViewer } from './components/RelicDatabaseViewer';
 import { RelicThumbnail } from './components/RelicThumbnail';
-import { getSkillMaxLevel, getCatBadgeIconUrl } from './utils/relicUtils';
+import { RelicInspector } from './components/RelicInspector';
+import { getSkillMaxLevel, getCatBadgeIconUrl, getSkillCategory } from './utils/relicUtils';
+import { Relic } from './optimizer/types';
 
 function App() {
     const [activeTab, setActiveTab] = useState<'optimizer' | 'database'>('optimizer');
@@ -23,6 +25,12 @@ function App() {
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [hasOptimized, setHasOptimized] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [selectedCategoryForFilter, setSelectedCategoryForFilter] = useState<string>('Bulwark');
+    const [selectedSkillForFilter, setSelectedSkillForFilter] = useState<string>('');
+    const [activeSkillFilters, setActiveSkillFilters] = useState<string[]>([]);
+    const [includeOtherEquipped, setIncludeOtherEquipped] = useState(true);
+    const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
+
     const workerRef = useRef<Worker | null>(null);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,8 +88,13 @@ function App() {
             }
         };
 
+        let filteredRelics = relics;
+        if (!includeOtherEquipped) {
+            filteredRelics = relics.filter(r => !r.equipped || r.equipped === selectedDoll);
+        }
+
         workerRef.current!.postMessage({
-            relics,
+            relics: filteredRelics,
             constraints: {
                 ...constraints,
                 allowedSlots: (dollsData as Record<string, DollDefinition>)[selectedDoll!]?.allowed_slots
@@ -125,6 +138,35 @@ function App() {
             }
             return { ...prev, targetSkillLevels: updated };
         });
+    };
+
+    const addSkillFilter = () => {
+        if (selectedSkillForFilter && !activeSkillFilters.includes(selectedSkillForFilter)) {
+            setActiveSkillFilters(prev => [...prev, selectedSkillForFilter]);
+        }
+        setSelectedSkillForFilter(''); // reset
+    };
+
+    const removeSkillFilter = (skill: string) => {
+        setActiveSkillFilters(prev => prev.filter(s => s !== skill));
+        setConstraints(prev => {
+            const updated = { ...prev.targetSkillLevels };
+            delete updated[skill];
+            return { ...prev, targetSkillLevels: updated };
+        });
+    };
+
+    const applyBonusRequirements = (bonus: any) => {
+        const newTargets: Record<string, number> = {};
+        for (const [key, val] of Object.entries(bonus)) {
+            if (key !== 'tier' && key !== 'description') {
+                newTargets[key] = val as number;
+            }
+        }
+        setConstraints(prev => ({
+            ...prev,
+            targetCategoryLevels: newTargets
+        }));
     };
 
     // Group skills by category for UI
@@ -242,7 +284,10 @@ function App() {
                         <div className="constraints-grid">
                             {['Bulwark', 'Vanguard', 'Support', 'Sentinel'].map(cat => (
                                 <div key={cat} className="input-group">
-                                    <label>{cat} Points</label>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '16px', height: '16px' }} />
+                                        Min {cat} Points
+                                    </label>
                                     <input
                                         type="number"
                                         min="0"
@@ -257,28 +302,85 @@ function App() {
                         <h3 style={{ marginTop: '2rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Specific Skill Targets</h3>
                         <p className="hint">Optionally require minimum levels of specific skills (e.g. 6 levels of HP Boost)</p>
 
-                        {Object.entries(categorizedSkills).map(([catName, skills]) => (
-                            <div key={catName} style={{ marginTop: '1.5rem' }}>
-                                <h4 style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    {catName} Skills
-                                </h4>
-                                <div className="constraints-grid">
-                                    {skills.map(skill => (
-                                        <div key={skill} className="input-group">
-                                            <label>{skill} Lvl</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max={getSkillMaxLevel(skill)}
-                                                placeholder="0"
-                                                value={constraints.targetSkillLevels[skill] || ''}
-                                                onChange={(e) => handleTargetSkillChange(skill, e.target.value)}
-                                            />
-                                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'flex-end', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px' }}>
+                            <div className="input-group" style={{ flex: 1 }}>
+                                <label>Category</label>
+                                <select
+                                    value={selectedCategoryForFilter}
+                                    onChange={(e) => {
+                                        setSelectedCategoryForFilter(e.target.value);
+                                        setSelectedSkillForFilter('');
+                                    }}
+                                    className="bg-dropdown"
+                                >
+                                    {Object.keys(categorizedSkills).map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
                                     ))}
-                                </div>
+                                </select>
                             </div>
-                        ))}
+                            <div className="input-group" style={{ flex: 2 }}>
+                                <label>Skill</label>
+                                <select
+                                    value={selectedSkillForFilter}
+                                    onChange={(e) => setSelectedSkillForFilter(e.target.value)}
+                                    className="bg-dropdown"
+                                >
+                                    <option value="">-- Select a Skill --</option>
+                                    {categorizedSkills[selectedCategoryForFilter]?.map(skill => (
+                                        <option key={skill} value={skill} disabled={activeSkillFilters.includes(skill)}>{skill}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <button
+                                className="glow-btn"
+                                style={{ padding: '0.6rem 1.5rem', height: 'max-content' }}
+                                onClick={addSkillFilter}
+                                disabled={!selectedSkillForFilter}
+                            >
+                                + Add Filter
+                            </button>
+                        </div>
+
+                        {activeSkillFilters.length > 0 && (
+                            <div className="constraints-grid" style={{ marginTop: '1.5rem' }}>
+                                {activeSkillFilters.map(skill => (
+                                    <div key={skill} className="input-group" style={{ position: 'relative' }}>
+                                        <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <img src={getCatBadgeIconUrl(getSkillCategory(skill))} alt="cat" style={{ width: '14px', height: '14px' }} />
+                                                <span>Min {skill} Lvl</span>
+                                            </div>
+                                            <button
+                                                onClick={() => removeSkillFilter(skill)}
+                                                style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
+                                                title="Remove Filter"
+                                            >×</button>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max={getSkillMaxLevel(skill)}
+                                            placeholder="0"
+                                            value={constraints.targetSkillLevels[skill] || ''}
+                                            onChange={(e) => handleTargetSkillChange(skill, e.target.value)}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <input
+                                type="checkbox"
+                                id="includeEquipped"
+                                checked={includeOtherEquipped}
+                                onChange={(e) => setIncludeOtherEquipped(e.target.checked)}
+                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="includeEquipped" style={{ cursor: 'pointer', fontSize: '0.95rem' }}>
+                                Include relics equipped by other characters
+                            </label>
+                        </div>
                     </section>
 
                     <section className="card glassmorphism" style={{ position: 'sticky', top: '2rem' }}>
@@ -300,24 +402,34 @@ function App() {
                                 }
 
                                 return (
-                                    <div key={idx} style={{
-                                        padding: '1rem',
-                                        background: isActive ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)',
-                                        border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)'}`,
-                                        borderRadius: '8px',
-                                        transition: 'all 0.3s ease'
-                                    }}>
+                                    <div
+                                        key={idx}
+                                        className="bonus-tier-card"
+                                        onClick={() => applyBonusRequirements(bonus)}
+                                        style={{
+                                            padding: '1rem',
+                                            background: isActive ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)',
+                                            border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)'}`,
+                                            borderRadius: '8px',
+                                            transition: 'all 0.3s ease',
+                                            cursor: 'pointer',
+                                            position: 'relative'
+                                        }}
+                                        title="Click to set as Optimizer Target"
+                                    >
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                             <strong style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)' }}>Bonus Tier {bonus.tier}</strong>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 {Object.entries(requirements).map(([cat, req]) => (
-                                                    <span key={cat} style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.5)', padding: '2px 6px', borderRadius: '4px', color: (constraints.targetCategoryLevels[cat] || 0) >= req ? 'var(--success)' : 'var(--text-secondary)' }}>
-                                                        {req} {cat}
+                                                    <span key={cat} style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.3rem', color: (constraints.targetCategoryLevels[cat] || 0) >= req ? 'var(--success)' : 'var(--text-secondary)' }}>
+                                                        <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '14px', height: '14px' }} />
+                                                        {req}
                                                     </span>
                                                 ))}
                                             </div>
                                         </div>
                                         <div style={{ fontSize: '0.9rem', color: isActive ? 'white' : 'var(--text-secondary)' }}>{bonus.description}</div>
+                                        <div className="bonus-hover-hint">Apply Targets</div>
                                     </div>
                                 );
                             })}
@@ -342,27 +454,42 @@ function App() {
                                 ⬇ Export to JSON
                             </button>
                         </div>
-                        <div className="results-grid">
-                            {results.slice(0, 50).map((res, i) => (
-                                <div key={i} className="result-card glassmorphism">
-                                    <h3>Build #{i + 1}</h3>
-                                    <div className="stats-row" style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
-                                        {Object.entries(res.rawCategoryLevels).map(([cat, lvl]) => (
-                                            <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
-                                                <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '20px', height: '20px' }} />
-                                                <span style={{ color: 'var(--text-primary)' }}>{lvl}</span>
-                                            </div>
-                                        ))}
+                        <div style={{ display: 'grid', gridTemplateColumns: selectedRelicInResults ? '1fr 350px' : '1fr', gap: '2rem', alignItems: 'start' }}>
+                            <div className="results-grid" style={{ gridTemplateColumns: selectedRelicInResults ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))' }}>
+                                {results.slice(0, 50).map((res, i) => (
+                                    <div key={i} className="result-card glassmorphism">
+                                        <h3>Build #{i + 1}</h3>
+                                        <div className="stats-row" style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                                            {Object.entries(res.rawCategoryLevels).map(([cat, lvl]) => (
+                                                <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
+                                                    <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '20px', height: '20px' }} />
+                                                    <span style={{ color: 'var(--text-primary)' }}>{lvl}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="relic-list" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '0.5rem', background: 'none', padding: 0 }}>
+                                            {res.relics.map((r, ri) => (
+                                                <div key={ri} style={{ width: '80px', height: '80px' }}>
+                                                    <RelicThumbnail
+                                                        relic={r}
+                                                        isSelected={selectedRelicInResults?.id === r.id && selectedRelicInResults?.id !== undefined}
+                                                        onClick={() => setSelectedRelicInResults(r)}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="relic-list" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '0.5rem', background: 'none', padding: 0 }}>
-                                        {res.relics.map((r, ri) => (
-                                            <div key={ri} style={{ width: '80px', height: '80px' }}>
-                                                <RelicThumbnail relic={r} />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+
+                            {selectedRelicInResults && (
+                                <aside className="card glassmorphism" style={{ position: 'sticky', top: '2rem' }}>
+                                    <RelicInspector
+                                        selectedRelic={selectedRelicInResults}
+                                        onClose={() => setSelectedRelicInResults(null)}
+                                    />
+                                </aside>
+                            )}
                         </div>
                         {results.length > 50 && <p className="hint">Showing top 50 results...</p>}
                     </section>
