@@ -82,5 +82,56 @@
                 "Sentinel": 18
             }
         ]
+    },
+    "Tololo" : {
+        "allowed_slots" : {
+            "Sentinel": 4,
+            "Vanguard": 1,
+            "Bulwark": 1            
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "When performing consecutive active attacks on the same enemy target in the same turn, damage dealt is increased by 5%.",
+                "Sentinel": 5,
+                "Vanguard": 1
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 2,
+                "Sentinel": 7
+            },
+            {
+                "tier": 3,
+                "description": "Hydro damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 3,
+                "Sentinel": 8
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 4,
+                "Sentinel": 11
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 4,
+                "Sentinel": 15
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+                "Bulwark": 5,
+                "Vanguard": 6,
+                "Sentinel": 18
+            }
+        ]
     }
+
 }
