@@ -1923,18 +1923,412 @@
             }
         ]
     },
-    "Tololo": {
+    "Qiongjiu": {
         "allowed_slots": {
-            "Sentinel": 4,
-            "Vanguard": 1,
+            "Sentinel": 3,
+            "Vanguard": 2,
             "Bulwark": 1
         },
         "bonuses": [
             {
                 "tier": 1,
+                "description": "Damage dealt by Support Attacks is increased by 5%.",
+                "Vanguard": 2,
+                "Sentinel": 4
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 3,
+                "Sentinel": 6
+            },
+            {
+                "tier": 3,
+                "description": "Burn damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 5,
+                "Sentinel": 7
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 6,
+                "Sentinel": 9
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 6,
+                "Sentinel": 13
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+                "Bulwark": 5,
+                "Vanguard": 9,
+                "Sentinel": 15
+            }
+        ]
+    },
+    "Qiuhua": {
+        "allowed_slots": {
+            "Vanguard": 4,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt to enemy units with Burn debuffs is increased by 5%.",
+                "Vanguard": 5,
+                "Sentinel": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Vanguard": 8,
+                "Sentinel": 3
+            },
+            {
+                "tier": 3,
+                "description": "Burn damage dealt is increased by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 9,
+                "Sentinel": 4
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets with 50% or lower HP is increased by 10%.",
+                "Bulwark": 2,
+                "Vanguard": 11,
+                "Sentinel": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 2,
+                "Vanguard": 15,
+                "Sentinel": 7
+            },
+            {
+                "tier": 6,
+                "description": "After inflicting a critical hit, deals 3 points of fixed stability damage to the enemy target. This effect can trigger up to 2 times per turn.",
+                "Bulwark": 3,
+                "Vanguard": 18,
+                "Sentinel": 8
+            }
+        ]
+    },
+    "Robella": {
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Bulwark": 1,
+            "Vanguard": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "When the unit has a shield, damage dealt is increased by 5%.",
+                "Vanguard": 1,
+                "Sentinel": 5
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 2,
+                "Sentinel": 7
+            },
+            {
+                "tier": 3,
+                "description": "Freeze damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 3,
+                "Sentinel": 8
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 4,
+                "Sentinel": 11
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 4,
+                "Sentinel": 15
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+                "Bulwark": 5,
+                "Vanguard": 6,
+                "Sentinel": 18
+            }
+        ]
+    },
+    "Sabrina": {
+        "allowed_slots": {
+            "Bulwark": 3,
+            "Support": 2,
+            "Sentinel": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "When attacked by enemy units with Hydro debuffs, damage taken is reduced by 5%.",
+                "Bulwark": 4,
+                "Support": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 6,
+                "Support": 3,
+                "Sentinel": 1
+            },
+            {
+                "tier": 3,
+                "description": "Hydro damage dealt is increased by 5%.",
+                "Bulwark": 7,
+                "Support": 8,
+                "Sentinel": 2
+            },
+            {
+                "tier": 4,
+                "description": "When not protected by cover, damage taken is reduce by 5%.",
+                "Bulwark": 9,
+                "Support": 6,
+                "Sentinel": 3
+            },
+            {
+                "tier": 5,
+                "description": "Defense is increased by 8%.",
+                "Bulwark": 13,
+                "Support": 6,
+                "Sentinel": 4
+            },
+            {
+                "tier": 6,
+                "description": "When stability is greater than 0, damage taken by allied units (not including this unit) is reduced by 2%. this effect can stack up to 3 times.",
+                "Bulwark": 15,
+                "Support": 9,
+                "Sentinel": 5
+            }
+        ]
+    },
+    "Sakura": {
+        "allowed_slots": {
+            "Vanguard": 3,
+            "Sentinel": 2,
+            "Bulwark": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt to enemy units with Burn debuffs is increased by 5%.",
+                "Vanguard": 4,
+                "Sentinel": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 6,
+                "Sentinel": 3
+            },
+            {
+                "tier": 3,
+                "description": "Burn damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 7,
+                "Sentinel": 5
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets with 50% or lower HP is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 9,
+                "Sentinel": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 13,
+                "Sentinel": 6
+            },
+            {
+                "tier": 6,
+                "description": "The damage of attacks which hit 2 or more enemy units is increased by 12%.",
+                "Bulwark": 5,
+                "Vanguard": 15,
+                "Sentinel": 9
+            }
+        ]
+    },
+    "Sharkry": {
+        "allowed_slots": {
+            "Sentinel": 3,
+            "Vanguard": 2,
+            "Bulwark": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt by Support Attacks is increased by 5%.",
+                "Vanguard": 2,
+                "Sentinel": 4
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 3,
+                "Sentinel": 6
+            },
+            {
+                "tier": 3,
+                "description": "Burn damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 5,
+                "Sentinel": 7
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 6,
+                "Sentinel": 9
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 6,
+                "Sentinel": 13
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+                "Bulwark": 5,
+                "Vanguard": 9,
+                "Sentinel": 15
+            }
+        ]
+    },
+    "Springfield": {
+        "allowed_slots": {
+            "Support": 4,
+            "Bulwark": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "For every instance of Hydro damage dealt by this unit, Hydro damage dealt by all allied units is increased by 1%, maximum of 3%. Does not stack.",
+                "Bulwark": 2,
+                "Support": 5
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 3,
+                "Support": 8
+            },
+            {
+                "tier": 3,
+                "description": "Hydro damage dealt is increased by 5%.",
+                "Bulwark": 4,
+                "Support": 9,
+                "Sentinel": 1
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt by all allied units is increased by 4%, maximum of 3 stacks. The effect's potency is progressively reduced by 1% each time a new stack is applied.",
+                "Bulwark": 6,
+                "Support": 11,
+                "Sentinel": 2
+            },
+            {
+                "tier": 5,
+                "description": "Attack and max HP is increased by 4%.",
+                "Bulwark": 7,
+                "Support": 15,
+                "Sentinel": 2
+            },
+            {
+                "tier": 6,
+                "description": "At the start of battle, the 2 allied units with the highest attack have their attack increased by 3%. Does not stack.",
+                "Bulwark": 8,
+                "Support": 18,
+                "Sentinel": 3
+            }
+        ]
+    },
+    "Suomi": {
+        "allowed_slots": {
+            "Support": 4,
+            "Bulwark": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "The defense of all allied units with Frost barrier is increased by 5%. Does not stack.",
+                "Bulwark": 2,
+                "Support": 5
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 3,
+                "Support": 8
+            },
+            {
+                "tier": 3,
+                "description": "Freeze damage dealt is increased by 5%.",
+                "Bulwark": 4,
+                "Support": 9,
+                "Sentinel": 1
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt by all allied units is increased by 4%, maximum of 3 stacks. The effect's potency is progressively reduced by 1% each time a new stack is applied.",
+                "Bulwark": 6,
+                "Support": 11,
+                "Sentinel": 2
+            },
+            {
+                "tier": 5,
+                "description": "Attack and max HP is increased by 4%.",
+                "Bulwark": 7,
+                "Support": 15,
+                "Sentinel": 2
+            },
+            {
+                "tier": 6,
+                "description": "Shield effects applied by this unit are increased by 12%.",
+                "Bulwark": 8,
+                "Support": 18,
+                "Sentinel": 3
+            }
+        ]
+    },
+    "Tololo": {
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Bulwark": 1,
+            "Vanguard": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
                 "description": "When performing consecutive active attacks on the same enemy target in the same turn, damage dealt is increased by 5%.",
-                "Sentinel": 5,
-                "Vanguard": 1
+                "Vanguard": 1,
+                "Sentinel": 5
             },
             {
                 "tier": 2,
@@ -1970,6 +2364,301 @@
                 "Bulwark": 5,
                 "Vanguard": 6,
                 "Sentinel": 18
+            }
+        ]
+    },
+    "Ullrid": {
+        "allowed_slots": {
+            "Vanguard": 4,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "When performing consecutive active attacks on the same enemy target in the same turn, critical damage dealt is increased by 5%.",
+                "Vanguard": 5,
+                "Sentinel": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Vanguard": 8,
+                "Sentinel": 3
+            },
+            {
+                "tier": 3,
+                "description": "Physical damage dealt is increased by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 9,
+                "Sentinel": 4
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets with 50% or lower HP is increased by 10%.",
+                "Bulwark": 2,
+                "Vanguard": 11,
+                "Sentinel": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 2,
+                "Vanguard": 15,
+                "Sentinel": 7
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt to enemy units within 3 tiles is increased by 12%.",
+                "Bulwark": 3,
+                "Vanguard": 18,
+                "Sentinel": 8
+            }
+        ]
+    },
+    "Vector": {
+        "allowed_slots": {
+            "Support": 4,
+            "Bulwark": 1,
+            "Sentinel": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "For every instance of Burn damage dealt by this unit, Burn damage dealt by all allied units is increased by 1%, maximum of 3%. Does not stack.",
+                "Support": 5,
+                "Sentinel": 1
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Support": 7,
+                "Sentinel": 2
+            },
+            {
+                "tier": 3,
+                "description": "Burn damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Support": 8,
+                "Sentinel": 3
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt by all allied units is increased by 4%, maximum of 3 stacks. The effect's potency is progressively reduced by 1% each time a new stack is applied.",
+                "Bulwark": 3,
+                "Support": 11,
+                "Sentinel": 4
+            },
+            {
+                "tier": 5,
+                "description": "Attack and max HP is increased by 4%.",
+                "Bulwark": 4,
+                "Support": 15,
+                "Sentinel": 4
+            },
+            {
+                "tier": 6,
+                "description": "At the start of the battle, the 2 allied units with the highest attack have their attack increased by 3%. Does not stack.",
+                "Bulwark": 5,
+                "Support": 18,
+                "Sentinel": 6
+            }
+        ]
+    },
+    "Vepley": {
+        "allowed_slots": {
+            "Vanguard": 3,
+            "Sentinel": 2,
+            "Bulwark": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt to enemy units with movement debuffs is increased by 5%.",
+                "Vanguard": 4,
+                "Sentinel": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 6,
+                "Sentinel": 3
+            },
+            {
+                "tier": 3,
+                "description": "Physical damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 7,
+                "Sentinel": 5
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets with 50% or lower HP is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 9,
+                "Sentinel": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 13,
+                "Sentinel": 6
+            },
+            {
+                "tier": 6,
+                "description": "After inflicting a critical hit, deal 6 points of fixed stability damage to the enemy target. This effect can trigger up to 1 time per turn.",
+                "Bulwark": 5,
+                "Vanguard": 14,
+                "Sentinel": 9
+            }
+        ]
+    },
+    "Voymastina": {
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Bulwark": 1,
+            "Vanguard": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "When dealing melee damage, damage dealt increases by 8%.",
+                "Vanguard": 1,
+                "Sentinel": 5
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 2,
+                "Sentinel": 7
+            },
+            {
+                "tier": 3,
+                "description": "Physical damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 3,
+                "Sentinel": 8
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 4,
+                "Sentinel": 11
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 4,
+                "Sentinel": 15
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+                "Bulwark": 5,
+                "Vanguard": 6,
+                "Sentinel": 18
+            }
+        ]
+    },
+    "Yoohee": {
+        "allowed_slots": {
+            "Support": 4,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "When Physical allied units deal damage, they ignore 5% of the target's defense. Does not stack.",
+                "Support": 5,
+                "Sentinel": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Support": 8,
+                "Sentinel": 3
+            },
+            {
+                "tier": 3,
+                "description": "Physical damage dealt is increased by 5%.",
+                "Bulwark": 1,
+                "Support": 9,
+                "Sentinel": 4
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt by all allied units is increased by 4%, maximum of 3 stacks. The effect's potency is progressively reduced by 1% each time a new stack is applied.",
+                "Bulwark": 2,
+                "Support": 11,
+                "Sentinel": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack and max HP is increased by 4%.",
+                "Bulwark": 2,
+                "Support": 15,
+                "Sentinel": 7
+            },
+            {
+                "tier": 6,
+                "description": "At the start of the battle, the 2 allied units with the highest attack have their attack increased by 3%. Does not stack.",
+                "Bulwark": 3,
+                "Support": 18,
+                "Sentinel": 8
+            }
+        ]
+    },
+    "Zhaohui": {
+        "allowed_slots": {
+            "Vanguard": 4,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt to enemy units with Hydro debuffs is increased by 5%.",
+                "Vanguard": 5,
+                "Sentinel": 1
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Bulwark": 1,
+                "Vanguard": 7,
+                "Sentinel": 2
+            },
+            {
+                "tier": 3,
+                "description": "Hydro damage dealt is increased by 5%.",
+                "Bulwark": 2,
+                "Vanguard": 8,
+                "Sentinel": 3
+            },
+            {
+                "tier": 4,
+                "description": "damage dealt to enemy targets with 50% or lower HP is increased by 10%.",
+                "Bulwark": 3,
+                "Vanguard": 11,
+                "Sentinel": 4
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 4,
+                "Vanguard": 15,
+                "Sentinel": 4
+            },
+            {
+                "tier": 6,
+                "description": "After inflicting a critical hit, deals 3 points of fixed stability damage to the enemy target. This effect can trigger up to 2 times per turn.",
+                "Bulwark": 5,
+                "Vanguard": 18,
+                "Sentinel": 6
             }
         ]
     }
