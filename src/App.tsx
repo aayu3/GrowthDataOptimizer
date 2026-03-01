@@ -40,13 +40,11 @@ function App() {
     const [showImportModal, setShowImportModal] = useState(false);
     const [importFileName, setImportFileName] = useState('');
     const [showExportModal, setShowExportModal] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const workerRef = useRef<Worker | null>(null);
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
+    const processFile = (file: File) => {
         const reader = new FileReader();
         reader.onload = async (event) => {
             try {
@@ -66,6 +64,28 @@ function App() {
             }
         };
         reader.readAsText(file);
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) processFile(file);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) processFile(file);
     };
 
     const handleExportInventory = async () => {
@@ -257,13 +277,32 @@ function App() {
                         <h3 style={{ margin: 0 }}>Import Relics</h3>
                         <p>Upload a JSON file containing relics to import.</p>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem',
+                                border: `2px dashed ${isDragging ? 'var(--accent-color)' : 'rgba(255,255,255,0.2)'}`,
+                                borderRadius: '8px',
+                                padding: '2rem 1rem',
+                                background: isDragging ? 'rgba(242, 108, 21, 0.1)' : 'rgba(0,0,0,0.2)',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                        >
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                                Drag and drop your JSON file here, or
+                            </span>
                             <label className="glow-btn" style={{ cursor: 'pointer', padding: '0.4rem 0.8rem', fontSize: '0.9rem', flexShrink: 0 }}>
-                                Browse
+                                Browse Files
                                 <input type="file" accept=".json" onChange={handleFileUpload} hidden />
                             </label>
-                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {importFileName || 'No file selected'}
+                            <span style={{ fontSize: '0.9rem', color: 'var(--accent-glow)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', marginTop: '0.5rem' }}>
+                                {importFileName}
                             </span>
                         </div>
 
