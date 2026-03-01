@@ -229,7 +229,7 @@ function App() {
                     <div className="nav-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
                         <button className="back-btn" style={{ position: 'relative' }} onClick={() => setActiveTab('database')}>Browse Database</button>
                         <label className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
-                            Upload inventory.json
+                            Upload Inventory
                             <input type="file" accept=".json" onChange={handleFileUpload} hidden />
                         </label>
                     </div>
