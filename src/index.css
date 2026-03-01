@@ -41,7 +41,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 3rem 2rem;
-  max-width: 1000px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -163,6 +163,26 @@ body {
   outline: none;
   border-color: var(--accent-color);
   box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.input-group input[type="range"] {
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(0, 0, 0, 0.4);
+  height: 6px;
+  border: none;
+}
+
+.input-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .bg-dropdown {

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db/database';
 import './index.css';
@@ -142,6 +142,18 @@ function App() {
             return { ...prev, targetCategoryLevels: updated };
         });
     };
+
+    // Debounced automatic optimization trigger
+    useEffect(() => {
+        if (!selectedDoll || relics.length === 0) return;
+
+        const timer = setTimeout(() => {
+            startOptimization();
+        }, 500);
+
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [constraints, selectedDoll, includeOtherEquipped]);
 
     const handleTargetSkillChange = (skillName: string, value: string) => {
         const num = parseInt(value, 10);
@@ -313,7 +325,7 @@ function App() {
             </header>
 
             <main className="main-content">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 350px 350px', gap: '2rem', alignItems: 'start' }}>
                     <section className="card glassmorphism">
                         <h2>1. Target Constraints</h2>
                         <p className="hint">Select minimum category points (e.g., Bulwark: 12)</p>
@@ -392,14 +404,17 @@ function App() {
                                                 title="Remove Filter"
                                             >×</button>
                                         </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max={getSkillMaxLevel(skill)}
-                                            placeholder="0"
-                                            value={constraints.targetSkillLevels[skill] || ''}
-                                            onChange={(e) => handleTargetSkillChange(skill, e.target.value)}
-                                        />
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', marginTop: '0.5rem' }}>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max={getSkillMaxLevel(skill)}
+                                                value={constraints.targetSkillLevels[skill] || 0}
+                                                onChange={(e) => handleTargetSkillChange(skill, e.target.value)}
+                                                style={{ flex: 1, accentColor: 'var(--accent-color)', margin: 0 }}
+                                            />
+                                            <span style={{ minWidth: '20px', textAlign: 'right', fontWeight: 'bold' }}>{constraints.targetSkillLevels[skill] || 0}</span>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -522,6 +537,9 @@ function App() {
                                 </div>
                             )}
                         </section>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: '2rem' }}>
 
                         <section className="card glassmorphism">
                             <h2 style={{ fontSize: '1.25rem' }}>Character Passives</h2>
@@ -578,7 +596,7 @@ function App() {
                     </div>
                 </div>
 
-                <div className="action-row">
+                <div className="action-row" style={{ justifyContent: 'flex-start' }}>
                     <button
                         className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
                         onClick={startOptimization}
