@@ -11,6 +11,7 @@ export interface Relic {
     main_skill: RelicSkill;
     aux_skills: RelicSkill[];
     equipped: string | null;
+    createdAt?: number; // Timestamp for sorting
 }
 
 export interface OptimizerConstraints {

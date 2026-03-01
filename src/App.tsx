@@ -52,7 +52,7 @@ function App() {
                     // Optionally strip ID if json has them to let auto-increment handle it, or just bulkAdd
                     await db.relics.bulkAdd(json.map((r: any) => {
                         const { id, ...rest } = r; // remove static ids if present
-                        return rest;
+                        return { ...rest, createdAt: Date.now() };
                     }));
                     setErrorMsg('');
                 } else {
@@ -63,6 +63,17 @@ function App() {
             }
         };
         reader.readAsText(file);
+    };
+
+    const handleExportInventory = async () => {
+        const allRelics = await db.relics.toArray();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allRelics, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "relic_inventory.json");
+        document.body.appendChild(downloadAnchorNode); // required for firefox
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
     };
 
     const startOptimization = () => {
@@ -232,6 +243,9 @@ function App() {
                             Upload Inventory
                             <input type="file" accept=".json" onChange={handleFileUpload} hidden />
                         </label>
+                        <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem' }} onClick={handleExportInventory}>
+                            Export Inventory
+                        </button>
                     </div>
                     <div style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                         {relics.length > 0 ? <span className="success">✓ Database holds {relics.length} Relics</span> : <span>No relics loaded.</span>}
@@ -534,7 +548,7 @@ function App() {
                                             onClick={() => applyBonusRequirements(bonus)}
                                             style={{
                                                 padding: '1rem',
-                                                background: isActive ? 'rgba(0, 240, 255, 0.1)' : 'rgba(0,0,0,0.3)',
+                                                background: isActive ? 'rgba(242, 108, 21, 0.1)' : 'rgba(0,0,0,0.3)',
                                                 border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)'}`,
                                                 borderRadius: '8px',
                                                 transition: 'all 0.3s ease',

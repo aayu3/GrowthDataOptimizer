@@ -4,13 +4,17 @@ import { db } from '../db/database';
 import { Relic } from '../optimizer/types';
 import { RelicThumbnail } from './RelicThumbnail';
 import { RelicInspector } from './RelicInspector';
+import { RelicEditorModal } from './RelicEditorModal';
 
 export const RelicDatabaseViewer: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('All');
     const [filterRarity, setFilterRarity] = useState<string>('All');
+    const [sortMethod, setSortMethod] = useState<string>('Level'); // 'Level' or 'Time'
     const [sortReverse, setSortReverse] = useState<boolean>(false);
     const [selectedRelic, setSelectedRelic] = useState<Relic | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [relicToEdit, setRelicToEdit] = useState<Relic | null>(null);
 
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
 
@@ -34,17 +38,25 @@ export const RelicDatabaseViewer: React.FC = () => {
         }
 
         filtered.sort((a, b) => {
-            // Sort by Rarity (T4 > T3 > T2) then by total_level
-            if (a.rarity !== b.rarity) {
-                const cmp = b.rarity.localeCompare(a.rarity);
-                return sortReverse ? -cmp : cmp;
+            if (sortMethod === 'Time') {
+                const timeA = a.createdAt || 0;
+                const timeB = b.createdAt || 0;
+                const cmpTime = timeA - timeB;
+                // Default chronological is Oldest -> Newest. sortReverse means Newest -> Oldest.
+                return sortReverse ? -cmpTime : cmpTime;
+            } else {
+                // Sort by Rarity (T4 > T3 > T2) then by total_level
+                if (a.rarity !== b.rarity) {
+                    const cmp = b.rarity.localeCompare(a.rarity);
+                    return sortReverse ? -cmp : cmp;
+                }
+                const cmpLvl = b.total_level - a.total_level;
+                return sortReverse ? -cmpLvl : cmpLvl;
             }
-            const cmpLvl = b.total_level - a.total_level;
-            return sortReverse ? -cmpLvl : cmpLvl;
         });
 
         return filtered;
-    }, [relics, filterCategory, filterRarity, searchTerm, sortReverse]);
+    }, [relics, filterCategory, filterRarity, searchTerm, sortMethod, sortReverse]);
 
     return (
         <div className="db-viewer-layout">
@@ -73,12 +85,22 @@ export const RelicDatabaseViewer: React.FC = () => {
                         <option value="Sentinel">Sentinel</option>
                     </select>
 
+                    <select value={sortMethod} onChange={e => setSortMethod(e.target.value)}>
+                        <option value="Level">Sort by Level</option>
+                        <option value="Time">Sort by Time added</option>
+                    </select>
+
                     <button onClick={() => setSortReverse(!sortReverse)}>
-                        Sort: {sortReverse ? '▲ Ascending' : '▼ Descending'}
+                        {sortReverse ? '▲ Ascending' : '▼ Descending'}
                     </button>
 
-                    <div style={{ marginLeft: 'auto', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                        Showing {displayRelics.length} items
+                    <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                            Showing {displayRelics.length} items
+                        </div>
+                        <button className="glow-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => { setRelicToEdit(null); setIsEditing(true); }}>
+                            + Add Relic
+                        </button>
                     </div>
                 </div>
 
@@ -102,8 +124,32 @@ export const RelicDatabaseViewer: React.FC = () => {
 
             {/* Inspector Panel */}
             <div className="db-inspector-section">
-                <RelicInspector selectedRelic={selectedRelic} />
+                <RelicInspector
+                    selectedRelic={selectedRelic}
+                    onEdit={(relic) => {
+                        setRelicToEdit(relic);
+                        setIsEditing(true);
+                    }}
+                    onDelete={async (relic) => {
+                        if (relic.id) {
+                            if (window.confirm("Are you sure you want to delete this relic?")) {
+                                await db.relics.delete(relic.id);
+                                if (selectedRelic?.id === relic.id) setSelectedRelic(null);
+                            }
+                        }
+                    }}
+                />
             </div>
+
+            {isEditing && (
+                <RelicEditorModal
+                    relicToEdit={relicToEdit}
+                    onClose={() => {
+                        setIsEditing(false);
+                        setRelicToEdit(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

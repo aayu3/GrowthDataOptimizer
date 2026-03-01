@@ -2,12 +2,14 @@ import React from 'react';
 import { Relic } from '../optimizer/types';
 import { getSkillDescription, getDollImageUrl } from '../utils/relicUtils';
 
-interface RelicInspectorProps {
+export interface RelicInspectorProps {
     selectedRelic: Relic | null;
     onClose?: () => void;
+    onEdit?: (relic: Relic) => void;
+    onDelete?: (relic: Relic) => void;
 }
 
-export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, onClose }) => {
+export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, onClose, onEdit, onDelete }) => {
     if (!selectedRelic) {
         return (
             <div className="empty-inspector">
@@ -80,6 +82,21 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
                             </div>
                             <span style={{ color: 'var(--text-secondary)' }}>Equipped by <strong style={{ color: 'white' }}>{selectedRelic.equipped}</strong></span>
                         </div>
+                    </div>
+                )}
+
+                {(onEdit || onDelete) && (
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                        {onEdit && (
+                            <button className="glow-btn" style={{ flex: 1, padding: '0.4rem 0', fontSize: '0.85rem' }} onClick={() => onEdit(selectedRelic)}>
+                                Edit Relic
+                            </button>
+                        )}
+                        {onDelete && (
+                            <button className="back-btn" style={{ position: 'relative', flex: 1, padding: '0.4rem 0', fontSize: '0.85rem', color: '#ff4c4c', borderColor: 'rgba(255, 76, 76, 0.3)' }} onClick={() => onDelete(selectedRelic)}>
+                                Delete Relic
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
