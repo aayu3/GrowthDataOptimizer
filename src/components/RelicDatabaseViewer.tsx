@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Relic } from '../optimizer/types';
 import { RelicThumbnail } from './RelicThumbnail';
-import { RelicInspector } from './RelicInspector';
+import { RelicModal } from './RelicModal';
 import { RelicEditorModal } from './RelicEditorModal';
 
 export const RelicDatabaseViewer: React.FC = () => {
@@ -122,10 +122,11 @@ export const RelicDatabaseViewer: React.FC = () => {
                 </div>
             </div>
 
-            {/* Inspector Panel */}
-            <div className="db-inspector-section">
-                <RelicInspector
-                    selectedRelic={selectedRelic}
+            {/* Inspector Modal */}
+            {selectedRelic && (
+                <RelicModal
+                    relic={selectedRelic}
+                    onClose={() => setSelectedRelic(null)}
                     onEdit={(relic) => {
                         setRelicToEdit(relic);
                         setIsEditing(true);
@@ -139,7 +140,7 @@ export const RelicDatabaseViewer: React.FC = () => {
                         }
                     }}
                 />
-            </div>
+            )}
 
             {isEditing && (
                 <RelicEditorModal
