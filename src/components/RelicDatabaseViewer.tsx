@@ -6,7 +6,13 @@ import { RelicThumbnail } from './RelicThumbnail';
 import { RelicModal } from './RelicModal';
 import { RelicEditorModal } from './RelicEditorModal';
 
-export const RelicDatabaseViewer: React.FC = () => {
+export interface RelicDatabaseViewerProps {
+    mode?: 'view' | 'select';
+    onSelect?: (relic: Relic) => void;
+    excludeEquippedBy?: string;
+}
+
+export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode = 'view', onSelect, excludeEquippedBy }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('All');
     const [filterRarity, setFilterRarity] = useState<string>('All');
@@ -23,6 +29,10 @@ export const RelicDatabaseViewer: React.FC = () => {
 
         if (filterCategory !== 'All') {
             filtered = filtered.filter(r => r.type === filterCategory);
+        }
+
+        if (excludeEquippedBy) {
+            filtered = filtered.filter(r => r.equipped !== excludeEquippedBy);
         }
 
         if (filterRarity !== 'All') {
@@ -56,7 +66,7 @@ export const RelicDatabaseViewer: React.FC = () => {
         });
 
         return filtered;
-    }, [relics, filterCategory, filterRarity, searchTerm, sortMethod, sortReverse]);
+    }, [relics, filterCategory, filterRarity, searchTerm, sortMethod, sortReverse, excludeEquippedBy]);
 
     return (
         <div className="db-viewer-layout">
@@ -98,9 +108,11 @@ export const RelicDatabaseViewer: React.FC = () => {
                         <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                             Showing {displayRelics.length} items
                         </div>
-                        <button className="glow-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => { setRelicToEdit(null); setIsEditing(true); }}>
-                            + Add Relic
-                        </button>
+                        {mode === 'view' && (
+                            <button className="glow-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => { setRelicToEdit(null); setIsEditing(true); }}>
+                                + Add Relic
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -114,7 +126,13 @@ export const RelicDatabaseViewer: React.FC = () => {
                                     key={r.id || i}
                                     relic={r}
                                     isSelected={isSelected}
-                                    onClick={() => setSelectedRelic(r)}
+                                    onClick={() => {
+                                        if (mode === 'select' && onSelect) {
+                                            onSelect(r);
+                                        } else {
+                                            setSelectedRelic(r);
+                                        }
+                                    }}
                                 />
                             );
                         })}

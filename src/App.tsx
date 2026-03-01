@@ -10,6 +10,7 @@ import { OptimizerConstraints, BuildResult, DollDefinition } from './optimizer/t
 import { RelicDatabaseViewer } from './components/RelicDatabaseViewer';
 import { RelicThumbnail } from './components/RelicThumbnail';
 import { RelicModal } from './components/RelicModal';
+import { RelicInventoryModal } from './components/RelicInventoryModal';
 import { getSkillMaxLevel, getCatBadgeIconUrl, getSkillCategory } from './utils/relicUtils';
 import { Relic } from './optimizer/types';
 
@@ -34,9 +35,7 @@ function App() {
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
-    const [inventorySearchQuery, setInventorySearchQuery] = useState('');
     const [isEditingEquip, setIsEditingEquip] = useState(false);
-    const [equipError, setEquipError] = useState<string | null>(null);
 
     const workerRef = useRef<Worker | null>(null);
 
@@ -477,15 +476,13 @@ function App() {
                                     <h2 style={{ fontSize: '1.25rem' }}>Currently Equipped</h2>
                                     <button
                                         className="glow-btn"
-                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: isEditingEquip ? 'rgba(50, 200, 50, 0.2)' : undefined, borderColor: isEditingEquip ? 'rgba(50, 200, 50, 0.4)' : undefined }}
+                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
                                         onClick={() => {
-                                            setIsEditingEquip(!isEditingEquip);
-                                            setInventorySearchQuery('');
-                                            setEquipError(null);
+                                            setIsEditingEquip(true);
                                             setSelectedEquippedRelic(null);
                                         }}
                                     >
-                                        {isEditingEquip ? 'Done' : 'Edit'}
+                                        + Equip Relic
                                     </button>
                                 </div>
 
@@ -498,15 +495,14 @@ function App() {
                                                         relic={r}
                                                         isSelected={selectedEquippedRelic?.id === r.id}
                                                         onClick={() => setSelectedEquippedRelic(r)}
-                                                        onUnequip={isEditingEquip ? async () => {
+                                                        onUnequip={async () => {
                                                             if (r.id) {
                                                                 await db.relics.update(r.id, { equipped: undefined });
                                                                 if (selectedEquippedRelic?.id === r.id) {
                                                                     setSelectedEquippedRelic(null);
                                                                 }
-                                                                setEquipError(null);
                                                             }
-                                                        } : undefined}
+                                                        }}
                                                     />
                                                 </div>
                                             ))}
@@ -549,55 +545,11 @@ function App() {
                                     />
                                 )}
 
-                                {isEditingEquip && (
-                                    <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                        <input
-                                            type="text"
-                                            placeholder="Search inventory to equip..."
-                                            value={inventorySearchQuery}
-                                            onChange={e => setInventorySearchQuery(e.target.value)}
-                                            style={{ width: '100%', marginBottom: '1rem' }}
-                                        />
-                                        {equipError && (
-                                            <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,0,0,0.1)', borderRadius: '4px' }}>
-                                                {equipError}
-                                            </div>
-                                        )}
-                                        {inventorySearchQuery.length > 0 && (
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
-                                                {relics
-                                                    .filter(r => r.equipped !== selectedDoll)
-                                                    .filter(r => r.main_skill.name.toLowerCase().includes(inventorySearchQuery.toLowerCase()) || r.aux_skills.some(s => s.name.toLowerCase().includes(inventorySearchQuery.toLowerCase())))
-                                                    .slice(0, 20)
-                                                    .map(r => (
-                                                        <div
-                                                            key={r.id}
-                                                            style={{ width: '48px', height: '48px', cursor: 'pointer' }}
-                                                            onClick={async () => {
-                                                                if (r.id && selectedDoll && dollsData) {
-                                                                    const dollData = (dollsData as Record<string, DollDefinition>)[selectedDoll];
-                                                                    if (dollData && dollData.allowed_slots) {
-                                                                        const maxAllowed = dollData.allowed_slots[r.type] || 0;
-                                                                        const currentEquippedTyped = relics.filter(er => er.equipped === selectedDoll && er.type === r.type).length;
-
-                                                                        if (currentEquippedTyped >= maxAllowed) {
-                                                                            setEquipError(`Cannot equip. ${selectedDoll} can only hold ${maxAllowed} ${r.type} relics.`);
-                                                                            return;
-                                                                        }
-                                                                    }
-                                                                    await db.relics.update(r.id, { equipped: selectedDoll });
-                                                                    setEquipError(null);
-                                                                    setInventorySearchQuery(''); // Clear search on pick
-                                                                }
-                                                            }}
-                                                            title={`Click to equip ${r.type}`}
-                                                        >
-                                                            <RelicThumbnail relic={r} />
-                                                        </div>
-                                                    ))}
-                                            </div>
-                                        )}
-                                    </div>
+                                {isEditingEquip && selectedDoll && (
+                                    <RelicInventoryModal
+                                        selectedDoll={selectedDoll}
+                                        onClose={() => setIsEditingEquip(false)}
+                                    />
                                 )}
                             </section>
                         </div>
