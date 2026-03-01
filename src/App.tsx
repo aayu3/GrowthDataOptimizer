@@ -462,7 +462,7 @@ function App() {
                                     id="includeEquipped"
                                     checked={includeOtherEquipped}
                                     onChange={(e) => setIncludeOtherEquipped(e.target.checked)}
-                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent-color)' }}
                                 />
                                 <label htmlFor="includeEquipped" style={{ cursor: 'pointer', fontSize: '0.95rem' }}>
                                     Include relics equipped by other characters
