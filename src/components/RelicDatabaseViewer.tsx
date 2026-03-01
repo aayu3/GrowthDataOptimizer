@@ -109,9 +109,29 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                             Showing {displayRelics.length} items
                         </div>
                         {mode === 'view' && (
-                            <button className="glow-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => { setRelicToEdit(null); setIsEditing(true); }}>
-                                + Add Relic
-                            </button>
+                            <>
+                                <button
+                                    className="glow-btn"
+                                    onClick={async () => {
+                                        if (window.confirm("Are you sure you want to delete ALL relics? This action cannot be undone.")) {
+                                            await db.relics.clear();
+                                            setSelectedRelic(null);
+                                        }
+                                    }}
+                                    style={{
+                                        padding: '0.4rem 0.8rem',
+                                        fontSize: '0.85rem',
+                                        background: 'rgba(255, 60, 60, 0.1)',
+                                        borderColor: '#ff4c4c',
+                                        color: '#ff4c4c'
+                                    }}
+                                >
+                                    Delete All
+                                </button>
+                                <button className="glow-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => { setRelicToEdit(null); setIsEditing(true); }}>
+                                    + Add Relic
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>

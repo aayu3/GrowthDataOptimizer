@@ -36,6 +36,10 @@ function App() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
+    const [pendingImport, setPendingImport] = useState<any[] | null>(null);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importFileName, setImportFileName] = useState('');
+    const [showExportModal, setShowExportModal] = useState(false);
 
     const workerRef = useRef<Worker | null>(null);
 
@@ -48,13 +52,11 @@ function App() {
             try {
                 const json = JSON.parse(event.target?.result as string);
                 if (Array.isArray(json)) {
-                    // Make sure relics don't have overlapping predefined IDs if inserting raw
-                    await db.relics.clear(); // Clear old inventory
-                    // Optionally strip ID if json has them to let auto-increment handle it, or just bulkAdd
-                    await db.relics.bulkAdd(json.map((r: any) => {
-                        const { id, ...rest } = r; // remove static ids if present
+                    setPendingImport(json.map((r: any) => {
+                        const { id, ...rest } = r;
                         return { ...rest, createdAt: Date.now() };
                     }));
+                    setImportFileName(file.name);
                     setErrorMsg('');
                 } else {
                     setErrorMsg('Invalid inventory format. Expected an array of relics.');
@@ -247,6 +249,103 @@ function App() {
         }
     }
 
+    const renderModals = () => (
+        <>
+            {showImportModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}>
+                    <div className="card glassmorphism" style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        <h3 style={{ margin: 0 }}>Import Relics</h3>
+                        <p>Upload a JSON file containing relics to import.</p>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <label className="glow-btn" style={{ cursor: 'pointer', padding: '0.4rem 0.8rem', fontSize: '0.9rem', flexShrink: 0 }}>
+                                Browse
+                                <input type="file" accept=".json" onChange={handleFileUpload} hidden />
+                            </label>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {importFileName || 'No file selected'}
+                            </span>
+                        </div>
+
+                        {pendingImport && (
+                            <p style={{ margin: 0, color: 'var(--accent-glow)' }}>Loaded {pendingImport.length} relics.</p>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                            <button
+                                className="glow-btn"
+                                disabled={!pendingImport}
+                                style={{ opacity: pendingImport ? 1 : 0.5, cursor: pendingImport ? 'pointer' : 'not-allowed' }}
+                                onClick={async () => {
+                                    if (!pendingImport) return;
+                                    await db.relics.clear();
+                                    await db.relics.bulkAdd(pendingImport);
+                                    setPendingImport(null);
+                                    setImportFileName('');
+                                    setShowImportModal(false);
+                                }}>
+                                Replace Inventory
+                            </button>
+                            <button
+                                className="glow-btn"
+                                disabled={!pendingImport}
+                                style={{ background: 'rgba(16, 185, 129, 0.1)', borderColor: 'var(--success)', color: 'var(--success)', opacity: pendingImport ? 1 : 0.5, cursor: pendingImport ? 'pointer' : 'not-allowed' }}
+                                onClick={async () => {
+                                    if (!pendingImport) return;
+                                    await db.relics.bulkAdd(pendingImport);
+                                    setPendingImport(null);
+                                    setImportFileName('');
+                                    setShowImportModal(false);
+                                }}>
+                                Merge Current
+                            </button>
+                            <button className="glow-btn" style={{ background: 'rgba(255, 60, 60, 0.1)', borderColor: '#ff4c4c', color: '#ff4c4c' }} onClick={() => {
+                                setPendingImport(null);
+                                setImportFileName('');
+                                setShowImportModal(false);
+                            }}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showExportModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}>
+                    <div className="card glassmorphism" style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        <h3 style={{ margin: 0 }}>Export Relics</h3>
+                        <p>What would you like to export?</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <button className="glow-btn" onClick={() => {
+                                handleExportInventory();
+                                setShowExportModal(false);
+                            }}>
+                                Export All Relics
+                            </button>
+                            <button className="glow-btn" onClick={() => {
+                                const equippedRelics = relics.filter(r => r.equipped);
+                                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(equippedRelics, null, 2));
+                                const downloadAnchorNode = document.createElement('a');
+                                downloadAnchorNode.setAttribute("href", dataStr);
+                                downloadAnchorNode.setAttribute("download", "equipped_relics_all.json");
+                                document.body.appendChild(downloadAnchorNode);
+                                downloadAnchorNode.click();
+                                downloadAnchorNode.remove();
+                                setShowExportModal(false);
+                            }}>
+                                Export All Equipped Relics
+                            </button>
+                            <button className="glow-btn" style={{ background: 'rgba(255, 60, 60, 0.1)', borderColor: '#ff4c4c', color: '#ff4c4c' }} onClick={() => setShowExportModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+
     if (activeTab === 'database') {
         return (
             <div className="app-container">
@@ -259,6 +358,7 @@ function App() {
                 <main className="main-content">
                     <RelicDatabaseViewer />
                 </main>
+                {renderModals()}
             </div>
         );
     }
@@ -274,11 +374,10 @@ function App() {
                     <p className="subtitle">Import Inventory or Select a Character</p>
                     <div className="nav-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
                         <button className="back-btn" style={{ position: 'relative' }} onClick={() => setActiveTab('database')}>Browse Database</button>
-                        <label className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+                        <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem' }} onClick={() => setShowImportModal(true)}>
                             Upload Inventory
-                            <input type="file" accept=".json" onChange={handleFileUpload} hidden />
-                        </label>
-                        <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem' }} onClick={handleExportInventory}>
+                        </button>
+                        <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem' }} onClick={() => setShowExportModal(true)}>
                             Export Inventory
                         </button>
                     </div>
@@ -329,6 +428,7 @@ function App() {
                         </div>
                     </section>
                 </main>
+                {renderModals()}
             </div>
         );
     }
@@ -474,16 +574,35 @@ function App() {
                             <section className="card glassmorphism">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <h2 style={{ fontSize: '1.25rem' }}>Currently Equipped</h2>
-                                    <button
-                                        className="glow-btn"
-                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                                        onClick={() => {
-                                            setIsEditingEquip(true);
-                                            setSelectedEquippedRelic(null);
-                                        }}
-                                    >
-                                        + Equip Relic
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        {relics.filter(r => r.equipped === selectedDoll).length > 0 && (
+                                            <button
+                                                className="export-btn"
+                                                title="Export equipped relics to share this build"
+                                                onClick={() => {
+                                                    const equipped = relics.filter(r => r.equipped === selectedDoll);
+                                                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(equipped, null, 2));
+                                                    const dlAnchorElem = document.createElement('a');
+                                                    dlAnchorElem.setAttribute("href", dataStr);
+                                                    dlAnchorElem.setAttribute("download", `equipped_relics_${selectedDoll}.json`);
+                                                    dlAnchorElem.click();
+                                                }}
+                                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                            >
+                                                Export Build
+                                            </button>
+                                        )}
+                                        <button
+                                            className="glow-btn"
+                                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                            onClick={() => {
+                                                setIsEditingEquip(true);
+                                                setSelectedEquippedRelic(null);
+                                            }}
+                                        >
+                                            + Equip Relic
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {relics.filter(r => r.equipped === selectedDoll).length > 0 ? (
@@ -742,8 +861,11 @@ function App() {
                     />
                 )
             }
+            {renderModals()}
         </>
     );
+
+
 }
 
 export default App;
