@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../db/database';
 import { Relic, RelicSkill } from '../optimizer/types';
 import relicInfo from '../data/relicinfo.json';
+import { RelicThumbnail } from './RelicThumbnail';
 
 interface AuxSkillState {
     category: string;
@@ -245,6 +246,21 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
                                 );
                             })}
                             {auxSkills.length === 0 && <div className="hint">No aux skills added.</div>}
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-secondary)' }}>Preview</h4>
+                        <div style={{ width: '64px', height: '64px' }}>
+                            <RelicThumbnail relic={{
+                                type,
+                                rarity,
+                                main_skill: mainSkill,
+                                aux_skills: auxSkills.map(a => a.skill),
+                                total_level: mainSkill.level + auxSkills.reduce((sum, a) => sum + a.skill.level, 0),
+                                equipped: null,
+                                createdAt: Date.now()
+                            }} />
                         </div>
                     </div>
                 </div>

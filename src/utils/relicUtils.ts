@@ -60,8 +60,15 @@ export const getDollImageUrl = (dollName: string) => {
 };
 
 export const getRelicMainIconUrl = (type: string) => {
+    const colorMap: Record<string, string> = {
+        'Bulwark': 'blue',
+        'Vanguard': 'purple',
+        'Support': 'green',
+        'Sentinel': 'red'
+    };
+    const color = colorMap[type] || 'blue';
     try {
-        return new URL(`../assets/relic_icons/${type.toLowerCase()}.png`, import.meta.url).href;
+        return new URL(`../assets/relic_icons/${type.toLowerCase()}_${color}.png`, import.meta.url).href;
     } catch {
         return '';
     }
