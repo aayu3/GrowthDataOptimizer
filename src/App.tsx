@@ -50,12 +50,31 @@ function App() {
             try {
                 const json = JSON.parse(event.target?.result as string);
                 if (Array.isArray(json)) {
-                    setPendingImport(json.map((r: any) => {
+                    let skippedCount = 0;
+                    const validRelics = [];
+
+                    for (const r of json) {
+                        const hasUnknownType = r.type === "Unknown" || !r.type;
+                        const hasNoMainSkill = !r.main_skill || !r.main_skill.name || r.main_skill.name.toLowerCase() === 'unknown';
+                        const hasNullAuxSkill = !r.aux_skills;
+                        const hasInvalidAuxSkills = r.aux_skills && r.aux_skills.some((s: any) => !s || !s.name || s.name.toLowerCase() === 'unknown');
+
+                        if (hasUnknownType || hasNoMainSkill || hasNullAuxSkill || hasInvalidAuxSkills) {
+                            skippedCount++;
+                            continue;
+                        }
+
                         const { id, ...rest } = r;
-                        return { ...rest, createdAt: Date.now() };
-                    }));
+                        validRelics.push({ ...rest, createdAt: Date.now() });
+                    }
+
+                    setPendingImport(validRelics);
                     setImportFileName(file.name);
-                    setErrorMsg('');
+                    if (skippedCount > 0) {
+                        setErrorMsg(`Skipped ${skippedCount} relics with unknown/missing types or skills.`);
+                    } else {
+                        setErrorMsg('');
+                    }
                 } else {
                     setErrorMsg('Invalid inventory format. Expected an array of relics.');
                 }
