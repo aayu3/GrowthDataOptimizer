@@ -14,14 +14,35 @@ import { RelicInventoryModal } from './components/RelicInventoryModal';
 import { getSkillMaxLevel, getCatBadgeIconUrl, getSkillCategory } from './utils/relicUtils';
 import { Relic } from './optimizer/types';
 
+const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
+
 function App() {
     const [activeTab, setActiveTab] = useState<'optimizer' | 'database'>('optimizer');
     const [selectedDoll, setSelectedDoll] = useState<string | null>(null);
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
-    const [constraints, setConstraints] = useState<OptimizerConstraints>({
-        targetCategoryLevels: {},
-        targetSkillLevels: {}
-    });
+    const [perDollFilters, setPerDollFilters] = useState<Record<string, { constraints: OptimizerConstraints, activeSkillFilters: string[] }>>({});
+
+    const constraints = selectedDoll && perDollFilters[selectedDoll] ? perDollFilters[selectedDoll].constraints : defaultConstraints;
+    const activeSkillFilters = selectedDoll && perDollFilters[selectedDoll] ? perDollFilters[selectedDoll].activeSkillFilters : [];
+
+    const setConstraints = (action: React.SetStateAction<OptimizerConstraints>) => {
+        setPerDollFilters(prev => {
+            if (!selectedDoll) return prev;
+            const current = prev[selectedDoll] || { constraints: defaultConstraints, activeSkillFilters: [] };
+            const updated = typeof action === 'function' ? action(current.constraints) : action;
+            return { ...prev, [selectedDoll]: { ...current, constraints: updated } };
+        });
+    };
+
+    const setActiveSkillFilters = (action: React.SetStateAction<string[]>) => {
+        setPerDollFilters(prev => {
+            if (!selectedDoll) return prev;
+            const current = prev[selectedDoll] || { constraints: defaultConstraints, activeSkillFilters: [] };
+            const updated = typeof action === 'function' ? action(current.activeSkillFilters) : action;
+            return { ...prev, [selectedDoll]: { ...current, activeSkillFilters: updated } };
+        });
+    };
+
     const [results, setResults] = useState<BuildResult[]>([]);
     const [resultPage, setResultPage] = useState(0);
     const resultsPerPage = 50;
@@ -30,7 +51,6 @@ function App() {
     const [errorMsg, setErrorMsg] = useState('');
     const [selectedCategoryForFilter, setSelectedCategoryForFilter] = useState<string>('Bulwark');
     const [selectedSkillForFilter, setSelectedSkillForFilter] = useState<string>('');
-    const [activeSkillFilters, setActiveSkillFilters] = useState<string[]>([]);
     const [includeOtherEquipped, setIncludeOtherEquipped] = useState(true);
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
