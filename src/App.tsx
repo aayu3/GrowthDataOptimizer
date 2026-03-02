@@ -272,8 +272,19 @@ function App() {
     const renderModals = () => (
         <>
             {showImportModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}>
-                    <div className="card glassmorphism" style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div
+                    style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}
+                    onClick={() => {
+                        setPendingImport(null);
+                        setImportFileName('');
+                        setShowImportModal(false);
+                    }}
+                >
+                    <div
+                        className="card glassmorphism"
+                        style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3 style={{ margin: 0 }}>Import Relics</h3>
                         <p>Upload a JSON file containing relics to import.</p>
 
@@ -351,8 +362,15 @@ function App() {
             )}
 
             {showExportModal && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}>
-                    <div className="card glassmorphism" style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div
+                    style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}
+                    onClick={() => setShowExportModal(false)}
+                >
+                    <div
+                        className="card glassmorphism"
+                        style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3 style={{ margin: 0 }}>Export Relics</h3>
                         <p>What would you like to export?</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
