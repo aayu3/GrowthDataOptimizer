@@ -11,6 +11,7 @@ export class RelicSolver {
     private skillMaxLevels: Map<string, number>;
 
     private validBuilds: BuildResult[] = [];
+    private buildSet: Set<string> = new Set();
     private maxBuilds: number = 2000;
 
     constructor(relics: Relic[], constraints: OptimizerConstraints, skillsData: Record<string, SkillDefinition>, relicInfo: any = null) {
@@ -54,6 +55,7 @@ export class RelicSolver {
 
     public solve(): BuildResult[] {
         this.validBuilds = [];
+        this.buildSet = new Set<string>();
 
         // HEURISTIC: Score relics based on usefulness for current constraints
         const scoredRelics = this.relics.map(r => {
@@ -106,11 +108,15 @@ export class RelicSolver {
         console.log(`Optimization starting with ${this.relics.length} candidate relics.`);
 
         this.backtrack([], 0, 0);
-        // Sort by some heuristic, e.g. most total levels
+        // Sort by some heuristic, e.g. most total skill levels
         this.validBuilds.sort((a, b) => {
-            const sumA = Object.values(a.rawCategoryLevels).reduce((acc, v) => acc + v, 0);
-            const sumB = Object.values(b.rawCategoryLevels).reduce((acc, v) => acc + v, 0);
-            return sumB - sumA;
+            const sumA = Object.values(a.rawSkillLevels).reduce((acc, v) => acc + v, 0);
+            const sumB = Object.values(b.rawSkillLevels).reduce((acc, v) => acc + v, 0);
+            if (sumB !== sumA) return sumB - sumA;
+            // secondary sort by effective skill levels if raw is same
+            const effA = Object.values(a.effectiveSkillLevels).reduce((acc, v) => acc + v, 0);
+            const effB = Object.values(b.effectiveSkillLevels).reduce((acc, v) => acc + v, 0);
+            return effB - effA;
         });
         return this.validBuilds;
     }
@@ -201,6 +207,21 @@ export class RelicSolver {
             const maxLvl = this.skillMaxLevels.get(skill) ?? 6; // default 6 bounds if fully unknown
             effectiveSkillLevels[skill] = Math.min(rawLvl, maxLvl);
         }
+
+        const relicFingerprints = build.map(r => {
+            const main = `${r.main_skill.name}:${r.main_skill.level}`;
+            const aux = r.aux_skills
+                .map(s => `${s.name}:${s.level}`)
+                .sort()
+                .join('-');
+            return `${r.type}-${main}-${aux}`;
+        });
+        const buildFingerprint = relicFingerprints.sort().join('|');
+
+        if (this.buildSet.has(buildFingerprint)) {
+            return;
+        }
+        this.buildSet.add(buildFingerprint);
 
         this.validBuilds.push({
             relics: [...build],
