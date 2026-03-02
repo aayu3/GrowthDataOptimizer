@@ -17,7 +17,7 @@ interface Props {
 export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
     const [type, setType] = useState<string>('Bulwark');
     const [rarity, setRarity] = useState<string>('T4');
-    const [mainSkill, setMainSkill] = useState<RelicSkill>({ name: '', level: 1 });
+    const [mainSkill, setMainSkill] = useState<RelicSkill>({ name: '', level: 3 });
     const [auxSkills, setAuxSkills] = useState<AuxSkillState[]>([]);
     const [equipped] = useState<string | null>(relicToEdit?.equipped || null);
 
@@ -82,7 +82,7 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
             const defaultType = relTypes[0] || 'Bulwark';
             setType(defaultType);
             const mainOptions = getAvailableMainSkills(defaultType);
-            setMainSkill({ name: mainOptions[0] || '', level: 1 });
+            setMainSkill({ name: mainOptions[0] || '', level: 3 });
             setAuxSkills([]);
         }
     }, [relicToEdit]);
@@ -91,8 +91,16 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
         const newType = e.target.value;
         setType(newType);
         const mainOptions = getAvailableMainSkills(newType);
-        setMainSkill({ name: mainOptions[0] || '', level: 1 });
+        const defaultLevel = rarity === 'T4' ? 3 : rarity === 'T3' ? 2 : 1;
+        setMainSkill({ name: mainOptions[0] || '', level: defaultLevel });
         setAuxSkills([]); // Reset aux skills as they are type specific
+    };
+
+    const handleRarityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newRarity = e.target.value;
+        setRarity(newRarity);
+        const defaultLevel = newRarity === 'T4' ? 3 : newRarity === 'T3' ? 2 : 1;
+        setMainSkill(prev => ({ ...prev, level: defaultLevel }));
     };
 
     const addAuxSkill = () => {
@@ -134,6 +142,29 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
     const handleSave = async () => {
         const cleanAuxSkills = auxSkills.map(a => a.skill);
         const total_level = mainSkill.level + cleanAuxSkills.reduce((sum, s) => sum + s.level, 0);
+
+        // Validation Warning
+        let isValid = true;
+        let warningMsg = '';
+
+        if (rarity === 'T4' && (total_level < 5 || total_level > 6)) {
+            isValid = false;
+            warningMsg = `A T4 Relic typically has exactly 5 or 6 total skill levels. You currently have ${total_level}.`;
+        } else if (rarity === 'T3' && (total_level < 3 || total_level > 4)) {
+            isValid = false;
+            warningMsg = `A T3 Relic typically has exactly 3 or 4 total skill levels. You currently have ${total_level}.`;
+        } else if (rarity === 'T2' && total_level !== 2) {
+            isValid = false;
+            warningMsg = `A T2 Relic typically has exactly 2 total skill levels. You currently have ${total_level}.`;
+        } // We don't have rules specified for other rarities like T1, so assume they are fine or we don't care.
+
+        if (!isValid) {
+            const confirmed = window.confirm(`WARNING: ${warningMsg}\n\nAre you sure you want to create this illegal relic anyway?`);
+            if (!confirmed) {
+                return;
+            }
+        }
+
         const relicData: Relic = {
             type,
             rarity,
@@ -156,8 +187,16 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
     const mainOptions = getAvailableMainSkills(type);
 
     return (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div className="card glassmorphism" style={{ width: '450px', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div
+            className="modal-overlay"
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+            onClick={onClose}
+        >
+            <div
+                className="card glassmorphism"
+                style={{ width: '450px', maxHeight: '90vh', overflowY: 'auto' }}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <h2 style={{ marginTop: 0 }}>{relicToEdit ? 'Edit Relic' : 'Add Custom Relic'}</h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
@@ -170,7 +209,7 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
 
                     <div className="input-group">
                         <label>Rarity</label>
-                        <select value={rarity} onChange={e => setRarity(e.target.value)} className="bg-dropdown">
+                        <select value={rarity} onChange={handleRarityChange} className="bg-dropdown">
                             {rarities.map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                     </div>
