@@ -1,44 +1,377 @@
 {
-    "Attack Boost": {
-        "effect": "Attack is increased by {x}",
-        "x": [
-            0.8,
-            1.2,
-            2,
-            2.4,
-            3.2,
-            3.6
-        ],
-        "element": "none",
-        "stat": "ATK",
-        "scaling": "none"
+    "Sentinel": {
+        "Attack Boost": {
+            "effect": "Attack is increased by {x}",
+            "x": [
+                0.8,
+                1.2,
+                2,
+                2.4,
+                3.2,
+                3.6
+            ],
+            "element": "none",
+            "stat": "ATK",
+            "scaling": "none"
+        },
+        "Thronebreaker": {
+            "effect": "Damage dealt to boss units is increased by {x}",
+            "x": [
+                2,
+                2.5,
+                3.5,
+                4,
+                5,
+                5.5
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Area Specialization": {
+            "effect": "AoE damage dealt is increased by {x}",
+            "x": [
+                2,
+                2.5,
+                3.5,
+                4,
+                5,
+                5.5
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Pinpoint Specialization": {
+            "effect": "Targeted damage dealt is increased by {x}",
+            "x": [
+                2,
+                2.5,
+                3.5,
+                4,
+                5,
+                5.5
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Critical Boost": {
+            "effect": "Critical rate is increased by {x}",
+            "x": [
+                1,
+                2,
+                3
+            ],
+            "element": "none",
+            "stat": "CRIT_RATE",
+            "scaling": "none"
+        },
+        "Physical Boost": {
+            "effect": "damage dealt is increased by {x}",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "Physical",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Burn Boost": {
+            "effect": "Burn PhaseBurn damage dealt is increased by {x}",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "Burn",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Hydro Boost": {
+            "effect": "Hydro PhaseHydro damage dealt is increased by {x}",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "Hydro",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Electric Boost": {
+            "effect": "Electric PhaseElectric damage dealt is increased by {x}",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "Electric",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Freeze Boost": {
+            "effect": "Freeze PhaseFreeze damage dealt is increased by {x}",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "Freeze",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Corrosion Boost": {
+            "effect": "Corrosion PhaseCorrosion damage dealt is increased by {x}",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "Corrosion",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Raid Stance": {
+            "effect": "Damage dealt by out-of-turn attacks is increased by {x}",
+            "x": [
+                0.2,
+                0.6,
+                1,
+                1.4,
+                1.8
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Onslaught Stance": {
+            "effect": "Damage dealt by active skills is increased by {x}",
+            "x": [
+                0.2,
+                0.6,
+                1,
+                1.4,
+                1.8
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Follow-Up Strike": {
+            "effect": "Damage dealt to enemy units in Stability Break is increased by {x}",
+            "x": [
+                0.5,
+                1
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Headhunter": {
+            "effect": "Damage dealt to enemy units more than 6 tiles away is increased by {x}",
+            "x": [
+                0.4,
+                0.8,
+                1.2
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        }
     },
-    "Thronebreaker": {
-        "effect": "Damage dealt to boss units is increased by {x}",
-        "x": [
-            2,
-            2.5,
-            3.5,
-            4,
-            5,
-            5.5
-        ],
-        "element": "none",
-        "stat": "DMG",
-        "scaling": "none"
-    },
-    "Area Specialization": {
-        "effect": "AoE damage dealt is increased by {x}",
-        "x": [
-            2,
-            2.5,
-            3.5,
-            4,
-            5,
-            5.5
-        ],
-        "element": "none",
-        "stat": "DMG",
-        "scaling": "none"
+    "Vanguard": {
+        "Bloodthirst": {
+            "effect": "When attacking, recovers HP equal to {x}% of the user's attack.",
+            "x": [
+                2,
+                4,
+                6
+            ],
+            "element": "none",
+            "stat": "HEAL",
+            "scaling": "none"
+        },
+        "CQC Elite": {
+            "effect": "Damage dealt to enemy units within 3 tiles is increased by {x}%",
+            "x": [
+                0.4,
+                0.8,
+                1.2
+            ],
+            "element": "none",
+            "stat": "DMG",
+            "scaling": "none"
+        },
+        "Shock and Awe": {
+            "effect": "The first enemy unit damaged each turn takes an additional {x} points of fixed stability damage. This effect can trigger once per turn.",
+            "x": [
+                1,
+                2
+            ],
+            "element": "none",
+            "stat": "STABILITY",
+            "scaling": "none"
+        },
+        "Precision Blow": {
+            "effect": "When dealing targeted damage, critical damage is increased by {x}%",
+            "x": [
+                1.5,
+                2,
+                3,
+                3.5,
+                4.5,
+                5
+            ],
+            "element": "none",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Beheading Blade": {
+            "effect": "Critical damage dealt to boss units is increased by {x}%",
+            "x": [
+                1.5,
+                2,
+                3,
+                3.5,
+                4.5,
+                5
+            ],
+            "element": "none",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Smite Boost": {
+            "effect": "Critical damage is increased by {x}%",
+            "x": [
+                1.2,
+                1.6,
+                2.4,
+                2.8,
+                3.6,
+                4.0
+            ],
+            "element": "none",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Area Smite": {
+            "effect": "When dealing AoE damage, critical damage is increased by {x}%",
+            "x": [
+                1.5,
+                2,
+                3,
+                3.5,
+                4.5,
+                5
+            ],
+            "element": "none",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Physical Smite": {
+            "effect": "When dealingPhysical PhasePhysical damage, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Physical",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Burning Smite": {
+            "effect": "When dealing Burn PhaseBurn damage, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Burn",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Electric Smite": {
+            "effect": "When dealing Electric PhaseElectric damage, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Electric",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Corrosive Smite": {
+            "effect": "When dealing Corrosion PhaseCorrosion damage, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Corrosion",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Freezing Smite": {
+            "effect": "When dealing Freeze PhaseFreeze damage, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Freeze",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Onslaught Mastery": {
+            "effect": "When making an active attack, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "none",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Ambush Mastery": {
+            "effect": "When making an out-of-turn attack, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "none",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        }
     }
 }
