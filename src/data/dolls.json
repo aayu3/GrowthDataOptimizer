@@ -5,6 +5,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -55,6 +56,7 @@
             "Support": 1,
             "Sentinel": 1
         },
+        "element": "Electric",
         "bonuses": [
             {
                 "tier": 1,
@@ -105,6 +107,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -153,6 +156,7 @@
             "Support": 4,
             "Sentinel": 2
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -202,6 +206,7 @@
             "Sentinel": 2,
             "Bulwark": 1
         },
+        "element": "Electric",
         "bonuses": [
             {
                 "tier": 1,
@@ -251,6 +256,7 @@
             "Support": 4,
             "Bulwark": 2
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -300,6 +306,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -349,6 +356,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -397,6 +405,7 @@
             "Support": 4,
             "Bulwark": 2
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -445,6 +454,7 @@
             "Vanguard": 4,
             "Sentinel": 2
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -494,6 +504,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -544,6 +555,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -594,6 +606,7 @@
             "Bulwark": 2,
             "Sentinel": 1
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -643,6 +656,7 @@
             "Bulwark": 4,
             "Support": 2
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -692,6 +706,7 @@
             "Sentinel": 2,
             "Bulwark": 1
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -742,6 +757,7 @@
             "Sentinel": 2,
             "Support": 1
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -791,6 +807,7 @@
             "Support": 4,
             "Vanguard": 2
         },
+        "element": "Electric",
         "bonuses": [
             {
                 "tier": 1,
@@ -840,6 +857,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -890,6 +908,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -940,6 +959,7 @@
             "Bulwark": 2,
             "Sentinel": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -990,6 +1010,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -1040,6 +1061,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Electric",
         "bonuses": [
             {
                 "tier": 1,
@@ -1089,6 +1111,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Electric",
         "bonuses": [
             {
                 "tier": 1,
@@ -1138,6 +1161,7 @@
             "Vanguard": 2,
             "Bulwark": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -1188,6 +1212,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -1238,6 +1263,7 @@
             "Vanguard": 2,
             "Bulwark": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -1288,6 +1314,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -1338,6 +1365,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -1388,6 +1416,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -1437,6 +1466,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -1486,6 +1516,7 @@
             "Bulwark": 2,
             "Sentinel": 1
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -1535,6 +1566,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Electric",
         "bonuses": [
             {
                 "tier": 1,
@@ -1584,6 +1616,7 @@
             "Bulwark": 2,
             "Sentinel": 1
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -1633,6 +1666,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -1681,6 +1715,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -1730,6 +1765,7 @@
             "Vanguard": 2,
             "Bulwark": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -1780,6 +1816,7 @@
             "Sentinel": 2,
             "Support": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -1830,6 +1867,7 @@
             "Vanguard": 2,
             "Bulwark": 1
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -1879,6 +1917,7 @@
             "Sentinel": 4,
             "Vanguard": 2
         },
+        "element": "Corrosion",
         "bonuses": [
             {
                 "tier": 1,
@@ -1929,6 +1968,7 @@
             "Vanguard": 2,
             "Bulwark": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -1978,6 +2018,7 @@
             "Vanguard": 4,
             "Sentinel": 2
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -2027,6 +2068,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -2077,6 +2119,7 @@
             "Support": 2,
             "Sentinel": 1
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -2127,6 +2170,7 @@
             "Sentinel": 2,
             "Bulwark": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -2177,6 +2221,7 @@
             "Vanguard": 2,
             "Bulwark": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -2226,6 +2271,7 @@
             "Support": 4,
             "Bulwark": 2
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -2274,6 +2320,7 @@
             "Support": 4,
             "Bulwark": 2
         },
+        "element": "Freeze",
         "bonuses": [
             {
                 "tier": 1,
@@ -2323,6 +2370,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
@@ -2372,6 +2420,7 @@
             "Vanguard": 4,
             "Sentinel": 2
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -2421,6 +2470,7 @@
             "Bulwark": 1,
             "Sentinel": 1
         },
+        "element": "Burn",
         "bonuses": [
             {
                 "tier": 1,
@@ -2471,6 +2521,7 @@
             "Sentinel": 2,
             "Bulwark": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -2521,6 +2572,7 @@
             "Bulwark": 1,
             "Vanguard": 1
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -2570,6 +2622,7 @@
             "Support": 4,
             "Sentinel": 2
         },
+        "element": "Physical",
         "bonuses": [
             {
                 "tier": 1,
@@ -2618,6 +2671,7 @@
             "Vanguard": 4,
             "Sentinel": 2
         },
+        "element": "Hydro",
         "bonuses": [
             {
                 "tier": 1,
