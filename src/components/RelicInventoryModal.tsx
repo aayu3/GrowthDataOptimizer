@@ -9,9 +9,10 @@ import { RelicDatabaseViewer } from './RelicDatabaseViewer';
 interface RelicInventoryModalProps {
     selectedDoll: string;
     onClose: () => void;
+    onEquip?: (relic: any) => Promise<void>;
 }
 
-export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ selectedDoll, onClose }) => {
+export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ selectedDoll, onClose, onEquip }) => {
     const [equipError, setEquipError] = useState<string | null>(null);
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
 
@@ -27,7 +28,11 @@ export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ select
                     return;
                 }
             }
-            await db.relics.update(r.id, { equipped: selectedDoll });
+            if (onEquip) {
+                await onEquip(r);
+            } else {
+                await db.relics.update(r.id, { equipped: selectedDoll });
+            }
             setEquipError(null);
             onClose();
         }
