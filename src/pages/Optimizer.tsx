@@ -40,7 +40,7 @@ export function Optimizer() {
     const [errorMsg, setErrorMsg] = useState('');
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
 
-    const workerRef = useRef<Worker | null>(null);
+    const workerPoolRef = useRef<Worker[]>([]);
 
     // History Actions
     const [undoStack, setUndoStack] = useState<HistoryAction[]>([]);
@@ -122,37 +122,71 @@ export function Optimizer() {
         setResultPage(0);
         setErrorMsg('');
 
-        if (workerRef.current) {
-            workerRef.current.terminate();
+        if (workerPoolRef.current.length > 0) {
+            workerPoolRef.current.forEach(w => w.terminate());
         }
 
-        workerRef.current = new OptimizerWorker();
-        workerRef.current.onmessage = (e) => {
-            if (e.data.type === 'DONE') {
-                setResults(e.data.results);
-                setHasOptimized(true);
-                setIsOptimizing(false);
-            } else if (e.data.type === 'ERROR') {
-                setErrorMsg(e.data.message);
-                setIsOptimizing(false);
-                setHasOptimized(true);
-            }
-        };
+        const concurrency = navigator.hardwareConcurrency || 4;
+        const workers: Worker[] = [];
+        workerPoolRef.current = workers;
+
+        let completedWorkers = 0;
+        let allResults: BuildResult[] = [];
+        let hasError = false;
 
         let filteredRelics = relics;
         if (!includeOtherEquipped) {
             filteredRelics = relics.filter(r => !r.equipped || r.equipped === selectedDoll);
         }
 
-        workerRef.current!.postMessage({
-            relics: filteredRelics,
-            constraints: {
-                ...constraints,
-                allowedSlots: selectedDollData?.allowed_slots
-            },
-            skillsData,
-            relicInfo
-        });
+        for (let i = 0; i < concurrency; i++) {
+            const worker = new OptimizerWorker();
+            worker.onmessage = (e) => {
+                if (hasError) return;
+
+                if (e.data.type === 'DONE') {
+                    allResults = allResults.concat(e.data.results);
+                    completedWorkers++;
+
+                    if (completedWorkers === concurrency) {
+                        allResults.sort((a, b) => {
+                            const sumA = Object.values(a.rawSkillLevels).reduce((acc, v) => acc + v, 0);
+                            const sumB = Object.values(b.rawSkillLevels).reduce((acc, v) => acc + v, 0);
+                            if (sumB !== sumA) return sumB - sumA;
+                            const effA = Object.values(a.effectiveSkillLevels).reduce((acc, v) => acc + v, 0);
+                            const effB = Object.values(b.effectiveSkillLevels).reduce((acc, v) => acc + v, 0);
+                            return effB - effA;
+                        });
+
+                        const topResults = allResults.slice(0, 2000000);
+
+                        setResults(topResults);
+                        setHasOptimized(true);
+                        setIsOptimizing(false);
+                    }
+                } else if (e.data.type === 'ERROR') {
+                    if (!hasError) {
+                        hasError = true;
+                        setErrorMsg(e.data.message);
+                        setIsOptimizing(false);
+                        setHasOptimized(true);
+                        workers.forEach(w => w.terminate());
+                    }
+                }
+            };
+
+            worker.postMessage({
+                relics: filteredRelics,
+                constraints: {
+                    ...constraints,
+                    allowedSlots: selectedDollData?.allowed_slots
+                },
+                skillsData,
+                relicInfo,
+                partition: { id: i, total: concurrency }
+            });
+            workers.push(worker);
+        }
     };
 
     const handleExportJSON = () => {

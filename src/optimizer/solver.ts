@@ -37,6 +37,7 @@ export class RelicSolver {
 
     private validBuilds: BuildResult[] = [];
     private maxBuilds: number = 2000000;
+    private rootBranchIndex: number = 0;
 
     constructor(relics: Relic[], constraints: OptimizerConstraints, skillsData: Record<string, SkillDefinition>, relicInfo: any = null) {
         this.relics = relics;
@@ -163,8 +164,14 @@ export class RelicSolver {
         return this.typeNameToId.get(typeName)!;
     }
 
-    public solve(): BuildResult[] {
+    public solve(partition?: { id: number, total: number }): BuildResult[] {
         this.validBuilds = [];
+        this.rootBranchIndex = 0;
+
+        // Adjust maxBuilds if partitioned
+        if (partition) {
+            this.maxBuilds = Math.ceil(this.maxBuilds / partition.total);
+        }
 
         // HEURISTIC: Score relics based on usefulness for current constraints
         const scoredRelics = this.relics.map(r => {
@@ -274,7 +281,7 @@ export class RelicSolver {
         const runningTypes = new Int32Array(this.typeIdToName.length);
         const currentBuild: Relic[] = [];
 
-        this.backtrack(archetypes, 0, 0, runningCat, runningSkill, runningTypes, currentBuild);
+        this.backtrack(archetypes, 0, 0, runningCat, runningSkill, runningTypes, currentBuild, partition);
 
         // Sort by some heuristic, e.g. most total skill levels
         this.validBuilds.sort((a, b) => {
@@ -296,7 +303,8 @@ export class RelicSolver {
         runningCat: Int32Array,
         runningSkill: Int32Array,
         runningTypes: Int32Array,
-        currentBuild: Relic[]
+        currentBuild: Relic[],
+        partition?: { id: number, total: number }
     ) {
         if (this.validBuilds.length >= this.maxBuilds) return;
 
@@ -338,6 +346,14 @@ export class RelicSolver {
 
             // Backtrack loop: take `take` instances of this archetype
             for (let take = 1; take <= maxWeCanTake; take++) {
+                if (depth === 0 && partition) {
+                    if (this.rootBranchIndex % partition.total !== partition.id) {
+                        this.rootBranchIndex++;
+                        continue;
+                    }
+                    this.rootBranchIndex++;
+                }
+
                 // Apply stats
                 for (let s = 0; s < arch.skillIds.length; s++) {
                     const sId = arch.skillIds[s];
@@ -353,7 +369,7 @@ export class RelicSolver {
                     currentBuild.push(arch.relics[k]);
                 }
 
-                this.backtrack(archetypes, i + 1, depth + take, runningCat, runningSkill, runningTypes, currentBuild);
+                this.backtrack(archetypes, i + 1, depth + take, runningCat, runningSkill, runningTypes, currentBuild, partition);
 
                 // Revert stats
                 for (let k = 0; k < take; k++) {
