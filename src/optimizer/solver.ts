@@ -347,11 +347,9 @@ export class RelicSolver {
             // Backtrack loop: take `take` instances of this archetype
             for (let take = 1; take <= maxWeCanTake; take++) {
                 if (depth === 0 && partition) {
-                    if (this.rootBranchIndex % partition.total !== partition.id) {
-                        this.rootBranchIndex++;
-                        continue;
-                    }
+                    const isMyTurn = (this.rootBranchIndex % partition.total) === partition.id;
                     this.rootBranchIndex++;
+                    if (!isMyTurn) continue;
                 }
 
                 // Apply stats
