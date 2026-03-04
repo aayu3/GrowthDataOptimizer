@@ -25,6 +25,7 @@ export interface BuildResult {
     rawCategoryLevels: Record<string, number>;
     rawSkillLevels: Record<string, number>;
     effectiveSkillLevels: Record<string, number>;
+    simulatedDamage?: number;
 }
 
 export interface SkillDefinition {
