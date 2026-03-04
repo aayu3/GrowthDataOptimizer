@@ -69,6 +69,33 @@ function App() {
     const [undoStack, setUndoStack] = useState<HistoryAction[]>([]);
     const [redoStack, setRedoStack] = useState<HistoryAction[]>([]);
 
+    // --- Simulation State ---
+    const [showDamageSimulation, setShowDamageSimulation] = useState(false);
+    const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+    const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (selectedDoll) {
+            const dData = (dollsData as any)[selectedDoll];
+            const dollElement = dData?.element || 'Physical';
+            const ignored: string[] = [];
+            const allSkills = {
+                ...((skillsData as any).Sentinel || {}),
+                ...((skillsData as any).Vanguard || {}),
+                ...((skillsData as any).Support || {})
+            };
+
+            for (const [skillName, skillDef] of Object.entries<any>(allSkills)) {
+                if (skillDef.element && skillDef.element !== "none" && skillDef.element !== dollElement) {
+                    ignored.push(skillName);
+                }
+            }
+            setSimIgnoredSkills(ignored);
+        } else {
+            setSimIgnoredSkills([]);
+        }
+    }, [selectedDoll]);
+
     const workerRef = useRef<Worker | null>(null);
 
     const pushAction = (action: HistoryAction) => {
@@ -270,6 +297,64 @@ function App() {
         }
 
         return { rawCategoryLevels, effectiveSkillLevels };
+    };
+
+    const calculateBuildDamage = (build: BuildResult, stats: typeof simStats, ignoredSkills: string[], logDetails: boolean = false) => {
+        let totalAtkBuff = 0;
+        let totalCritRateBuff = 0;
+        let totalCritDmgBuff = 0;
+        let totalDamageBuff = 0;
+
+        const activeSkillsLog: string[] = [];
+
+        for (const [skillName, level] of Object.entries(build.effectiveSkillLevels)) {
+            if (level <= 0) continue;
+            if (ignoredSkills.includes(skillName)) continue;
+
+            let skillDef = (skillsData as any).Sentinel?.[skillName] || (skillsData as any).Vanguard?.[skillName] || (skillsData as any).Support?.[skillName];
+            if (!skillDef) continue;
+
+            const effectValue = skillDef.x[level - 1]; // level is 1-indexed
+            if (effectValue === undefined) continue;
+
+            const multiplier = effectValue / 100.0;
+
+            if (skillDef.stat === "ATK") {
+                if (skillDef.scaling === "HP") {
+                    totalAtkBuff += (stats.HP * multiplier) / stats.ATK; // Express HP-based ATK boost as % of ATK for simplicity later
+                } else {
+                    totalAtkBuff += multiplier;
+                }
+            } else if (skillDef.stat === "DMG") {
+                totalDamageBuff += multiplier;
+            } else if (skillDef.stat === "CRIT_RATE") {
+                totalCritRateBuff += effectValue; // Add as whole number percentage
+            } else if (skillDef.stat === "CRIT_DMG") {
+                totalCritDmgBuff += effectValue; // Add as whole number percentage
+            }
+
+            if (logDetails) {
+                activeSkillsLog.push(`${skillName} (Lv. ${level})`);
+            }
+        }
+
+        const finalAtk = stats.ATK * (1 + totalAtkBuff);
+        const finalCritRate = Math.min(100, stats.CRIT_RATE + totalCritRateBuff) / 100.0;
+        const finalCritDmg = (stats.CRIT_DMG + totalCritDmgBuff) / 100.0; // 150 = 1.5x
+
+        const baseDamage = finalAtk / (1 + (stats.EnemyDEF / finalAtk)) * (1 + totalDamageBuff);
+        const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * baseDamage * (1 + finalCritDmg));
+
+        // if (logDetails) {
+        //     console.log(`[Damage Sim] Equipped Build Calculation:`);
+        //     console.log(`- Global Ignored Skills:`, ignoredSkills);
+        //     console.log(`- Skills actively factored in:`, activeSkillsLog.length > 0 ? activeSkillsLog : "None");
+        //     console.log(`- Stat Buffs Applied -> ATK: +${(totalAtkBuff * 100).toFixed(1)}%, DMG: +${(totalDamageBuff * 100).toFixed(1)}%, Crit Rate: +${totalCritRateBuff}%, Crit DMG: +${totalCritDmgBuff}%`);
+        //     console.log(`- Final Stats -> ATK: ${finalAtk.toFixed(1)}, Crit Rate: ${(finalCritRate * 100).toFixed(1)}%, Crit DMG: ${(finalCritDmg * 100).toFixed(1)}%`);
+        //     console.log(`- Base DMG: ${baseDamage.toFixed(1)} | Avg DMG: ${averageDamage.toFixed(1)}`);
+        // }
+
+        return averageDamage;
     };
 
     // Debounced automatic optimization trigger
@@ -626,7 +711,7 @@ function App() {
             <div className="app-container">
                 <header className="header-glow">
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-                        <button className="back-btn" onClick={() => { setSelectedDoll(null); setResults([]); setHasOptimized(false); }}>← Back</button>
+                        <button className="back-btn" onClick={() => { setSelectedDoll(null); setResults([]); setHasOptimized(false); setShowDamageSimulation(false); }}>← Back</button>
                         <h1>Configuring <span>{selectedDoll}</span></h1>
                     </div>
                     <p className="subtitle">
@@ -850,6 +935,23 @@ function App() {
                                                                 </div>
                                                             ))}
                                                     </div>
+                                                    {showDamageSimulation && (
+                                                        <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+                                                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>Simulated Average Damage</div>
+                                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--accent-glow)', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)' }}>
+                                                                {Math.round(calculateBuildDamage(
+                                                                    {
+                                                                        relics: relics.filter(r => r.equipped === selectedDoll),
+                                                                        rawCategoryLevels: equippedStats.rawCategoryLevels,
+                                                                        effectiveSkillLevels: equippedStats.effectiveSkillLevels
+                                                                    } as BuildResult,
+                                                                    simStats,
+                                                                    simIgnoredSkills,
+                                                                    true // log Details
+                                                                )).toLocaleString()}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })()}
@@ -941,14 +1043,77 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="action-row" style={{ justifyContent: 'flex-start' }}>
+                    <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem' }}>
                         <button
                             className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
                             onClick={startOptimization}
                         >
                             {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
                         </button>
+                        <button
+                            className={`glow-btn`}
+                            style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '' }}
+                            onClick={() => setShowDamageSimulation(!showDamageSimulation)}
+                        >
+                            {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
+                        </button>
                     </div>
+
+                    {
+                        showDamageSimulation && (
+                            <section className="results-section glassmorphism" style={{ marginTop: '2rem' }}>
+                                <h2>Damage Simulation Settings</h2>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                                    {Object.entries(simStats).map(([stat, val]) => (
+                                        <div key={stat} className="input-group">
+                                            <label>{stat}</label>
+                                            <input
+                                                type="number"
+                                                value={val}
+                                                onChange={(e) => setSimStats(prev => ({ ...prev, [stat]: parseFloat(e.target.value) || 0 }))}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <h3>Ignored Skills in Calculation</h3>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                                    {simIgnoredSkills.map(skill => (
+                                        <span key={skill} style={{ background: 'rgba(255,60,60,0.2)', color: '#ffaaaa', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            {skill}
+                                            <button
+                                                onClick={() => setSimIgnoredSkills(prev => prev.filter(s => s !== skill))}
+                                                style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', lineHeight: 1 }}
+                                            >×</button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="input-group" style={{ maxWidth: '300px' }}>
+                                    <select
+                                        className="bg-dropdown"
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val && !simIgnoredSkills.includes(val)) {
+                                                console.log("[Damage Sim] User manually ignoring skill:", val);
+                                                setSimIgnoredSkills(prev => [...prev, val].filter(Boolean));
+                                            }
+                                            e.target.value = '';
+                                        }}
+                                        value=""
+                                    >
+                                        <option value="" disabled>Add Skill to Ignore...</option>
+                                        {[
+                                            ...Object.keys((skillsData as any).Sentinel || {}),
+                                            ...Object.keys((skillsData as any).Vanguard || {}),
+                                            ...Object.keys((skillsData as any).Support || {})
+                                        ].filter(s => !simIgnoredSkills.includes(s)).map(s => (
+                                            <option key={s} value={s}>{s}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </section>
+                        )
+                    }
 
                     {
                         results.length > 0 && (
@@ -961,7 +1126,17 @@ function App() {
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr)', gap: '2rem', alignItems: 'start' }}>
                                     <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
-                                        {results.slice(resultPage * resultsPerPage, (resultPage + 1) * resultsPerPage).map((res, i) => (
+                                        {results.map(r => {
+                                            if (showDamageSimulation) {
+                                                r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills);
+                                            }
+                                            return r;
+                                        }).sort((a, b) => {
+                                            if (showDamageSimulation && a.simulatedDamage && b.simulatedDamage) {
+                                                return b.simulatedDamage - a.simulatedDamage;
+                                            }
+                                            return 0; // maintain original optimize sorting if not simulating
+                                        }).slice(resultPage * resultsPerPage, (resultPage + 1) * resultsPerPage).map((res, i) => (
                                             <div key={i} className="result-card glassmorphism">
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                                     <h3 style={{ margin: 0 }}>Build #{resultPage * resultsPerPage + i + 1}</h3>
@@ -1003,6 +1178,11 @@ function App() {
                                                     )}
                                                 </div>
                                                 <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                                                    {showDamageSimulation && (
+                                                        <div style={{ color: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                                                            Avg DMG: {Math.round(res.simulatedDamage || 0).toLocaleString()}
+                                                        </div>
+                                                    )}
                                                     <div style={{ display: 'flex', gap: '1rem' }}>
                                                         {Object.entries(res.rawCategoryLevels).map(([cat, lvl]) => (
                                                             <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
@@ -1076,7 +1256,7 @@ function App() {
                         )
                     }
                 </main>
-            </div>
+            </div >
 
             {
                 selectedRelicInResults && (
