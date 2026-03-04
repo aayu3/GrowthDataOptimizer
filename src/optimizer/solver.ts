@@ -12,7 +12,7 @@ export class RelicSolver {
 
     private validBuilds: BuildResult[] = [];
     private buildSet: Set<string> = new Set();
-    private maxBuilds: number = 2000;
+    private maxBuilds: number = 50000;
 
     constructor(relics: Relic[], constraints: OptimizerConstraints, skillsData: Record<string, SkillDefinition>, relicInfo: any = null) {
         this.relics = relics;
