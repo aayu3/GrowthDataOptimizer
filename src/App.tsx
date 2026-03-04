@@ -300,14 +300,14 @@ function App() {
         const baseDamage = finalAtk / (1 + (stats.EnemyDEF / finalAtk)) * (1 + totalDamageBuff);
         const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * baseDamage * (1 + finalCritDmg));
 
-        if (logDetails) {
-            console.log(`[Damage Sim] Equipped Build Calculation:`);
-            console.log(`- Global Ignored Skills:`, ignoredSkills);
-            console.log(`- Skills actively factored in:`, activeSkillsLog.length > 0 ? activeSkillsLog : "None");
-            console.log(`- Stat Buffs Applied -> ATK: +${(totalAtkBuff * 100).toFixed(1)}%, DMG: +${(totalDamageBuff * 100).toFixed(1)}%, Crit Rate: +${totalCritRateBuff}%, Crit DMG: +${totalCritDmgBuff}%`);
-            console.log(`- Final Stats -> ATK: ${finalAtk.toFixed(1)}, Crit Rate: ${(finalCritRate * 100).toFixed(1)}%, Crit DMG: ${(finalCritDmg * 100).toFixed(1)}%`);
-            console.log(`- Base DMG: ${baseDamage.toFixed(1)} | Avg DMG: ${averageDamage.toFixed(1)}`);
-        }
+        // if (logDetails) {
+        //     console.log(`[Damage Sim] Equipped Build Calculation:`);
+        //     console.log(`- Global Ignored Skills:`, ignoredSkills);
+        //     console.log(`- Skills actively factored in:`, activeSkillsLog.length > 0 ? activeSkillsLog : "None");
+        //     console.log(`- Stat Buffs Applied -> ATK: +${(totalAtkBuff * 100).toFixed(1)}%, DMG: +${(totalDamageBuff * 100).toFixed(1)}%, Crit Rate: +${totalCritRateBuff}%, Crit DMG: +${totalCritDmgBuff}%`);
+        //     console.log(`- Final Stats -> ATK: ${finalAtk.toFixed(1)}, Crit Rate: ${(finalCritRate * 100).toFixed(1)}%, Crit DMG: ${(finalCritDmg * 100).toFixed(1)}%`);
+        //     console.log(`- Base DMG: ${baseDamage.toFixed(1)} | Avg DMG: ${averageDamage.toFixed(1)}`);
+        // }
 
         return averageDamage;
     };
