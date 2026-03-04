@@ -14,6 +14,10 @@ import { RelicInventoryModal } from './components/RelicInventoryModal';
 import { getSkillMaxLevel, getCatBadgeIconUrl, getSkillCategory } from './utils/relicUtils';
 import { Relic } from './optimizer/types';
 
+type EquipChange = { relicId: string; prevEquipped: string | null | undefined; newEquipped: string | null | undefined };
+type HistoryAction =
+    | { type: 'EQUIP', changes: EquipChange[] };
+
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
 function App() {
@@ -61,6 +65,9 @@ function App() {
     const [importFileName, setImportFileName] = useState('');
     const [showExportModal, setShowExportModal] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [relicToUnequip, setRelicToUnequip] = useState<Relic | null>(null);
+    const [undoStack, setUndoStack] = useState<HistoryAction[]>([]);
+    const [redoStack, setRedoStack] = useState<HistoryAction[]>([]);
 
     // --- Simulation State ---
     const [showDamageSimulation, setShowDamageSimulation] = useState(false);
@@ -90,6 +97,44 @@ function App() {
     }, [selectedDoll]);
 
     const workerRef = useRef<Worker | null>(null);
+
+    const pushAction = (action: HistoryAction) => {
+        setUndoStack(prev => [...prev, action]);
+        setRedoStack([]);
+    };
+
+    const handleUndo = async () => {
+        if (undoStack.length === 0) return;
+        const action = undoStack[undoStack.length - 1];
+        setUndoStack(prev => prev.slice(0, -1));
+
+        if (action.type === 'EQUIP') {
+            for (const change of action.changes) {
+                await db.relics.update(change.relicId, { equipped: change.prevEquipped });
+            }
+        }
+
+        setRedoStack(prev => [...prev, action]);
+    };
+
+    const handleRedo = async () => {
+        if (redoStack.length === 0) return;
+        const action = redoStack[redoStack.length - 1];
+        setRedoStack(prev => prev.slice(0, -1));
+
+        if (action.type === 'EQUIP') {
+            for (const change of action.changes) {
+                await db.relics.update(change.relicId, { equipped: change.newEquipped });
+            }
+        }
+
+        setUndoStack(prev => [...prev, action]);
+    };
+
+    useEffect(() => {
+        setUndoStack([]);
+        setRedoStack([]);
+    }, [selectedDoll]);
 
     const processFile = (file: File) => {
         const reader = new FileReader();
@@ -524,6 +569,51 @@ function App() {
                     </div>
                 </div>
             )}
+
+            {relicToUnequip && (
+                <div
+                    style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}
+                    onClick={() => setRelicToUnequip(null)}
+                >
+                    <div
+                        className="card glassmorphism"
+                        style={{ width: '350px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', textAlign: 'center' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 style={{ margin: 0, color: '#ff4757' }}>Unequip Relic?</h3>
+                        <p>Are you sure you want to unequip this relic?</p>
+                        <div style={{ display: 'flex', width: '100%', gap: '1rem' }}>
+                            <button
+                                className="glow-btn"
+                                style={{ flex: 1, background: 'rgba(255, 60, 60, 0.1)', borderColor: '#ff4c4c', color: '#ff4c4c' }}
+                                onClick={async () => {
+                                    if (relicToUnequip.id) {
+                                        const fullRelic = relics.find(r => r.id === relicToUnequip.id);
+                                        pushAction({
+                                            type: 'EQUIP',
+                                            changes: [{ relicId: relicToUnequip.id, prevEquipped: fullRelic?.equipped, newEquipped: undefined }]
+                                        });
+                                        await db.relics.update(relicToUnequip.id, { equipped: undefined });
+                                        if (selectedEquippedRelic?.id === relicToUnequip.id) {
+                                            setSelectedEquippedRelic(null);
+                                        }
+                                    }
+                                    setRelicToUnequip(null);
+                                }}
+                            >
+                                Confirm
+                            </button>
+                            <button
+                                className="glow-btn"
+                                style={{ flex: 1 }}
+                                onClick={() => setRelicToUnequip(null)}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 
@@ -753,9 +843,27 @@ function App() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: '2rem' }}>
                             <section className="card glassmorphism">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <h2 style={{ fontSize: '1.25rem' }}>Currently Equipped</h2>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Currently Equipped</h2>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <button
+                                            className="glow-btn"
+                                            style={{ padding: '0.2rem 0.4rem', fontSize: '1rem', opacity: undoStack.length === 0 ? 0.5 : 1, cursor: undoStack.length === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', boxShadow: 'none', color: undoStack.length === 0 ? 'rgba(255, 255, 255, 0.3)' : 'var(--accent-color)' }}
+                                            disabled={undoStack.length === 0}
+                                            onClick={handleUndo}
+                                            title="Undo last equip/unequip action"
+                                        >
+                                            ↶
+                                        </button>
+                                        <button
+                                            className="glow-btn"
+                                            style={{ padding: '0.2rem 0.4rem', fontSize: '1rem', opacity: redoStack.length === 0 ? 0.5 : 1, cursor: redoStack.length === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', boxShadow: 'none', color: redoStack.length === 0 ? 'rgba(255, 255, 255, 0.3)' : 'var(--accent-color)' }}
+                                            disabled={redoStack.length === 0}
+                                            onClick={handleRedo}
+                                            title="Redo last undone action"
+                                        >
+                                            ↷
+                                        </button>
                                         {relics.filter(r => r.equipped === selectedDoll).length > 0 && (
                                             <button
                                                 className="export-btn"
@@ -768,14 +876,14 @@ function App() {
                                                     dlAnchorElem.setAttribute("download", `equipped_relics_${selectedDoll}.json`);
                                                     dlAnchorElem.click();
                                                 }}
-                                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                                style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                                             >
                                                 Export Build
                                             </button>
                                         )}
                                         <button
                                             className="glow-btn"
-                                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
                                             onClick={() => {
                                                 setIsEditingEquip(true);
                                                 setSelectedEquippedRelic(null);
@@ -795,14 +903,7 @@ function App() {
                                                         relic={r}
                                                         isSelected={selectedEquippedRelic?.id === r.id}
                                                         onClick={() => setSelectedEquippedRelic(r)}
-                                                        onUnequip={async () => {
-                                                            if (r.id) {
-                                                                await db.relics.update(r.id, { equipped: undefined });
-                                                                if (selectedEquippedRelic?.id === r.id) {
-                                                                    setSelectedEquippedRelic(null);
-                                                                }
-                                                            }
-                                                        }}
+                                                        onUnequip={() => setRelicToUnequip(r)}
                                                     />
                                                 </div>
                                             ))}
@@ -866,6 +967,16 @@ function App() {
                                     <RelicInventoryModal
                                         selectedDoll={selectedDoll}
                                         onClose={() => setIsEditingEquip(false)}
+                                        onEquip={async (r) => {
+                                            if (r.id) {
+                                                const fullRelic = relics.find(x => x.id === r.id);
+                                                pushAction({
+                                                    type: 'EQUIP',
+                                                    changes: [{ relicId: r.id, prevEquipped: fullRelic?.equipped, newEquipped: selectedDoll }]
+                                                });
+                                                await db.relics.update(r.id, { equipped: selectedDoll });
+                                            }
+                                        }}
                                     />
                                 )}
                             </section>
@@ -1031,14 +1142,28 @@ function App() {
                                                             style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
                                                             onClick={async () => {
                                                                 // Unequip currently equipped
+                                                                const changes: EquipChange[] = [];
                                                                 const currentEquipped = relics.filter(r => r.equipped === selectedDoll);
                                                                 for (const r of currentEquipped) {
-                                                                    if (r.id) await db.relics.update(r.id, { equipped: undefined });
+                                                                    if (r.id) {
+                                                                        await db.relics.update(r.id, { equipped: undefined });
+                                                                        changes.push({ relicId: r.id, prevEquipped: r.equipped, newEquipped: undefined });
+                                                                    }
                                                                 }
                                                                 // Equip new build elements
                                                                 for (const r of res.relics) {
-                                                                    if (r.id) await db.relics.update(r.id, { equipped: selectedDoll });
+                                                                    if (r.id) {
+                                                                        const fullRelic = relics.find(x => x.id === r.id);
+                                                                        await db.relics.update(r.id, { equipped: selectedDoll });
+                                                                        const existingChange = changes.find(c => c.relicId === r.id);
+                                                                        if (existingChange) {
+                                                                            existingChange.newEquipped = selectedDoll;
+                                                                        } else {
+                                                                            changes.push({ relicId: r.id, prevEquipped: fullRelic ? fullRelic.equipped : r.equipped, newEquipped: selectedDoll });
+                                                                        }
+                                                                    }
                                                                 }
+                                                                pushAction({ type: 'EQUIP', changes });
                                                                 // Cleanly unselect inspector if it was open to avoid confusion
                                                                 setSelectedEquippedRelic(null);
                                                             }}
