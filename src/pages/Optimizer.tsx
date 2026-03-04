@@ -39,6 +39,7 @@ export function Optimizer() {
     const [hasOptimized, setHasOptimized] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
+    const [optimizationTime, setOptimizationTime] = useState<number | null>(null);
 
     const workerPoolRef = useRef<Worker[]>([]);
 
@@ -121,6 +122,9 @@ export function Optimizer() {
         setResults([]);
         setResultPage(0);
         setErrorMsg('');
+        setOptimizationTime(null);
+
+        const startTime = performance.now();
 
         if (workerPoolRef.current.length > 0) {
             workerPoolRef.current.forEach(w => w.terminate());
@@ -149,6 +153,9 @@ export function Optimizer() {
                     completedWorkers++;
 
                     if (completedWorkers === concurrency) {
+                        const endTime = performance.now();
+                        setOptimizationTime(endTime - startTime);
+
                         allResults.sort((a, b) => {
                             const sumA = Object.values(a.rawSkillLevels).reduce((acc, v) => acc + v, 0);
                             const sumB = Object.values(b.rawSkillLevels).reduce((acc, v) => acc + v, 0);
@@ -170,6 +177,7 @@ export function Optimizer() {
                         setErrorMsg(e.data.message);
                         setIsOptimizing(false);
                         setHasOptimized(true);
+                        setOptimizationTime(performance.now() - startTime);
                         workers.forEach(w => w.terminate());
                     }
                 }
@@ -404,9 +412,14 @@ export function Optimizer() {
                     >
                         {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
                     </button>
+                    {optimizationTime !== null && hasOptimized && (
+                        <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
+                            Calculated {results.length.toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {navigator.hardwareConcurrency || 4} threads
+                        </div>
+                    )}
                     <button
                         className={`glow-btn`}
-                        style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '' }}
+                        style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '', marginLeft: 'auto' }}
                         onClick={() => setShowDamageSimulation(!showDamageSimulation)}
                     >
                         {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
