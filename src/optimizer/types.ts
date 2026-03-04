@@ -14,6 +14,15 @@ export interface Relic {
     createdAt?: number; // Timestamp for sorting
 }
 
+export interface EquipChange {
+    relicId: string;
+    prevEquipped: string | null | undefined;
+    newEquipped: string | null | undefined;
+}
+
+export type HistoryAction =
+    | { type: 'EQUIP', changes: EquipChange[] };
+
 export interface OptimizerConstraints {
     targetCategoryLevels: Record<string, number>; // e.g. { "Bulwark": 12, "Support": 8 }
     targetSkillLevels: Record<string, number>;    // e.g. { "HP Boost": 6 }
@@ -41,6 +50,7 @@ export interface DollBonus {
 }
 
 export interface DollDefinition {
+    element?: string;
     allowed_slots: Record<string, number>;
     bonuses: DollBonus[];
 }
