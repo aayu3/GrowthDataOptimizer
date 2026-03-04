@@ -168,11 +168,6 @@ export class RelicSolver {
         this.validBuilds = [];
         this.rootBranchIndex = 0;
 
-        // Adjust maxBuilds if partitioned
-        if (partition) {
-            this.maxBuilds = Math.ceil(this.maxBuilds / partition.total);
-        }
-
         // HEURISTIC: Score relics based on usefulness for current constraints
         const scoredRelics = this.relics.map(r => {
             let score = 0;
