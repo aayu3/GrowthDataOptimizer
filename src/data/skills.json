@@ -68,7 +68,7 @@
             "scaling": "none"
         },
         "Physical Boost": {
-            "effect": "damage dealt is increased by {x}",
+            "effect": "Physical damage dealt is increased by {x}",
             "x": [
                 0.2,
                 0.5,
@@ -81,7 +81,7 @@
             "scaling": "none"
         },
         "Burn Boost": {
-            "effect": "Burn PhaseBurn damage dealt is increased by {x}",
+            "effect": "Burn damage dealt is increased by {x}",
             "x": [
                 0.2,
                 0.5,
@@ -94,7 +94,7 @@
             "scaling": "none"
         },
         "Hydro Boost": {
-            "effect": "Hydro PhaseHydro damage dealt is increased by {x}",
+            "effect": "Hydro damage dealt is increased by {x}",
             "x": [
                 0.2,
                 0.5,
@@ -107,7 +107,7 @@
             "scaling": "none"
         },
         "Electric Boost": {
-            "effect": "Electric PhaseElectric damage dealt is increased by {x}",
+            "effect": "Electric damage dealt is increased by {x}",
             "x": [
                 0.2,
                 0.5,
@@ -120,7 +120,7 @@
             "scaling": "none"
         },
         "Freeze Boost": {
-            "effect": "Freeze PhaseFreeze damage dealt is increased by {x}",
+            "effect": "Freeze damage dealt is increased by {x}",
             "x": [
                 0.2,
                 0.5,
@@ -133,7 +133,7 @@
             "scaling": "none"
         },
         "Corrosion Boost": {
-            "effect": "Corrosion PhaseCorrosion damage dealt is increased by {x}",
+            "effect": "Corrosion damage dealt is increased by {x}",
             "x": [
                 0.2,
                 0.5,
@@ -283,7 +283,7 @@
             "scaling": "none"
         },
         "Physical Smite": {
-            "effect": "When dealingPhysical PhasePhysical damage, critical damage is increased by {x}%",
+            "effect": "When dealing Physical damage, critical damage is increased by {x}%",
             "x": [
                 0.2,
                 0.4,
@@ -296,7 +296,7 @@
             "scaling": "none"
         },
         "Burning Smite": {
-            "effect": "When dealing Burn PhaseBurn damage, critical damage is increased by {x}%",
+            "effect": "When dealing Burn damage, critical damage is increased by {x}%",
             "x": [
                 0.2,
                 0.4,
@@ -309,7 +309,7 @@
             "scaling": "none"
         },
         "Electric Smite": {
-            "effect": "When dealing Electric PhaseElectric damage, critical damage is increased by {x}%",
+            "effect": "When dealing Electric damage, critical damage is increased by {x}%",
             "x": [
                 0.2,
                 0.4,
@@ -322,7 +322,7 @@
             "scaling": "none"
         },
         "Corrosive Smite": {
-            "effect": "When dealing Corrosion PhaseCorrosion damage, critical damage is increased by {x}%",
+            "effect": "When dealing Corrosion damage, critical damage is increased by {x}%",
             "x": [
                 0.2,
                 0.4,
@@ -335,7 +335,7 @@
             "scaling": "none"
         },
         "Freezing Smite": {
-            "effect": "When dealing Freeze PhaseFreeze damage, critical damage is increased by {x}%",
+            "effect": "When dealing Freeze damage, critical damage is increased by {x}%",
             "x": [
                 0.2,
                 0.4,
@@ -344,6 +344,19 @@
                 1
             ],
             "element": "Freeze",
+            "stat": "CRIT_DMG",
+            "scaling": "none"
+        },
+        "Hydro Smite": {
+            "effect": "When dealing Hydro damage, critical damage is increased by {x}%",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Hydro",
             "stat": "CRIT_DMG",
             "scaling": "none"
         },
@@ -372,6 +385,21 @@
             "element": "none",
             "stat": "CRIT_DMG",
             "scaling": "none"
+        }
+    },
+    "Support": {
+        "Ichor Conversion": {
+            "effect": "Attack is increased by {x}% of initial max HP",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "none",
+            "stat": "ATK",
+            "scaling": "HP"
         }
     }
 }
