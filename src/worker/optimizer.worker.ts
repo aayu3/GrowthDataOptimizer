@@ -13,7 +13,9 @@ self.onmessage = (e: MessageEvent) => {
     try {
         const solver = new RelicSolver(relics, constraints, skillsData, relicInfo);
         const results = solver.solve(partition);
-        self.postMessage({ type: 'DONE', results });
+        // Transfer the underlying ArrayBuffer ownership directly to the main thread
+        // This is instant and takes 0 memory allocation time
+        (self as unknown as Worker).postMessage({ type: 'DONE', results }, [results.buffer.buffer]);
     } catch (error: any) {
         self.postMessage({ type: 'ERROR', message: error.message });
     }

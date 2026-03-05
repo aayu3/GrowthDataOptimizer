@@ -1,4 +1,4 @@
-import { Relic, OptimizerConstraints, BuildResult, SkillDefinition } from './types';
+import { Relic, OptimizerConstraints, SkillDefinition } from './types';
 
 // Maximum possible level a single relic can contribute to ANY category
 // main (3) + 2 aux (3 each) = 9
@@ -35,9 +35,16 @@ export class RelicSolver {
     private targetSkillLevels: Int32Array;
     private allowedSlots: Int32Array;
 
-    private validBuilds: BuildResult[] = [];
+    // 6 indices for relic array + 1 for score
+    private readonly INTS_PER_BUILD = 7;
+    private validBuildsArray: Uint32Array;
+    private buildCount: number = 0;
     private maxBuilds: number = 2000000;
     private rootBranchIndex: number = 0;
+
+    // We will map Relic object IDs to integers to store them in the Uint32Array
+    private relicIdToInt: Map<string, number> = new Map();
+    private intToRelicId: string[] = [];
 
     constructor(relics: Relic[], constraints: OptimizerConstraints, skillsData: Record<string, SkillDefinition>, relicInfo: any = null) {
         this.relics = relics;
@@ -48,6 +55,17 @@ export class RelicSolver {
         this.skillIdToName = [];
         this.typeNameToId = new Map();
         this.typeIdToName = [];
+
+        this.validBuildsArray = new Uint32Array(this.maxBuilds * this.INTS_PER_BUILD);
+
+        // Map relic IDs to integers
+        this.relics.forEach((r, idx) => {
+            const intId = idx + 1; // 1-indexed to allow 0 for empty
+            if (r.id) {
+                this.relicIdToInt.set(r.id, intId);
+                this.intToRelicId[intId] = r.id;
+            }
+        });
 
         const tempCatMap = new Map<string, string>();
         const tempMaxMap = new Map<string, number>();
@@ -164,8 +182,8 @@ export class RelicSolver {
         return this.typeNameToId.get(typeName)!;
     }
 
-    public solve(partition?: { id: number, total: number }): BuildResult[] {
-        this.validBuilds = [];
+    public solve(partition?: { id: number, total: number }): { buffer: Uint32Array, count: number } {
+        this.buildCount = 0;
         this.rootBranchIndex = 0;
 
         // HEURISTIC: Score relics based on usefulness for current constraints
@@ -278,17 +296,11 @@ export class RelicSolver {
 
         this.backtrack(archetypes, 0, 0, runningCat, runningSkill, runningTypes, currentBuild, partition);
 
-        // Sort by some heuristic, e.g. most total skill levels
-        this.validBuilds.sort((a, b) => {
-            const sumA = Object.values(a.rawSkillLevels).reduce((acc, v) => acc + v, 0);
-            const sumB = Object.values(b.rawSkillLevels).reduce((acc, v) => acc + v, 0);
-            if (sumB !== sumA) return sumB - sumA;
-            const effA = Object.values(a.effectiveSkillLevels).reduce((acc, v) => acc + v, 0);
-            const effB = Object.values(b.effectiveSkillLevels).reduce((acc, v) => acc + v, 0);
-            return effB - effA;
-        });
-
-        return this.validBuilds;
+        // We no longer sort here inside the worker, sorting massive typed arrays is better done 
+        // after gathering on the main thread, or by computing a single 'score' integer and sorting by that
+        // Returns only the populated slice of the array
+        const resultSlice = this.validBuildsArray.slice(0, this.buildCount * this.INTS_PER_BUILD);
+        return { buffer: resultSlice, count: this.buildCount };
     }
 
     private backtrack(
@@ -301,7 +313,7 @@ export class RelicSolver {
         currentBuild: Relic[],
         partition?: { id: number, total: number }
     ) {
-        if (this.validBuilds.length >= this.maxBuilds) return;
+        if (this.buildCount >= this.maxBuilds) return;
 
         if (depth === 6) {
             this.evaluateBuild(runningCat, runningSkill, currentBuild);
@@ -396,33 +408,37 @@ export class RelicSolver {
             }
         }
 
-        const rawSkillLevels: Record<string, number> = {};
-        const rawCategoryLevels: Record<string, number> = {};
-        const effectiveSkillLevels: Record<string, number> = {};
-
-        for (let i = 0; i < runningCat.length; i++) {
-            if (runningCat[i] > 0 && i < this.categoryIdToName.length) {
-                rawCategoryLevels[this.categoryIdToName[i]] = runningCat[i];
-            }
-        }
+        let rawSkillSum = 0;
+        let effSkillSum = 0;
 
         for (let i = 0; i < runningSkill.length; i++) {
             if (runningSkill[i] > 0 && i < this.skillIdToName.length) {
-                const name = this.skillIdToName[i];
                 const rawVal = runningSkill[i];
-                rawSkillLevels[name] = rawVal;
+                rawSkillSum += rawVal;
 
                 const maxLvl = i < this.skillIdToMaxLevel.length && this.skillIdToMaxLevel[i] > 0
                     ? this.skillIdToMaxLevel[i] : 6;
-                effectiveSkillLevels[name] = Math.min(rawVal, maxLvl);
+                effSkillSum += Math.min(rawVal, maxLvl);
             }
         }
 
-        this.validBuilds.push({
-            relics: [...build],
-            rawCategoryLevels,
-            rawSkillLevels,
-            effectiveSkillLevels
-        });
+        // Pack the result into the flat array
+        const offset = this.buildCount * this.INTS_PER_BUILD;
+
+        // 0-5 are the relic internal Integer IDs
+        for (let i = 0; i < 6; i++) {
+            if (build[i] && build[i].id !== undefined) {
+                this.validBuildsArray[offset + i] = this.relicIdToInt.get(build[i].id!) || 0;
+            } else {
+                this.validBuildsArray[offset + i] = 0;
+            }
+        }
+
+        // Use slot 6 as a sortable score metric (effSum in high bits, rawSum in low bits)
+        // This allows cheap sorting later without recreating the objects
+        const score = (effSkillSum << 16) | (rawSkillSum & 0xFFFF);
+        this.validBuildsArray[offset + 6] = score;
+
+        this.buildCount++;
     }
 }
