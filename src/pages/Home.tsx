@@ -20,7 +20,7 @@ export function Home() {
     return (
         <div className="app-container">
             <header className="header-glow">
-                <h1>GF2 <span>Relic Optimizer</span></h1>
+                <h1>GFL2 <span>Growth Data Optimizer</span></h1>
                 <p className="subtitle">Import Inventory or Select a Character</p>
                 <div className="nav-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
                     <Link to="/database" className="back-btn" style={{ position: 'relative', textDecoration: 'none' }}>
