@@ -34,6 +34,7 @@ export function Optimizer() {
     // Results state
     const [results, setResults] = useState<BuildResult[]>([]);
     const [rawResults, setRawResults] = useState<Uint32Array>(new Uint32Array(0));
+    const [optimizedRelics, setOptimizedRelics] = useState<Relic[]>([]);
     const [resultPage, setResultPage] = useState(0);
     const resultsPerPage = 50;
     const [isOptimizing, setIsOptimizing] = useState(false);
@@ -41,6 +42,12 @@ export function Optimizer() {
     const [errorMsg, setErrorMsg] = useState('');
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
     const [optimizationTime, setOptimizationTime] = useState<number | null>(null);
+
+    const [threads, setThreads] = useState<number>(navigator.hardwareConcurrency || 4);
+    const [threadsInput, setThreadsInput] = useState<string>((navigator.hardwareConcurrency || 4).toString());
+    const [maxTotalBuilds, setMaxTotalBuilds] = useState<number>(500000000);
+    const [maxBuildsInput, setMaxBuildsInput] = useState<string>('500000000');
+    const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
     const workerPoolRef = useRef<Worker[]>([]);
 
@@ -121,6 +128,7 @@ export function Optimizer() {
         setIsOptimizing(true);
         setHasOptimized(false);
         setResults([]);
+        setRawResults(new Uint32Array(0));
         setResultPage(0);
         setErrorMsg('');
         setOptimizationTime(null);
@@ -131,7 +139,7 @@ export function Optimizer() {
             workerPoolRef.current.forEach(w => w.terminate());
         }
 
-        const concurrency = navigator.hardwareConcurrency || 4;
+        const concurrency = threads;
         const workers: Worker[] = [];
         workerPoolRef.current = workers;
 
@@ -144,12 +152,7 @@ export function Optimizer() {
         if (!includeOtherEquipped) {
             filteredRelics = relics.filter(r => !r.equipped || r.equipped === selectedDoll);
         }
-
-        // We need a map to reverse integers back to Relic objects for UI display
-        const intToRelic = new Map<number, Relic>();
-        filteredRelics.forEach((r, idx) => {
-            if (r.id) intToRelic.set(idx + 1, r);
-        });
+        setOptimizedRelics(filteredRelics);
 
         for (let i = 0; i < concurrency; i++) {
             const worker = new OptimizerWorker();
@@ -187,8 +190,8 @@ export function Optimizer() {
                             return scoreB - scoreA;
                         });
 
-                        // Keep up to 2,000,000 builds
-                        const maxToKeep = Math.min(totalCount, 2000000);
+                        // Keep up to maxTotalBuilds
+                        const maxToKeep = Math.min(totalCount, maxTotalBuilds);
                         const finalBuffer = new Uint32Array(maxToKeep * INTS_PER_BUILD);
                         for (let i = 0; i < maxToKeep; i++) {
                             const srcIdx = indices[i] * INTS_PER_BUILD;
@@ -219,7 +222,8 @@ export function Optimizer() {
                 relics: filteredRelics,
                 constraints: {
                     ...constraints,
-                    allowedSlots: selectedDollData?.allowed_slots
+                    allowedSlots: selectedDollData?.allowed_slots,
+                    maxBuildsPerThread: Math.ceil(maxTotalBuilds / concurrency)
                 },
                 skillsData,
                 relicInfo,
@@ -331,7 +335,7 @@ export function Optimizer() {
 
         // Helper maps
         const intToRelic = new Map<number, Relic>();
-        relics.forEach((r, idx) => {
+        optimizedRelics.forEach((r, idx) => {
             if (r.id) intToRelic.set(idx + 1, r);
         });
 
@@ -399,19 +403,9 @@ export function Optimizer() {
         }
 
         setResults(buildObjects);
-    }, [rawResults, resultPage, relics, categorizedSkills]);
+    }, [rawResults, resultPage, optimizedRelics, categorizedSkills, skillsData]);
 
-    // Debounced automatic optimization trigger
-    useEffect(() => {
-        if (!selectedDoll || relics.length === 0) return;
 
-        const timer = setTimeout(() => {
-            startOptimization();
-        }, 500);
-
-        return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [constraints, selectedDoll, includeOtherEquipped]);
 
     const handleConfirmUnequip = async (r: Relic) => {
         if (r.id) {
@@ -518,27 +512,83 @@ export function Optimizer() {
                     </div>
                 </div>
 
-                <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
-                    <button
-                        className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
-                        onClick={startOptimization}
-                    >
-                        {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
-                    </button>
-                    {optimizationTime !== null && hasOptimized && (
-                        <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
-                            Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {navigator.hardwareConcurrency || 4} threads
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
+                        <button
+                            className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
+                            onClick={startOptimization}
+                        >
+                            {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
+                        </button>
+                        <button
+                            className="glow-btn"
+                            style={{ padding: '0.4rem 0.8rem', background: showAdvancedSettings ? 'var(--accent-glow)' : 'var(--bg-card)' }}
+                            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                            title="Optimizer Settings"
+                        >
+                            ⚙️
+                        </button>
+                        {optimizationTime !== null && hasOptimized && (
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
+                                Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {threads} threads
+                            </div>
+                        )}
+                        <button
+                            className={`glow-btn`}
+                            style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '', marginLeft: 'auto' }}
+                            onClick={() => setShowDamageSimulation(!showDamageSimulation)}
+                        >
+                            {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
+                        </button>
+                    </div>
+
+                    {showAdvancedSettings && (
+                        <div className="glassmorphism" style={{ marginTop: '1rem', padding: '1rem', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Threads to Use</label>
+                                <input
+                                    type="number"
+                                    className="glass-input"
+                                    value={threadsInput}
+                                    onChange={e => setThreadsInput(e.target.value)}
+                                    onBlur={() => {
+                                        const maxThreads = navigator.hardwareConcurrency || 4;
+                                        let parsed = parseInt(threadsInput, 10);
+                                        if (isNaN(parsed)) parsed = 1;
+                                        const clamped = Math.min(maxThreads, Math.max(1, parsed));
+                                        setThreads(clamped);
+                                        setThreadsInput(clamped.toString());
+                                    }}
+                                    style={{ width: '100px' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Max Total Builds</label>
+                                <input
+                                    type="number"
+                                    className="glass-input"
+                                    value={maxBuildsInput}
+                                    step="1000000"
+                                    onChange={e => setMaxBuildsInput(e.target.value.trim())}
+                                    onBlur={() => {
+                                        let parsed = parseInt(maxBuildsInput, 10);
+                                        if (isNaN(parsed)) parsed = 500000000;
+                                        const clamped = Math.min(500000000, Math.max(10000, parsed));
+                                        setMaxTotalBuilds(clamped);
+                                        setMaxBuildsInput(clamped.toString());
+                                    }}
+                                    style={{ width: '150px' }}
+                                />
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-color)', opacity: 0.5 }}>
+                                    Divides across {threads} threads ({Math.ceil(maxTotalBuilds / threads).toLocaleString()} / thread). Uses ~{(() => {
+                                        const mb = Math.ceil((maxTotalBuilds / threads) * 28 / 1024 / 1024);
+                                        return mb >= 1000 ? `${(mb / 1024).toFixed(2)}GB` : `${mb}MB`;
+                                    })()} RAM per thread.
+                                </span>
+                            </div>
                         </div>
                     )}
-                    <button
-                        className={`glow-btn`}
-                        style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '', marginLeft: 'auto' }}
-                        onClick={() => setShowDamageSimulation(!showDamageSimulation)}
-                    >
-                        {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
-                    </button>
                 </div>
-
                 {showDamageSimulation && (
                     <DamageSimulationSettings
                         simStats={simStats}

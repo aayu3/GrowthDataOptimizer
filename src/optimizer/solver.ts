@@ -39,7 +39,7 @@ export class RelicSolver {
     private readonly INTS_PER_BUILD = 7;
     private validBuildsArray: Uint32Array;
     private buildCount: number = 0;
-    private maxBuilds: number = 2000000;
+    private maxBuilds: number;
     private rootBranchIndex: number = 0;
 
     // We will map Relic object IDs to integers to store them in the Uint32Array
@@ -56,6 +56,7 @@ export class RelicSolver {
         this.typeNameToId = new Map();
         this.typeIdToName = [];
 
+        this.maxBuilds = constraints.maxBuildsPerThread || 500000000;
         this.validBuildsArray = new Uint32Array(this.maxBuilds * this.INTS_PER_BUILD);
 
         // Map relic IDs to integers
@@ -137,18 +138,15 @@ export class RelicSolver {
 
         // Find all type IDs
         this.relics.forEach(r => this.getOrAddTypeId(r.type));
-        this.allowedSlots = new Int32Array(this.typeIdToName.length).fill(99);
+        this.allowedSlots = new Int32Array(this.typeIdToName.length + 10);
         if (this.constraints.allowedSlots) {
+            this.allowedSlots.fill(0); // Strict requirement: unlisted types get 0 allowed slots
             for (const [type, allowed] of Object.entries(this.constraints.allowedSlots)) {
                 const typeId = this.getOrAddTypeId(type);
                 this.allowedSlots[typeId] = allowed;
             }
         } else {
-            // Default allowed slots if not specified
-            ['Bulwark', 'Vanguard', 'Support', 'Sentinel'].forEach(type => {
-                const typeId = this.getOrAddTypeId(type);
-                this.allowedSlots[typeId] = 99; // Practically unlimited, but restricted by 6 depth
-            });
+            this.allowedSlots.fill(99); // Practically unlimited, but restricted by 6 depth
         }
     }
 
