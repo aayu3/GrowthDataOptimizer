@@ -17,6 +17,7 @@ interface OptimizationResultsProps {
     selectedDoll: string;
     selectedRelicInResults: Relic | null;
     setSelectedRelicInResults: React.Dispatch<React.SetStateAction<Relic | null>>;
+    totalResults: number;
 }
 
 export function OptimizationResults({
@@ -111,29 +112,31 @@ export function OptimizationResults({
                 </div>
             </div>
 
-            {results.length > resultsPerPage && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
-                    <button
-                        className="glow-btn"
-                        disabled={resultPage === 0}
-                        onClick={() => setResultPage(Math.max(0, resultPage - 1))}
-                        style={{ padding: '0.4rem 1rem' }}
-                    >
-                        ← Previous
-                    </button>
-                    <span style={{ color: 'var(--text-secondary)' }}>
-                        Page {resultPage + 1} of {Math.ceil(results.length / resultsPerPage)} (Showing {resultPage * resultsPerPage + 1} - {Math.min((resultPage + 1) * resultsPerPage, results.length)} of {results.length})
-                    </span>
-                    <button
-                        className="glow-btn"
-                        disabled={resultPage >= Math.ceil(results.length / resultsPerPage) - 1}
-                        onClick={() => setResultPage(Math.min(Math.ceil(results.length / resultsPerPage) - 1, resultPage + 1))}
-                        style={{ padding: '0.4rem 1rem' }}
-                    >
-                        Next →
-                    </button>
-                </div>
-            )}
-        </section>
+            {
+                results.length > resultsPerPage && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+                        <button
+                            className="glow-btn"
+                            disabled={resultPage === 0}
+                            onClick={() => setResultPage(Math.max(0, resultPage - 1))}
+                            style={{ padding: '0.4rem 1rem' }}
+                        >
+                            ← Previous
+                        </button>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                            Page {resultPage + 1} of {Math.ceil(results.length / resultsPerPage)} (Showing {resultPage * resultsPerPage + 1} - {Math.min((resultPage + 1) * resultsPerPage, results.length)} of {results.length})
+                        </span>
+                        <button
+                            className="glow-btn"
+                            disabled={resultPage >= Math.ceil(results.length / resultsPerPage) - 1}
+                            onClick={() => setResultPage(Math.min(Math.ceil(results.length / resultsPerPage) - 1, resultPage + 1))}
+                            style={{ padding: '0.4rem 1rem' }}
+                        >
+                            Next →
+                        </button>
+                    </div>
+                )
+            }
+        </section >
     );
 }

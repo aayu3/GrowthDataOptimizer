@@ -33,14 +33,23 @@ export function Optimizer() {
 
     // Results state
     const [results, setResults] = useState<BuildResult[]>([]);
+    const [rawResults, setRawResults] = useState<Uint32Array>(new Uint32Array(0));
+    const [optimizedRelics, setOptimizedRelics] = useState<Relic[]>([]);
     const [resultPage, setResultPage] = useState(0);
     const resultsPerPage = 50;
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [hasOptimized, setHasOptimized] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
+    const [optimizationTime, setOptimizationTime] = useState<number | null>(null);
 
-    const workerRef = useRef<Worker | null>(null);
+    const [threads, setThreads] = useState<number>(navigator.hardwareConcurrency || 4);
+    const [threadsInput, setThreadsInput] = useState<string>((navigator.hardwareConcurrency || 4).toString());
+    const [maxTotalBuilds, setMaxTotalBuilds] = useState<number>(500000000);
+    const [maxBuildsInput, setMaxBuildsInput] = useState<string>('500000000');
+    const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+
+    const workerPoolRef = useRef<Worker[]>([]);
 
     // History Actions
     const [undoStack, setUndoStack] = useState<HistoryAction[]>([]);
@@ -119,40 +128,109 @@ export function Optimizer() {
         setIsOptimizing(true);
         setHasOptimized(false);
         setResults([]);
+        setRawResults(new Uint32Array(0));
         setResultPage(0);
         setErrorMsg('');
+        setOptimizationTime(null);
 
-        if (workerRef.current) {
-            workerRef.current.terminate();
+        const startTime = performance.now();
+
+        if (workerPoolRef.current.length > 0) {
+            workerPoolRef.current.forEach(w => w.terminate());
         }
 
-        workerRef.current = new OptimizerWorker();
-        workerRef.current.onmessage = (e) => {
-            if (e.data.type === 'DONE') {
-                setResults(e.data.results);
-                setHasOptimized(true);
-                setIsOptimizing(false);
-            } else if (e.data.type === 'ERROR') {
-                setErrorMsg(e.data.message);
-                setIsOptimizing(false);
-                setHasOptimized(true);
-            }
-        };
+        const concurrency = threads;
+        const workers: Worker[] = [];
+        workerPoolRef.current = workers;
+
+        let completedWorkers = 0;
+        let allBuffers: Uint32Array[] = [];
+        let totalCount = 0;
+        let hasError = false;
 
         let filteredRelics = relics;
         if (!includeOtherEquipped) {
             filteredRelics = relics.filter(r => !r.equipped || r.equipped === selectedDoll);
         }
+        setOptimizedRelics(filteredRelics);
 
-        workerRef.current!.postMessage({
-            relics: filteredRelics,
-            constraints: {
-                ...constraints,
-                allowedSlots: selectedDollData?.allowed_slots
-            },
-            skillsData,
-            relicInfo
-        });
+        for (let i = 0; i < concurrency; i++) {
+            const worker = new OptimizerWorker();
+            worker.onmessage = (e) => {
+                if (hasError) return;
+
+                if (e.data.type === 'DONE') {
+                    const { buffer, count } = e.data.results as { buffer: Uint32Array, count: number };
+                    allBuffers.push(buffer);
+                    totalCount += count;
+                    completedWorkers++;
+
+                    if (completedWorkers === concurrency) {
+                        const endTime = performance.now();
+                        setOptimizationTime(endTime - startTime);
+
+                        // Merge all buffers into one large array
+                        const INTS_PER_BUILD = 7;
+                        let mergedBuffer = new Uint32Array(totalCount * INTS_PER_BUILD);
+                        let offset = 0;
+                        for (const b of allBuffers) {
+                            mergedBuffer.set(b, offset);
+                            offset += b.length;
+                        }
+
+                        // We can't use Array.prototype.sort on a typed array grouped by 7 integers
+                        // Instead, we create an index array to sort just the indices based on the score (index 6)
+                        const indices = new Uint32Array(totalCount);
+                        for (let i = 0; i < totalCount; i++) indices[i] = i;
+
+                        // Sort indices descending using the score metric stored at index 6 of every build
+                        indices.sort((a, b) => {
+                            const scoreA = mergedBuffer[a * INTS_PER_BUILD + 6];
+                            const scoreB = mergedBuffer[b * INTS_PER_BUILD + 6];
+                            return scoreB - scoreA;
+                        });
+
+                        // Keep up to maxTotalBuilds
+                        const maxToKeep = Math.min(totalCount, maxTotalBuilds);
+                        const finalBuffer = new Uint32Array(maxToKeep * INTS_PER_BUILD);
+                        for (let i = 0; i < maxToKeep; i++) {
+                            const srcIdx = indices[i] * INTS_PER_BUILD;
+                            const dstIdx = i * INTS_PER_BUILD;
+                            for (let j = 0; j < INTS_PER_BUILD; j++) {
+                                finalBuffer[dstIdx + j] = mergedBuffer[srcIdx + j];
+                            }
+                        }
+
+                        setRawResults(finalBuffer);
+                        setResultPage(0);
+                        setHasOptimized(true);
+                        setIsOptimizing(false);
+                    }
+                } else if (e.data.type === 'ERROR') {
+                    if (!hasError) {
+                        hasError = true;
+                        setErrorMsg(e.data.message);
+                        setIsOptimizing(false);
+                        setHasOptimized(true);
+                        setOptimizationTime(performance.now() - startTime);
+                        workers.forEach(w => w.terminate());
+                    }
+                }
+            };
+
+            worker.postMessage({
+                relics: filteredRelics,
+                constraints: {
+                    ...constraints,
+                    allowedSlots: selectedDollData?.allowed_slots,
+                    maxBuildsPerThread: Math.ceil(maxTotalBuilds / concurrency)
+                },
+                skillsData,
+                relicInfo,
+                partition: { id: i, total: concurrency }
+            });
+            workers.push(worker);
+        }
     };
 
     const handleExportJSON = () => {
@@ -191,9 +269,10 @@ export function Optimizer() {
         });
     };
 
-    const addSkillFilter = () => {
-        if (selectedSkillForFilter && !activeSkillFilters.includes(selectedSkillForFilter)) {
-            setActiveSkillFilters(prev => [...prev, selectedSkillForFilter]);
+    const addSkillFilter = (skill?: string) => {
+        const filterVal = skill || selectedSkillForFilter;
+        if (filterVal && !activeSkillFilters.includes(filterVal)) {
+            setActiveSkillFilters(prev => [...prev, filterVal]);
         }
         setSelectedSkillForFilter('');
     };
@@ -220,45 +299,113 @@ export function Optimizer() {
         }));
     };
 
-    // Debounced automatic optimization trigger
-    useEffect(() => {
-        if (!selectedDoll || relics.length === 0) return;
-
-        const timer = setTimeout(() => {
-            startOptimization();
-        }, 500);
-
-        return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [constraints, selectedDoll, includeOtherEquipped]);
-
-    const categorizedSkills: Record<string, string[]> = useMemo(() => {
-        const categorized: Record<string, string[]> = {
-            Bulwark: [],
-            Vanguard: [],
-            Support: [],
-            Sentinel: []
-        };
+    // We can compute categorizedSkills outside so it's ready for the effect
+    const categorizedSkills = useMemo(() => {
+        const cats: Record<string, string[]> = {};
         if (relicInfo && relicInfo.RELIC_TYPES) {
             for (const [catName, catData] of Object.entries<any>(relicInfo.RELIC_TYPES)) {
-                if (categorized[catName]) {
-                    const skillsForCat = new Set<string>();
-                    if (catData.main_skills) catData.main_skills.forEach((s: string) => skillsForCat.add(s));
-                    if (catData.aux_skills) {
-                        for (const rawName of Object.keys(catData.aux_skills)) {
-                            if (rawName.includes('{Element}')) {
-                                relicInfo.ELEMENTS?.forEach((el: string) => skillsForCat.add(rawName.replace('{Element}', el)));
-                            } else {
-                                skillsForCat.add(rawName);
-                            }
+                cats[catName] = [];
+                if (catData.main_skills) {
+                    catData.main_skills.forEach((skill: string) => cats[catName].push(skill));
+                }
+                if (catData.aux_skills) {
+                    for (const skillTemplate of Object.keys(catData.aux_skills)) {
+                        if (skillTemplate.includes('{Element}')) {
+                            relicInfo.ELEMENTS?.forEach((el: string) => cats[catName].push(skillTemplate.replace('{Element}', el)));
+                        } else {
+                            cats[catName].push(skillTemplate);
                         }
                     }
-                    categorized[catName] = Array.from(skillsForCat);
                 }
             }
         }
-        return categorized;
-    }, []);
+        return cats;
+    }, [relicInfo]);
+
+    // --- LAZY RECONSTRUCTION OF UI BUILDS VIA PAGINATION ---
+    useEffect(() => {
+        if (!rawResults || rawResults.length === 0) {
+            setResults([]);
+            return;
+        }
+
+        const buildObjects: BuildResult[] = [];
+        const startIdx = resultPage * resultsPerPage;
+        const endIdx = Math.min(startIdx + resultsPerPage, rawResults.length / 7);
+
+        // Helper maps
+        const intToRelic = new Map<number, Relic>();
+        optimizedRelics.forEach((r, idx) => {
+            if (r.id) intToRelic.set(idx + 1, r);
+        });
+
+        // Reconstruct just the relics for the current page
+        for (let i = startIdx; i < endIdx; i++) {
+            const offset = i * 7;
+            const buildRelics: Relic[] = [];
+            for (let j = 0; j < 6; j++) {
+                const relicIdInt = rawResults[offset + j];
+                if (relicIdInt > 0 && intToRelic.has(relicIdInt)) {
+                    buildRelics.push(intToRelic.get(relicIdInt)!);
+                }
+            }
+
+            // The UI expects `rawSkillLevels`, `rawCategoryLevels`, `effectiveSkillLevels` 
+            // We unfortunately have to re-compute these here purely for UI rendering 
+            // since we threw them away to save RAM.
+            const rawSkillLevels: Record<string, number> = {};
+            const rawCategoryLevels: Record<string, number> = {};
+            const effectiveSkillLevels: Record<string, number> = {};
+
+            const getSkillMax = (skillName: string) => {
+                let max = 6;
+                // Check if the skill name exists in any of the categories in the skillsData
+                const foundSkillEntry = Object.entries(skillsData).find(([name]) => name === skillName);
+                if (foundSkillEntry) max = (foundSkillEntry[1] as any).maxlevel || 6;
+                return max;
+            };
+
+            for (const relic of buildRelics) {
+                const skills = [relic.main_skill, ...relic.aux_skills];
+                for (const skill of skills) {
+                    if (!skill || !skill.name) continue;
+
+                    rawSkillLevels[skill.name] = (rawSkillLevels[skill.name] || 0) + skill.level;
+
+                    // Recompute category based on the categorizedSkills array map we generated
+                    let foundCat = '';
+                    for (const [catName, catSkills] of Object.entries(categorizedSkills)) {
+                        if (catSkills.includes(skill.name)) {
+                            foundCat = catName;
+                            break;
+                        }
+                    }
+                    if (!foundCat) {
+                        const directMatch = Object.entries(skillsData).find(([name]) => name === skill.name);
+                        if (directMatch) foundCat = (directMatch[1] as any).type;
+                    }
+                    if (foundCat) {
+                        rawCategoryLevels[foundCat] = (rawCategoryLevels[foundCat] || 0) + skill.level;
+                    }
+                }
+            }
+
+            for (const [skill, rawLvl] of Object.entries(rawSkillLevels)) {
+                effectiveSkillLevels[skill] = Math.min(rawLvl, getSkillMax(skill));
+            }
+
+            buildObjects.push({
+                relics: buildRelics,
+                rawCategoryLevels,
+                rawSkillLevels,
+                effectiveSkillLevels
+            });
+        }
+
+        setResults(buildObjects);
+    }, [rawResults, resultPage, optimizedRelics, categorizedSkills, skillsData]);
+
+
 
     const handleConfirmUnequip = async (r: Relic) => {
         if (r.id) {
@@ -298,18 +445,22 @@ export function Optimizer() {
 
     if (!selectedDollData) {
         return (
-            <div className="app-container">
-                <header className="header-glow">
-                    <h1>Character Not Found</h1>
-                    <Link to="/" className="back-btn">Go Back</Link>
-                </header>
+            <div className="optimizer-page glassmorphism">
+                <h2>No Doll Selected</h2>
+                <p>Please select a doll from the Dolls tab first.</p>
+                <div style={{ marginTop: '1rem' }}>
+                    <Link to="/dolls" className="glow-btn">Go to Dolls</Link>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="app-container">
-            <header className="header-glow">
+        <div className="optimizer-page" style={{ padding: '2rem 5%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <h1 className="glow-text" style={{ fontSize: '2.5rem', margin: 0, paddingLeft: "10px" }}>Data Tuning</h1>
+
+            {/* Constraints Card */}
+            <div className="glassmorphism build-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'slideUp 0.3s ease-out' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', position: 'relative' }}>
                     <Link to="/" className="back-btn" style={{ textDecoration: 'none' }}>← Back</Link>
                     <h1>Configuring <span>{selectedDoll}</span></h1>
@@ -318,9 +469,7 @@ export function Optimizer() {
                     Allowed Slots: {Object.entries(selectedDollData.allowed_slots).map(([type, count]) => `${count}x ${type}`).join(', ')}
                 </p>
                 {errorMsg && <p className="error">{errorMsg}</p>}
-            </header>
 
-            <main className="main-content">
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 350px 350px', gap: '2rem', alignItems: 'start' }}>
                     <TargetConstraints
                         constraints={constraints}
@@ -363,22 +512,83 @@ export function Optimizer() {
                     </div>
                 </div>
 
-                <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
-                    <button
-                        className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
-                        onClick={startOptimization}
-                    >
-                        {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
-                    </button>
-                    <button
-                        className={`glow-btn`}
-                        style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '' }}
-                        onClick={() => setShowDamageSimulation(!showDamageSimulation)}
-                    >
-                        {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
-                    </button>
-                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
+                        <button
+                            className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
+                            onClick={startOptimization}
+                        >
+                            {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
+                        </button>
+                        <button
+                            className="glow-btn"
+                            style={{ padding: '0.4rem 0.8rem', background: showAdvancedSettings ? 'var(--accent-glow)' : 'var(--bg-card)' }}
+                            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                            title="Optimizer Settings"
+                        >
+                            ⚙️
+                        </button>
+                        {optimizationTime !== null && hasOptimized && (
+                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
+                                Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {threads} threads
+                            </div>
+                        )}
+                        <button
+                            className={`glow-btn`}
+                            style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '', marginLeft: 'auto' }}
+                            onClick={() => setShowDamageSimulation(!showDamageSimulation)}
+                        >
+                            {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
+                        </button>
+                    </div>
 
+                    {showAdvancedSettings && (
+                        <div className="glassmorphism" style={{ marginTop: '1rem', padding: '1rem', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Threads to Use</label>
+                                <input
+                                    type="number"
+                                    className="glass-input"
+                                    value={threadsInput}
+                                    onChange={e => setThreadsInput(e.target.value)}
+                                    onBlur={() => {
+                                        const maxThreads = navigator.hardwareConcurrency || 4;
+                                        let parsed = parseInt(threadsInput, 10);
+                                        if (isNaN(parsed)) parsed = 1;
+                                        const clamped = Math.min(maxThreads, Math.max(1, parsed));
+                                        setThreads(clamped);
+                                        setThreadsInput(clamped.toString());
+                                    }}
+                                    style={{ width: '100px' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Max Total Builds</label>
+                                <input
+                                    type="number"
+                                    className="glass-input"
+                                    value={maxBuildsInput}
+                                    step="1000000"
+                                    onChange={e => setMaxBuildsInput(e.target.value.trim())}
+                                    onBlur={() => {
+                                        let parsed = parseInt(maxBuildsInput, 10);
+                                        if (isNaN(parsed)) parsed = 500000000;
+                                        const clamped = Math.min(500000000, Math.max(10000, parsed));
+                                        setMaxTotalBuilds(clamped);
+                                        setMaxBuildsInput(clamped.toString());
+                                    }}
+                                    style={{ width: '150px' }}
+                                />
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-color)', opacity: 0.5 }}>
+                                    Divides across {threads} threads ({Math.ceil(maxTotalBuilds / threads).toLocaleString()} / thread). Uses ~{(() => {
+                                        const mb = Math.ceil((maxTotalBuilds / threads) * 28 / 1024 / 1024);
+                                        return mb >= 1000 ? `${(mb / 1024).toFixed(2)}GB` : `${mb}MB`;
+                                    })()} RAM per thread.
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
                 {showDamageSimulation && (
                     <DamageSimulationSettings
                         simStats={simStats}
@@ -388,12 +598,13 @@ export function Optimizer() {
                     />
                 )}
 
-                {results.length > 0 && (
+                {rawResults.length > 0 && (
                     <OptimizationResults
                         results={results}
                         resultPage={resultPage}
                         setResultPage={setResultPage}
                         resultsPerPage={resultsPerPage}
+                        totalResults={rawResults.length / 7}
                         showDamageSimulation={showDamageSimulation}
                         simStats={simStats}
                         simIgnoredSkills={simIgnoredSkills}
@@ -405,28 +616,30 @@ export function Optimizer() {
                     />
                 )}
 
-                {hasOptimized && results.length === 0 && !errorMsg && (
+                {hasOptimized && rawResults.length === 0 && !errorMsg && (
                     <section className="results-section result-empty glassmorphism" style={{ marginTop: '2rem' }}>
                         <h2>No Builds Found</h2>
                         <p>No valid combination of 6 relics matched your exact constraints.</p>
                         <p className="hint">Try lowering the category constraints or checking if you have enough allowed slot types for this character.</p>
                     </section>
                 )}
-            </main>
 
-            {relicToUnequip && (
-                <ConfirmUnequipModal
-                    relic={relicToUnequip}
-                    onConfirm={handleConfirmUnequip}
-                    onCancel={() => setRelicToUnequip(null)}
-                />
-            )}
-            {selectedRelicInResults && (
-                <RelicModal
-                    relic={selectedRelicInResults}
-                    onClose={() => setSelectedRelicInResults(null)}
-                />
-            )}
+                {relicToUnequip && (
+                    <ConfirmUnequipModal
+                        relic={relicToUnequip}
+                        onConfirm={handleConfirmUnequip}
+                        onCancel={() => setRelicToUnequip(null)}
+                    />
+                )}
+                {selectedRelicInResults && (
+                    <RelicModal
+                        relic={selectedRelicInResults}
+                        onClose={() => setSelectedRelicInResults(null)}
+                    />
+                )}
+            </div>
         </div>
     );
 }
+
+export default Optimizer;

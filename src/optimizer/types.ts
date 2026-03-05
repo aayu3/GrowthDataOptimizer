@@ -27,6 +27,7 @@ export interface OptimizerConstraints {
     targetCategoryLevels: Record<string, number>; // e.g. { "Bulwark": 12, "Support": 8 }
     targetSkillLevels: Record<string, number>;    // e.g. { "HP Boost": 6 }
     allowedSlots?: Record<string, number>;        // e.g. { "Support": 4, "Bulwark": 2 }
+    maxBuildsPerThread?: number;
 }
 
 export interface BuildResult {
