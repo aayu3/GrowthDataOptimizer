@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { db } from '../../db/database';
 
 interface ImportInventoryModalProps {
@@ -74,7 +75,7 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
         if (file) processFile(file);
     };
 
-    return (
+    return createPortal(
         <div
             style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}
             onClick={onClose}
@@ -95,7 +96,7 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                         justifyContent: 'center',
                         gap: '1rem',
                         border: `2px dashed ${isDragging ? 'var(--accent-color)' : 'rgba(255,255,255,0.2)'}`,
-                        borderRadius: '8px',
+                        borderRadius: 'var(--radius)',
                         padding: '2rem 1rem',
                         background: isDragging ? 'rgba(242, 108, 21, 0.1)' : 'rgba(0,0,0,0.2)',
                         transition: 'all 0.3s ease'
@@ -152,6 +153,7 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

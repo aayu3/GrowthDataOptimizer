@@ -10,6 +10,7 @@ import { OptimizerConstraints, BuildResult, Relic, HistoryAction, EquipChange, D
 import { ConfirmUnequipModal } from '../components/modals/ConfirmUnequipModal';
 import { RelicModal } from '../components/RelicModal';
 import { TargetConstraints } from '../components/optimizer/TargetConstraints';
+import { TargetSkills } from '../components/optimizer/TargetSkills';
 import { CurrentlyEquipped } from '../components/optimizer/CurrentlyEquipped';
 import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
@@ -28,7 +29,6 @@ export function Optimizer() {
     const [constraints, setConstraints] = useState<OptimizerConstraints>(defaultConstraints);
     const [activeSkillFilters, setActiveSkillFilters] = useState<string[]>([]);
     const [selectedCategoryForFilter, setSelectedCategoryForFilter] = useState<string>('Bulwark');
-    const [selectedSkillForFilter, setSelectedSkillForFilter] = useState<string>('');
     const [includeOtherEquipped, setIncludeOtherEquipped] = useState(true);
 
     // Results state
@@ -269,12 +269,10 @@ export function Optimizer() {
         });
     };
 
-    const addSkillFilter = (skill?: string) => {
-        const filterVal = skill || selectedSkillForFilter;
-        if (filterVal && !activeSkillFilters.includes(filterVal)) {
-            setActiveSkillFilters(prev => [...prev, filterVal]);
+    const addSkillFilter = (skill: string) => {
+        if (!activeSkillFilters.includes(skill)) {
+            setActiveSkillFilters(prev => [...prev, skill]);
         }
-        setSelectedSkillForFilter('');
     };
 
     const removeSkillFilter = (skill: string) => {
@@ -286,17 +284,23 @@ export function Optimizer() {
         });
     };
 
-    const applyBonusRequirements = (bonus: any) => {
-        const newTargets: Record<string, number> = {};
-        for (const [key, val] of Object.entries(bonus)) {
-            if (key !== 'tier' && key !== 'description') {
-                newTargets[key] = val as number;
+    const applyBonusRequirements = (bonus: any, isActive: boolean) => {
+        setConstraints(prev => {
+            const updated = { ...prev.targetCategoryLevels };
+            for (const [key, val] of Object.entries(bonus)) {
+                if (key !== 'tier' && key !== 'description') {
+                    if (isActive) {
+                        delete updated[key];
+                    } else {
+                        updated[key] = val as number;
+                    }
+                }
             }
-        }
-        setConstraints(prev => ({
-            ...prev,
-            targetCategoryLevels: newTargets
-        }));
+            return {
+                ...prev,
+                targetCategoryLevels: updated
+            };
+        });
     };
 
     // We can compute categorizedSkills outside so it's ready for the effect
@@ -455,188 +459,203 @@ export function Optimizer() {
         );
     }
 
+    const imgPath = new URL(`../assets/doll_images/${selectedDoll}.png`, import.meta.url).href;
+
     return (
-        <div className="optimizer-page" style={{ padding: '2rem 5%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <h1 className="glow-text" style={{ fontSize: '2.5rem', margin: 0, paddingLeft: "10px" }}>Data Tuning</h1>
-
-            {/* Constraints Card */}
-            <div className="glassmorphism build-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'slideUp 0.3s ease-out' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', position: 'relative' }}>
-                    <Link to="/" className="back-btn" style={{ textDecoration: 'none' }}>← Back</Link>
-                    <h1>Configuring <span>{selectedDoll}</span></h1>
+        <div className="optimizer-page" style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
+            {/* Left Pane: Locked Portrait */}
+            <div style={{ width: '20%', minWidth: '200px', position: 'sticky', top: 0, height: '100vh', background: 'var(--bg-panel)', borderRight: '1px solid var(--bg-panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <Link to="/characters" className="back-btn" style={{ position: 'absolute', top: '2rem', left: '2rem', zIndex: 10, textDecoration: 'none' }}>← Back to Selection</Link>
+                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgPath})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.1, filter: 'blur(20px)' }}></div>
+                <img src={imgPath} alt={selectedDoll} style={{ maxWidth: '80%', maxHeight: '80vh', objectFit: 'contain', zIndex: 2, filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' }} />
+                <div style={{ position: 'absolute', bottom: '3rem', left: '3rem', zIndex: 5 }}>
+                    <h1 style={{ fontSize: '4rem', margin: 0, textTransform: 'uppercase', letterSpacing: '4px', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{selectedDoll}</h1>
+                    <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', margin: 0 }}>Optimization Tuning</p>
                 </div>
-                <p className="subtitle">
-                    Allowed Slots: {Object.entries(selectedDollData.allowed_slots).map(([type, count]) => `${count}x ${type}`).join(', ')}
-                </p>
-                {errorMsg && <p className="error">{errorMsg}</p>}
+            </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 350px 350px', gap: '2rem', alignItems: 'start' }}>
-                    <TargetConstraints
-                        constraints={constraints}
-                        handleCategoryConstraintChange={handleCategoryConstraintChange}
-                        handleTargetSkillChange={handleTargetSkillChange}
-                        categorizedSkills={categorizedSkills}
-                        activeSkillFilters={activeSkillFilters}
-                        selectedCategoryForFilter={selectedCategoryForFilter}
-                        setSelectedCategoryForFilter={setSelectedCategoryForFilter}
-                        selectedSkillForFilter={selectedSkillForFilter}
-                        setSelectedSkillForFilter={setSelectedSkillForFilter}
-                        addSkillFilter={addSkillFilter}
-                        removeSkillFilter={removeSkillFilter}
-                        includeOtherEquipped={includeOtherEquipped}
-                        setIncludeOtherEquipped={setIncludeOtherEquipped}
-                    />
+            {/* Right Pane: Settings & Results */}
+            <div style={{ width: '80%', padding: '2.5rem 2rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'slideUp 0.3s ease-out' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h1 style={{ fontSize: '2rem', margin: 0 }}>Target Setup</h1>
+                        <p className="subtitle" style={{ margin: 0 }}>
+                            Allowed Slots: {Object.entries(selectedDollData.allowed_slots).map(([type, count]) => `${count}x ${type}`).join(', ')}
+                        </p>
+                    </div>
+                    {errorMsg && <p className="error">{errorMsg}</p>}
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: '2rem' }}>
-                        <CurrentlyEquipped
-                            selectedDoll={selectedDoll}
-                            relics={relics}
-                            undoStack={undoStack}
-                            redoStack={redoStack}
-                            handleUndo={handleUndo}
-                            handleRedo={handleRedo}
-                            pushAction={pushAction}
-                            setRelicToUnequip={setRelicToUnequip}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
+                            <TargetConstraints
+                                constraints={constraints}
+                                handleCategoryConstraintChange={handleCategoryConstraintChange}
+                                includeOtherEquipped={includeOtherEquipped}
+                                setIncludeOtherEquipped={setIncludeOtherEquipped}
+                            />
+                            <CharacterPassives
+                                selectedDollData={selectedDollData}
+                                constraints={constraints}
+                                applyBonusRequirements={applyBonusRequirements}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
+                            <TargetSkills
+                                constraints={constraints}
+                                handleTargetSkillChange={handleTargetSkillChange}
+                                categorizedSkills={categorizedSkills}
+                                activeSkillFilters={activeSkillFilters}
+                                selectedCategoryForFilter={selectedCategoryForFilter}
+                                setSelectedCategoryForFilter={setSelectedCategoryForFilter}
+                                addSkillFilter={addSkillFilter}
+                                removeSkillFilter={removeSkillFilter}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
+                            <CurrentlyEquipped
+                                selectedDoll={selectedDoll}
+                                relics={relics}
+                                undoStack={undoStack}
+                                redoStack={redoStack}
+                                handleUndo={handleUndo}
+                                handleRedo={handleRedo}
+                                pushAction={pushAction}
+                                setRelicToUnequip={setRelicToUnequip}
+                                showDamageSimulation={showDamageSimulation}
+                                simStats={simStats}
+                                simIgnoredSkills={simIgnoredSkills}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
+                            <button
+                                className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
+                                onClick={startOptimization}
+                            >
+                                {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
+                            </button>
+                            <button
+                                className="glow-btn"
+                                style={{ padding: '0.4rem 0.8rem', background: showAdvancedSettings ? 'var(--accent-glow)' : 'var(--bg-card)' }}
+                                onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+                                title="Optimizer Settings"
+                            >
+                                ⚙️
+                            </button>
+                            {optimizationTime !== null && hasOptimized && (
+                                <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
+                                    Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {threads} threads
+                                </div>
+                            )}
+                            <button
+                                className={`glow-btn`}
+                                style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '', marginLeft: 'auto' }}
+                                onClick={() => setShowDamageSimulation(!showDamageSimulation)}
+                            >
+                                {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
+                            </button>
+                        </div>
+
+                        {showAdvancedSettings && (
+                            <div className="glassmorphism" style={{ marginTop: '1rem', padding: '1rem', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Threads to Use</label>
+                                    <input
+                                        type="number"
+                                        className="glass-input"
+                                        value={threadsInput}
+                                        onChange={e => setThreadsInput(e.target.value)}
+                                        onBlur={() => {
+                                            const maxThreads = navigator.hardwareConcurrency || 4;
+                                            let parsed = parseInt(threadsInput, 10);
+                                            if (isNaN(parsed)) parsed = 1;
+                                            const clamped = Math.min(maxThreads, Math.max(1, parsed));
+                                            setThreads(clamped);
+                                            setThreadsInput(clamped.toString());
+                                        }}
+                                        style={{ width: '100px' }}
+                                    />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Max Total Builds</label>
+                                    <input
+                                        type="number"
+                                        className="glass-input"
+                                        value={maxBuildsInput}
+                                        step="1000000"
+                                        onChange={e => setMaxBuildsInput(e.target.value.trim())}
+                                        onBlur={() => {
+                                            let parsed = parseInt(maxBuildsInput, 10);
+                                            if (isNaN(parsed)) parsed = 500000000;
+                                            const clamped = Math.min(500000000, Math.max(10000, parsed));
+                                            setMaxTotalBuilds(clamped);
+                                            setMaxBuildsInput(clamped.toString());
+                                        }}
+                                        style={{ width: '150px' }}
+                                    />
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-color)', opacity: 0.5 }}>
+                                        Divides across {threads} threads ({Math.ceil(maxTotalBuilds / threads).toLocaleString()} / thread). Uses ~{(() => {
+                                            const mb = Math.ceil((maxTotalBuilds / threads) * 28 / 1024 / 1024);
+                                            return mb >= 1000 ? `${(mb / 1024).toFixed(2)}GB` : `${mb}MB`;
+                                        })()} RAM per thread.
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {showDamageSimulation && (
+                        <DamageSimulationSettings
+                            simStats={simStats}
+                            setSimStats={setSimStats}
+                            simIgnoredSkills={simIgnoredSkills}
+                            setSimIgnoredSkills={setSimIgnoredSkills}
+                        />
+                    )}
+
+                    {rawResults.length > 0 && (
+                        <OptimizationResults
+                            results={results}
+                            resultPage={resultPage}
+                            setResultPage={setResultPage}
+                            resultsPerPage={resultsPerPage}
+                            totalResults={rawResults.length / 7}
                             showDamageSimulation={showDamageSimulation}
                             simStats={simStats}
                             simIgnoredSkills={simIgnoredSkills}
+                            handleExportJSON={handleExportJSON}
+                            onEquipBuild={handleEquipBuild}
+                            selectedDoll={selectedDoll}
+                            selectedRelicInResults={selectedRelicInResults}
+                            setSelectedRelicInResults={setSelectedRelicInResults}
                         />
-                    </div>
+                    )}
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', position: 'sticky', top: '2rem' }}>
-                        <CharacterPassives
-                            selectedDollData={selectedDollData}
-                            constraints={constraints}
-                            applyBonusRequirements={applyBonusRequirements}
+                    {hasOptimized && rawResults.length === 0 && !errorMsg && (
+                        <section className="results-section result-empty glassmorphism" style={{ marginTop: '2rem' }}>
+                            <h2>No Builds Found</h2>
+                            <p>No valid combination of 6 relics matched your exact constraints.</p>
+                            <p className="hint">Try lowering the category constraints or checking if you have enough allowed slot types for this character.</p>
+                        </section>
+                    )}
+
+                    {relicToUnequip && (
+                        <ConfirmUnequipModal
+                            relic={relicToUnequip}
+                            onConfirm={handleConfirmUnequip}
+                            onCancel={() => setRelicToUnequip(null)}
                         />
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
-                        <button
-                            className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
-                            onClick={startOptimization}
-                        >
-                            {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
-                        </button>
-                        <button
-                            className="glow-btn"
-                            style={{ padding: '0.4rem 0.8rem', background: showAdvancedSettings ? 'var(--accent-glow)' : 'var(--bg-card)' }}
-                            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-                            title="Optimizer Settings"
-                        >
-                            ⚙️
-                        </button>
-                        {optimizationTime !== null && hasOptimized && (
-                            <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
-                                Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {threads} threads
-                            </div>
-                        )}
-                        <button
-                            className={`glow-btn`}
-                            style={{ background: showDamageSimulation ? 'var(--accent-glow)' : '', marginLeft: 'auto' }}
-                            onClick={() => setShowDamageSimulation(!showDamageSimulation)}
-                        >
-                            {showDamageSimulation ? 'Hide Simulation' : 'Damage Simulation (Beta)'}
-                        </button>
-                    </div>
-
-                    {showAdvancedSettings && (
-                        <div className="glassmorphism" style={{ marginTop: '1rem', padding: '1rem', display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Threads to Use</label>
-                                <input
-                                    type="number"
-                                    className="glass-input"
-                                    value={threadsInput}
-                                    onChange={e => setThreadsInput(e.target.value)}
-                                    onBlur={() => {
-                                        const maxThreads = navigator.hardwareConcurrency || 4;
-                                        let parsed = parseInt(threadsInput, 10);
-                                        if (isNaN(parsed)) parsed = 1;
-                                        const clamped = Math.min(maxThreads, Math.max(1, parsed));
-                                        setThreads(clamped);
-                                        setThreadsInput(clamped.toString());
-                                    }}
-                                    style={{ width: '100px' }}
-                                />
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <label style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Max Total Builds</label>
-                                <input
-                                    type="number"
-                                    className="glass-input"
-                                    value={maxBuildsInput}
-                                    step="1000000"
-                                    onChange={e => setMaxBuildsInput(e.target.value.trim())}
-                                    onBlur={() => {
-                                        let parsed = parseInt(maxBuildsInput, 10);
-                                        if (isNaN(parsed)) parsed = 500000000;
-                                        const clamped = Math.min(500000000, Math.max(10000, parsed));
-                                        setMaxTotalBuilds(clamped);
-                                        setMaxBuildsInput(clamped.toString());
-                                    }}
-                                    style={{ width: '150px' }}
-                                />
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-color)', opacity: 0.5 }}>
-                                    Divides across {threads} threads ({Math.ceil(maxTotalBuilds / threads).toLocaleString()} / thread). Uses ~{(() => {
-                                        const mb = Math.ceil((maxTotalBuilds / threads) * 28 / 1024 / 1024);
-                                        return mb >= 1000 ? `${(mb / 1024).toFixed(2)}GB` : `${mb}MB`;
-                                    })()} RAM per thread.
-                                </span>
-                            </div>
-                        </div>
+                    )}
+                    {selectedRelicInResults && (
+                        <RelicModal
+                            relic={selectedRelicInResults}
+                            onClose={() => setSelectedRelicInResults(null)}
+                        />
                     )}
                 </div>
-                {showDamageSimulation && (
-                    <DamageSimulationSettings
-                        simStats={simStats}
-                        setSimStats={setSimStats}
-                        simIgnoredSkills={simIgnoredSkills}
-                        setSimIgnoredSkills={setSimIgnoredSkills}
-                    />
-                )}
-
-                {rawResults.length > 0 && (
-                    <OptimizationResults
-                        results={results}
-                        resultPage={resultPage}
-                        setResultPage={setResultPage}
-                        resultsPerPage={resultsPerPage}
-                        totalResults={rawResults.length / 7}
-                        showDamageSimulation={showDamageSimulation}
-                        simStats={simStats}
-                        simIgnoredSkills={simIgnoredSkills}
-                        handleExportJSON={handleExportJSON}
-                        onEquipBuild={handleEquipBuild}
-                        selectedDoll={selectedDoll}
-                        selectedRelicInResults={selectedRelicInResults}
-                        setSelectedRelicInResults={setSelectedRelicInResults}
-                    />
-                )}
-
-                {hasOptimized && rawResults.length === 0 && !errorMsg && (
-                    <section className="results-section result-empty glassmorphism" style={{ marginTop: '2rem' }}>
-                        <h2>No Builds Found</h2>
-                        <p>No valid combination of 6 relics matched your exact constraints.</p>
-                        <p className="hint">Try lowering the category constraints or checking if you have enough allowed slot types for this character.</p>
-                    </section>
-                )}
-
-                {relicToUnequip && (
-                    <ConfirmUnequipModal
-                        relic={relicToUnequip}
-                        onConfirm={handleConfirmUnequip}
-                        onCancel={() => setRelicToUnequip(null)}
-                    />
-                )}
-                {selectedRelicInResults && (
-                    <RelicModal
-                        relic={selectedRelicInResults}
-                        onClose={() => setSelectedRelicInResults(null)}
-                    />
-                )}
             </div>
         </div>
     );

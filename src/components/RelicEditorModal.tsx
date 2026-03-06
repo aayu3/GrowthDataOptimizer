@@ -214,7 +214,7 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
                         </select>
                     </div>
 
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: 'var(--radius)' }}>
                         <h4 style={{ margin: '0 0 0.5rem 0' }}>Main Skill</h4>
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <select
@@ -238,7 +238,7 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
                         </div>
                     </div>
 
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: 'var(--radius)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <h4 style={{ margin: 0 }}>Auxiliary Skills ({auxSkills.length}/2)</h4>
                             <button
@@ -312,3 +312,4 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
         </div>
     );
 };
+

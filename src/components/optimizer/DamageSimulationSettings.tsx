@@ -28,7 +28,7 @@ export function DamageSimulationSettings({ simStats, setSimStats, simIgnoredSkil
             <h3>Ignored Skills in Calculation</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                 {simIgnoredSkills.map(skill => (
-                    <span key={skill} style={{ background: 'rgba(255,60,60,0.2)', color: '#ffaaaa', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span key={skill} style={{ background: 'rgba(255,60,60,0.2)', color: '#ffaaaa', padding: '4px 8px', borderRadius: 'var(--radius)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {skill}
                         <button
                             onClick={() => setSimIgnoredSkills(prev => prev.filter(s => s !== skill))}
@@ -63,3 +63,4 @@ export function DamageSimulationSettings({ simStats, setSimStats, simIgnoredSkil
         </section>
     );
 }
+
