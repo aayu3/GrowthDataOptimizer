@@ -90,7 +90,7 @@ export function TargetConstraints({
                 <button
                     className="glow-btn"
                     style={{ padding: '0.6rem 1.5rem', height: 'max-content' }}
-                    onClick={addSkillFilter}
+                    onClick={() => addSkillFilter()}
                     disabled={!selectedSkillForFilter}
                 >
                     + Add Filter
