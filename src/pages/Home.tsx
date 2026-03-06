@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import dollsData from '../data/dolls.json';
-import { RelicThumbnail } from '../components/RelicThumbnail';
+import { SelectionRelicIcon } from '../components/SelectionRelicIcon';
 import { ImportInventoryModal } from '../components/modals/ImportInventoryModal';
 import { ExportInventoryModal } from '../components/modals/ExportInventoryModal';
 
@@ -108,7 +108,7 @@ export function Home() {
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'center', marginTop: '1rem' }}>
                                             {relics.filter(r => r.equipped === doll).map(r => (
                                                 <div key={r.id} style={{ width: '24px', height: '24px' }}>
-                                                    <RelicThumbnail relic={r} />
+                                                    <SelectionRelicIcon relic={r} />
                                                 </div>
                                             ))}
                                         </div>
