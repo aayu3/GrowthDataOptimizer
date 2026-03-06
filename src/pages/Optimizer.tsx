@@ -464,7 +464,7 @@ export function Optimizer() {
     return (
         <div className="optimizer-page" style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
             {/* Left Pane: Locked Portrait */}
-            <div style={{ width: '20%', minWidth: '200px', position: 'relative', background: 'var(--bg-panel)', borderRight: '1px solid var(--bg-panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ width: '20%', minWidth: '200px', position: 'sticky', top: 0, height: '100vh', background: 'var(--bg-panel)', borderRight: '1px solid var(--bg-panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 <Link to="/characters" className="back-btn" style={{ position: 'absolute', top: '2rem', left: '2rem', zIndex: 10, textDecoration: 'none' }}>← Back to Selection</Link>
                 <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgPath})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.1, filter: 'blur(20px)' }}></div>
                 <img src={imgPath} alt={selectedDoll} style={{ maxWidth: '80%', maxHeight: '80vh', objectFit: 'contain', zIndex: 2, filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' }} />
