@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Page Not Found</title>
+    <script>
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        sessionStorage.redirect = path + search + hash;
+        window.location.replace('/GrowthDataOptimizer/');
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>

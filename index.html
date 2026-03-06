@@ -21,6 +21,15 @@
 </head>
 
 <body>
+  <script>
+    (function () {
+      var redirect = sessionStorage.redirect;
+      delete sessionStorage.redirect;
+      if (redirect && redirect !== location.pathname + location.search + location.hash) {
+        window.history.replaceState(null, null, redirect);
+      }
+    })();
+  </script>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
