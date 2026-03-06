@@ -56,7 +56,7 @@ export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ select
                 <h3 style={{ marginTop: '0', marginBottom: '1rem', paddingRight: '2rem' }}>Equip Relic to {selectedDoll}</h3>
 
                 {equipError && (
-                    <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,0,0,0.1)', borderRadius: '4px' }}>
+                    <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,0,0,0.1)', borderRadius: 'var(--radius)' }}>
                         {equipError}
                     </div>
                 )}
@@ -74,3 +74,4 @@ export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ select
 
     return createPortal(modalContent, document.body);
 };
+

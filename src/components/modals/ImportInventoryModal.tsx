@@ -95,7 +95,7 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                         justifyContent: 'center',
                         gap: '1rem',
                         border: `2px dashed ${isDragging ? 'var(--accent-color)' : 'rgba(255,255,255,0.2)'}`,
-                        borderRadius: '8px',
+                        borderRadius: 'var(--radius)',
                         padding: '2rem 1rem',
                         background: isDragging ? 'rgba(242, 108, 21, 0.1)' : 'rgba(0,0,0,0.2)',
                         transition: 'all 0.3s ease'
@@ -155,3 +155,4 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
         </div>
     );
 }
+

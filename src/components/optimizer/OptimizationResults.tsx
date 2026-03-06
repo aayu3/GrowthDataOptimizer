@@ -71,7 +71,7 @@ export function OptimizationResults({
                                     </button>
                                 )}
                             </div>
-                            <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+                            <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
                                 {showDamageSimulation && (
                                     <div style={{ color: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
                                         Avg DMG: {Math.round(res.simulatedDamage || 0).toLocaleString()}
@@ -89,7 +89,7 @@ export function OptimizationResults({
                                     {Object.entries(res.effectiveSkillLevels)
                                         .sort(([, a], [, b]) => b - a)
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
+                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>
                                                 <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                 <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                             </div>
@@ -114,7 +114,7 @@ export function OptimizationResults({
 
             {
                 results.length > resultsPerPage && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: 'var(--radius)' }}>
                         <button
                             className="glow-btn"
                             disabled={resultPage === 0}
@@ -140,3 +140,4 @@ export function OptimizationResults({
         </section >
     );
 }
+

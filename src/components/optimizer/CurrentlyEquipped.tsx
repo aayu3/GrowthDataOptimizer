@@ -40,7 +40,7 @@ export function CurrentlyEquipped({
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
     return (
-        <section className="card glassmorphism">
+        <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Currently Equipped</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -93,9 +93,9 @@ export function CurrentlyEquipped({
 
             {equippedRelics.length > 0 ? (
                 <>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.75rem' }}>
                         {equippedRelics.map(r => (
-                            <div key={r.id} style={{ width: '64px', height: '64px' }}>
+                            <div key={r.id} style={{ width: '56px', height: '56px' }}>
                                 <RelicThumbnail
                                     relic={r}
                                     isSelected={selectedEquippedRelic?.id === r.id}
@@ -114,7 +114,7 @@ export function CurrentlyEquipped({
                     {(() => {
                         const equippedStats = calculateBuildStats(equippedRelics);
                         return (
-                            <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', marginTop: '1rem' }}>
+                            <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginTop: '1rem' }}>
                                 <div style={{ display: 'flex', gap: '1rem' }}>
                                     {Object.entries(equippedStats.rawCategoryLevels).map(([cat, lvl]) => (
                                         <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
@@ -127,7 +127,7 @@ export function CurrentlyEquipped({
                                     {Object.entries(equippedStats.effectiveSkillLevels)
                                         .sort(([, a], [, b]) => b - a)
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
+                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>
                                                 <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                 <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                             </div>
@@ -158,6 +158,8 @@ export function CurrentlyEquipped({
                 <p className="hint" style={{ margin: '1rem 0 0 0' }}>No relics equipped.</p>
             )}
 
+            <div style={{ flex: 1 }} />
+
             {selectedEquippedRelic && (
                 <RelicModal
                     relic={selectedEquippedRelic}
@@ -184,3 +186,4 @@ export function CurrentlyEquipped({
         </section>
     );
 }
+

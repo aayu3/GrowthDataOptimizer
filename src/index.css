@@ -1,40 +1,72 @@
-:root {
-  --bg-dark: #0a0e17;
-  --bg-panel: rgba(22, 30, 45, 0.7);
-  --bg-panel-border: rgba(64, 218, 255, 0.2);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --accent-color: #f26c15;
-  --accent-glow: rgba(242, 108, 21, 0.4);
-  --danger: #ef4444;
-  --success: #10b981;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-  --tier-4: #df9e00;
-  --tier-3: #7968ba;
+:root {
+  /* Light Mode (Pastel Palette) */
+  --bg-primary: #EDF2F7;
+  /* Pastel blue-grey */
+  --bg-panel: rgba(255, 255, 255, 0.45);
+  --bg-panel-border: rgba(255, 255, 255, 0.6);
+  --text-primary: #2D3748;
+  --text-secondary: #718096;
+  --accent-color: #667EEA;
+  /* Pastel indigo */
+  --accent-glow: rgba(102, 126, 234, 0.3);
+  --danger: #FC8181;
+  --success: #68D391;
+  --shadow-color: rgba(102, 126, 234, 0.1);
+  --radius: 6px;
+  --radius-button: 24px;
+  --radius-image: 12px;
+
+  --tier-4: #78c3e3;
+  --tier-3: #9281d6;
   --tier-2: #3291ab;
   --tier-1: #555555;
 
   --cat-bulwark: #3b82f6;
-  /* Blue */
   --cat-vanguard: #8b5cf6;
-  /* Purple */
   --cat-support: #10b981;
-  /* Green */
   --cat-sentinel: #ef4444;
-  /* Red */
+}
+
+/* Dark Mode Preferences and manual override */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light-theme) {
+    --bg-primary: #0A0A0B;
+    --bg-panel: rgba(20, 20, 22, 0.5);
+    --bg-panel-border: rgba(100, 100, 110, 0.1);
+    --text-primary: #EAEAEA;
+    --text-secondary: #A0A0A0;
+    --accent-color: #FFFFFF;
+    --accent-glow: rgba(100, 150, 255, 0.25);
+    --shadow-color: rgba(0, 0, 0, 0.4);
+  }
+}
+
+:root.dark-theme {
+  --bg-primary: #0A0A0B;
+  --bg-panel: rgba(20, 20, 22, 0.5);
+  --bg-panel-border: rgba(100, 100, 110, 0.1);
+  --text-primary: #EAEAEA;
+  --text-secondary: #A0A0A0;
+  --accent-color: #FFFFFF;
+  --accent-glow: rgba(100, 150, 255, 0.25);
+  --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Figtree', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg-dark);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg-primary);
   background-image:
-    radial-gradient(circle at 15% 50%, rgba(242, 108, 21, 0.04), transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.04), transparent 50%);
+    radial-gradient(circle at 15% 50%, var(--accent-glow), transparent 40%),
+    radial-gradient(circle at 85% 30%, var(--accent-glow), transparent 40%);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .app-container {
@@ -68,15 +100,16 @@ body {
   margin-top: 0.5rem;
 }
 
-.glassmorphism {
+.glassmorphism,
+.glass-panel {
   background: var(--bg-panel);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--bg-panel-border);
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 2rem;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 40px var(--shadow-color);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
 .main-content {
@@ -88,8 +121,9 @@ body {
 .card h2 {
   margin-top: 0;
   font-size: 1.5rem;
-  color: #fff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--bg-panel-border);
   padding-bottom: 0.75rem;
   margin-bottom: 1.5rem;
 }
@@ -100,7 +134,7 @@ body {
   border: 1px solid var(--accent-color);
   color: var(--accent-color);
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-button);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
@@ -153,7 +187,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.2s ease;
@@ -190,7 +224,7 @@ body {
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
 
 .bg-dropdown option {
@@ -204,27 +238,32 @@ body {
   margin-top: 1rem;
 }
 
-.glow-btn {
+.glow-btn,
+.high-contrast-btn {
   background: var(--accent-color);
-  color: #000;
+  color: var(--bg-primary);
   border: none;
   padding: 1rem 3rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: var(--radius-button);
+  /* Pill shape */
   cursor: pointer;
-  box-shadow: 0 0 20px var(--accent-glow);
-  transition: all 0.3s ease;
+  box-shadow: 0 8px 16px var(--shadow-color);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glow-btn:hover:not(:disabled) {
+.glow-btn:hover:not(:disabled),
+.high-contrast-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0 30px var(--accent-glow);
+  box-shadow: 0 12px 24px var(--shadow-color), 0 0 20px var(--accent-glow);
 }
 
-.glow-btn:disabled {
-  background: #334155;
-  color: #94a3b8;
+.glow-btn:disabled,
+.high-contrast-btn:disabled {
+  background: var(--text-secondary);
+  color: var(--bg-primary);
+  opacity: 0.5;
   box-shadow: none;
   cursor: not-allowed;
   transform: none;
@@ -276,7 +315,7 @@ body {
   border: 1px solid rgba(242, 108, 21, 0.2);
   color: var(--accent-color);
   padding: 0.25rem 0.75rem;
-  border-radius: 20px;
+  border-radius: var(--radius-button);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -288,7 +327,7 @@ body {
   font-size: 0.9rem;
   background: rgba(0, 0, 0, 0.2);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .relic-item {
@@ -311,7 +350,7 @@ body {
 .doll-btn {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  border-radius: var(--radius);
   padding: 1rem 0.5rem;
   cursor: pointer;
   display: flex;
@@ -323,7 +362,7 @@ body {
 }
 
 .doll-btn:hover {
-  background: rgba(242, 108, 21, 0.1);
+  background: rgba(113, 171, 234, 0.1);
   border-color: var(--accent-color);
   transform: translateY(-4px);
   box-shadow: 0 4px 15px var(--accent-glow);
@@ -358,7 +397,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: var(--text-primary);
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-button);
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
@@ -390,7 +429,7 @@ body {
   border: 1px solid var(--success);
   color: var(--success);
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-button);
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
@@ -417,7 +456,7 @@ body {
   flex-direction: column;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 1rem;
   overflow: hidden;
   /* Contains the scrolling grid */
@@ -431,7 +470,7 @@ body {
   margin-bottom: 1rem;
   background: rgba(255, 255, 255, 0.03);
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: var(--radius);
   align-items: center;
 }
 
@@ -442,7 +481,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
   padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius);
   outline: none;
 }
 
@@ -468,12 +507,12 @@ body {
 
 .db-grid-container::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
 
 .db-grid-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
 
 .db-grid {
@@ -484,7 +523,7 @@ body {
 
 .relic-thumbnail {
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-radius: var(--radius-image);
   cursor: pointer;
   position: relative;
   background: rgba(0, 0, 0, 0.5);
@@ -536,7 +575,7 @@ body {
   justify-content: center;
   font-size: 0.65rem;
   font-weight: bold;
-  border-radius: 3px;
+  border-radius: var(--radius);
   padding: 1px 3px;
   color: white;
   text-shadow: 1px 1px 1px black;
@@ -582,8 +621,9 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   overflow: hidden;
   z-index: 2;
 }
@@ -611,7 +651,7 @@ body {
   flex-direction: column;
   background: var(--bg-panel);
   border: 1px solid var(--bg-panel-border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
@@ -671,7 +711,7 @@ body {
 .inspector-skill-item {
   background: rgba(255, 255, 255, 0.03);
   padding: 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   margin-bottom: 0.5rem;
 }
 
@@ -718,7 +758,7 @@ body {
   background: var(--accent-color);
   color: black;
   padding: 0.3rem 0.8rem;
-  border-radius: 20px;
+  border-radius: var(--radius);
   font-size: 0.75rem;
   font-weight: bold;
   opacity: 0;
@@ -728,5 +768,36 @@ body {
 }
 
 .bonus-tier-card:hover .bonus-hover-hint {
+  opacity: 1;
+}
+
+/* Search Dolls Input */
+.search-dolls-input {
+  padding: 1rem 2.5rem;
+  border-radius: var(--radius-button);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-primary);
+  width: 450px;
+  max-width: 90vw;
+  outline: none;
+  font-size: 1.1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.search-dolls-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 20px var(--accent-glow);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.search-dolls-input::placeholder {
+  color: #ffffff;
+  font-weight: 800;
+  font-style: italic;
   opacity: 1;
 }
