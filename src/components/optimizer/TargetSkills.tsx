@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillMaxLevel, getSkillDescription } from '../../utils/relicUtils';
 import { OptimizerConstraints } from '../../optimizer/types';
+import { ElementalText } from '../ElementalText';
 
 interface TargetSkillsProps {
     constraints: OptimizerConstraints;
@@ -76,7 +77,7 @@ export function TargetSkills({
                                 }}
                             >
                                 {isActive && <span style={{ color: 'var(--accent-color)' }}>✓</span>}
-                                {skill}
+                                <ElementalText text={skill} />
                             </button>
                         );
                     })}
@@ -126,7 +127,7 @@ export function TargetSkills({
                             </div>
                             {expandedSkills.has(skill) && (
                                 <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', marginTop: '0.5rem' }}>
-                                    {getSkillDescription(skill, constraints.targetSkillLevels[skill] || 0)}
+                                    <ElementalText text={getSkillDescription(skill, constraints.targetSkillLevels[skill] || 0)} />
                                 </div>
                             )}
                         </div>

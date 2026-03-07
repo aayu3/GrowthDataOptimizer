@@ -6,6 +6,7 @@ import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildStats, calculateBuildDamage } from '../../utils/buildUtils';
+import { ElementalText } from '../ElementalText';
 
 interface CurrentlyEquippedProps {
     selectedDoll: string;
@@ -206,12 +207,12 @@ export function CurrentlyEquipped({
                                                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
                                                     onClick={() => setExpandedSkills(prev => { const next = new Set(prev); next.has(skill) ? next.delete(skill) : next.add(skill); return next; })}
                                                 >
-                                                    <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
+                                                    <span style={{ color: 'var(--text-secondary)' }}><ElementalText text={skill} /></span>
                                                     <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                                 </div>
                                                 {expandedSkills.has(skill) && (
                                                     <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
-                                                        {getSkillDescription(skill, lvl)}
+                                                        <ElementalText text={getSkillDescription(skill, lvl)} />
                                                     </div>
                                                 )}
                                             </div>

@@ -4,6 +4,7 @@ import { RelicThumbnail } from '../RelicThumbnail';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildDamage } from '../../utils/buildUtils';
 import { PostGenerationFilter } from './PostGenerationFilter';
+import { ElementalText } from '../ElementalText';
 
 interface OptimizationResultsProps {
     results: BuildResult[];
@@ -150,12 +151,12 @@ export function OptimizationResults({
                                                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
                                                     onClick={() => setExpandedSkillKeys(prev => { const next = new Set(prev); const key = `${i}-${skill}`; next.has(key) ? next.delete(key) : next.add(key); return next; })}
                                                 >
-                                                    <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
+                                                    <span style={{ color: 'var(--text-secondary)' }}><ElementalText text={skill} /></span>
                                                     <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                                 </div>
                                                 {expandedSkillKeys.has(`${i}-${skill}`) && (
                                                     <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
-                                                        {getSkillDescription(skill, lvl)}
+                                                        <ElementalText text={getSkillDescription(skill, lvl)} />
                                                     </div>
                                                 )}
                                             </div>
