@@ -85,7 +85,7 @@ export function Home() {
                     </div>
                     <div className="doll-gallery" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }}>
                         {availableDolls.map((doll, index) => {
-                            const imgPath = new URL(`../assets/doll_images/${doll}.png`, import.meta.url).href;
+                            const imgPath = new URL(`../assets/doll_images/${doll}.webp`, import.meta.url).href;
                             const offsetY = index % 2 === 0 ? '20px' : '-20px';
                             return (
                                 <Link

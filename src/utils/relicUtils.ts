@@ -53,7 +53,7 @@ export const getSkillDescription = (skillName: string, level: number): string =>
 
 export const getDollImageUrl = (dollName: string) => {
     try {
-        return new URL(`../assets/doll_images/${dollName}.png`, import.meta.url).href;
+        return new URL(`../assets/doll_images/${dollName}.webp`, import.meta.url).href;
     } catch {
         return '';
     }
@@ -68,7 +68,7 @@ export const getRelicMainIconUrl = (type: string) => {
     };
     const color = colorMap[type] || 'blue';
     try {
-        return new URL(`../assets/relic_icons/${type.toLowerCase()}_${color}.png`, import.meta.url).href;
+        return new URL(`../assets/relic_icons/${type.toLowerCase()}_${color}.webp`, import.meta.url).href;
     } catch {
         return '';
     }
@@ -83,7 +83,7 @@ export const getCatBadgeIconUrl = (cat: string) => {
     };
     const color = colorMap[cat] || 'blue';
     try {
-        return new URL(`../assets/relic_icons/${cat.toLowerCase()}_${color}.png`, import.meta.url).href;
+        return new URL(`../assets/relic_icons/${cat.toLowerCase()}_${color}.webp`, import.meta.url).href;
     } catch {
         return '';
     }

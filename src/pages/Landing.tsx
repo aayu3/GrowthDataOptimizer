@@ -1,14 +1,14 @@
 import { useState, useRef, MouseEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import gfl2Logo from '../assets/gfl2-logo.png';
-import gfl2LogoLight from '../assets/gfl2-logo-light.png';
+import gfl2Logo from '../assets/gfl2-logo.webp';
+import gfl2LogoLight from '../assets/gfl2-logo-light.webp';
 
 const SAMPLE_DOLLS = ['Qiongjiu', 'Peritya', 'Sabrina', 'Colphne', 'Groza', 'Nemesis', 'Klukai', 'Suomi'];
 
 function FloatingCard({ dollName, initialPos, mouseX, mouseY }: { dollName: string, initialPos: { top: string, left: string, delay: number }, mouseX: number, mouseY: number }) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [transform, setTransform] = useState('perspective(1200px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
-    const imgPath = new URL(`../assets/doll_images/${dollName}.png`, import.meta.url).href;
+    const imgPath = new URL(`../assets/doll_images/${dollName}.webp`, import.meta.url).href;
 
     // Calculate distance and angle relative to the global mouse position
     useEffect(() => {
