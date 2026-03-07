@@ -136,14 +136,21 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
 
                             // Auto-favorite equipped dolls
                             const equippedDolls = [...new Set(pendingImport.filter(r => r.equipped).map(r => r.equipped))];
-                            for (const doll of equippedDolls) {
-                                const character = await db.characters.get(doll);
-                                if (character) {
-                                    if (!character.isFavorite) {
-                                        await db.characters.update(doll, { isFavorite: true });
+                            if (equippedDolls.length > 0) {
+                                const allChars = await db.characters.toArray();
+                                let maxOrder = allChars.reduce((max, c) => Math.max(max, c.favoriteOrder ?? 0), -1);
+
+                                for (const doll of equippedDolls) {
+                                    const character = allChars.find(c => c.dollName === doll);
+                                    if (character) {
+                                        if (!character.isFavorite) {
+                                            maxOrder++;
+                                            await db.characters.update(doll, { isFavorite: true, favoriteOrder: maxOrder });
+                                        }
+                                    } else {
+                                        maxOrder++;
+                                        await db.characters.add({ dollName: doll, isFavorite: true, favoriteOrder: maxOrder });
                                     }
-                                } else {
-                                    await db.characters.add({ dollName: doll, isFavorite: true });
                                 }
                             }
 
@@ -161,14 +168,21 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
 
                             // Auto-favorite equipped dolls
                             const equippedDolls = [...new Set(pendingImport.filter(r => r.equipped).map(r => r.equipped))];
-                            for (const doll of equippedDolls) {
-                                const character = await db.characters.get(doll);
-                                if (character) {
-                                    if (!character.isFavorite) {
-                                        await db.characters.update(doll, { isFavorite: true });
+                            if (equippedDolls.length > 0) {
+                                const allChars = await db.characters.toArray();
+                                let maxOrder = allChars.reduce((max, c) => Math.max(max, c.favoriteOrder ?? 0), -1);
+
+                                for (const doll of equippedDolls) {
+                                    const character = allChars.find(c => c.dollName === doll);
+                                    if (character) {
+                                        if (!character.isFavorite) {
+                                            maxOrder++;
+                                            await db.characters.update(doll, { isFavorite: true, favoriteOrder: maxOrder });
+                                        }
+                                    } else {
+                                        maxOrder++;
+                                        await db.characters.add({ dollName: doll, isFavorite: true, favoriteOrder: maxOrder });
                                     }
-                                } else {
-                                    await db.characters.add({ dollName: doll, isFavorite: true });
                                 }
                             }
 
