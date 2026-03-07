@@ -61,7 +61,7 @@
             "DPS": true
         },
         "Critical Boost": {
-            "effect": "Critical rate is increased by {x}",
+            "effect": "Critical rate is increased by {x}%",
             "x": [
                 1,
                 2,

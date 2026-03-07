@@ -1,4 +1,5 @@
-import { getCatBadgeIconUrl, getSkillCategory, getSkillMaxLevel } from '../../utils/relicUtils';
+import { useState } from 'react';
+import { getCatBadgeIconUrl, getSkillCategory, getSkillMaxLevel, getSkillDescription } from '../../utils/relicUtils';
 import { OptimizerConstraints } from '../../optimizer/types';
 
 interface TargetSkillsProps {
@@ -22,6 +23,8 @@ export function TargetSkills({
     addSkillFilter,
     removeSkillFilter
 }: TargetSkillsProps) {
+    const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+
     return (
         <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Specific Skill Targets</h2>
@@ -84,17 +87,20 @@ export function TargetSkills({
                 {activeSkillFilters.length > 0 ? (
                     activeSkillFilters.map(skill => (
                         <div key={skill} className="input-group" style={{ position: 'relative' }}>
-                            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div
+                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                                onClick={() => setExpandedSkill(expandedSkill === skill ? null : skill)}
+                            >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                     <img src={getCatBadgeIconUrl(getSkillCategory(skill))} alt="cat" style={{ width: '14px', height: '14px' }} />
                                     <span>Min {skill} Lvl</span>
                                 </div>
                                 <button
-                                    onClick={() => removeSkillFilter(skill)}
+                                    onClick={(e) => { e.stopPropagation(); removeSkillFilter(skill); }}
                                     style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}
                                     title="Remove Filter"
                                 >×</button>
-                            </label>
+                            </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', marginTop: '0.5rem' }}>
                                 {(() => {
                                     const skillMax = getSkillMaxLevel(skill);
@@ -118,6 +124,11 @@ export function TargetSkills({
                                 })()}
                                 <span style={{ minWidth: '20px', textAlign: 'right', fontWeight: 'bold' }}>{constraints.targetSkillLevels[skill] || 0}</span>
                             </div>
+                            {expandedSkill === skill && (
+                                <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', marginTop: '0.5rem' }}>
+                                    {getSkillDescription(skill, constraints.targetSkillLevels[skill] || 0)}
+                                </div>
+                            )}
                         </div>
                     ))
                 ) : (

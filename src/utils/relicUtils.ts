@@ -55,6 +55,9 @@ export const getSkillMaxLevel = (skillStr: string) => {
 export const getSkillDescription = (skillName: string, level: number): string => {
     const sd = getSkillData(skillName);
     if (sd && sd.data.effect && sd.data.x) {
+        if (level === 0) {
+            return sd.data.effect.replace(/{x}/g, '0');
+        }
         const xList = sd.data.x;
         const idx = Math.max(0, Math.min(level - 1, xList.length - 1));
         const val = xList[idx];
