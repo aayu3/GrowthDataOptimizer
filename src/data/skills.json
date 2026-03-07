@@ -1,7 +1,7 @@
 {
     "Sentinel": {
         "Attack Boost": {
-            "effect": "Attack is increased by {x}",
+            "effect": "Attack is increased by {x}%",
             "x": [
                 0.8,
                 1.2,
@@ -16,7 +16,7 @@
             "DPS": true
         },
         "Thronebreaker": {
-            "effect": "Damage dealt to boss units is increased by {x}",
+            "effect": "Damage dealt to boss units is increased by {x}%",
             "x": [
                 2,
                 2.5,
@@ -31,7 +31,7 @@
             "DPS": true
         },
         "Area Specialization": {
-            "effect": "AoE damage dealt is increased by {x}",
+            "effect": "AoE damage dealt is increased by {x}%",
             "x": [
                 2,
                 2.5,
@@ -46,7 +46,7 @@
             "DPS": true
         },
         "Pinpoint Specialization": {
-            "effect": "Targeted damage dealt is increased by {x}",
+            "effect": "Targeted damage dealt is increased by {x}%",
             "x": [
                 2,
                 2.5,
@@ -73,7 +73,7 @@
             "DPS": true
         },
         "Physical Boost": {
-            "effect": "Physical damage dealt is increased by {x}",
+            "effect": "Physical damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -87,7 +87,7 @@
             "DPS": true
         },
         "Burn Boost": {
-            "effect": "Burn damage dealt is increased by {x}",
+            "effect": "Burn damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -101,7 +101,7 @@
             "DPS": true
         },
         "Hydro Boost": {
-            "effect": "Hydro damage dealt is increased by {x}",
+            "effect": "Hydro damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -115,7 +115,7 @@
             "DPS": true
         },
         "Electric Boost": {
-            "effect": "Electric damage dealt is increased by {x}",
+            "effect": "Electric damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -129,7 +129,7 @@
             "DPS": true
         },
         "Freeze Boost": {
-            "effect": "Freeze damage dealt is increased by {x}",
+            "effect": "Freeze damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -143,7 +143,7 @@
             "DPS": true
         },
         "Corrosion Boost": {
-            "effect": "Corrosion damage dealt is increased by {x}",
+            "effect": "Corrosion damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -157,7 +157,7 @@
             "DPS": true
         },
         "Raid Stance": {
-            "effect": "Damage dealt by out-of-turn attacks is increased by {x}",
+            "effect": "Damage dealt by out-of-turn attacks is increased by {x}%",
             "x": [
                 0.2,
                 0.6,
@@ -171,7 +171,7 @@
             "DPS": true
         },
         "Onslaught Stance": {
-            "effect": "Damage dealt by active skills is increased by {x}",
+            "effect": "Damage dealt by active skills is increased by {x}%",
             "x": [
                 0.2,
                 0.6,
@@ -185,7 +185,7 @@
             "DPS": true
         },
         "Follow-Up Strike": {
-            "effect": "Damage dealt to enemy units in Stability Break is increased by {x}",
+            "effect": "Damage dealt to enemy units in Stability Break is increased by {x}%",
             "x": [
                 0.5,
                 1
@@ -196,7 +196,7 @@
             "DPS": true
         },
         "Headhunter": {
-            "effect": "Damage dealt to enemy units more than 6 tiles away is increased by {x}",
+            "effect": "Damage dealt to enemy units more than 6 tiles away is increased by {x}%",
             "x": [
                 0.4,
                 0.8,
