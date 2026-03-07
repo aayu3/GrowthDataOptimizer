@@ -17,10 +17,15 @@ jobs:
           script: |
             const branch = context.payload.pull_request.head.ref;
             const preview = `https://${branch}.gfl2optimizer.pages.dev`;
-
+            const body = `
+            🚀 **Preview Deployment**
+            <a href="${preview}" target="_blank" rel="noopener noreferrer">
+              Open Preview
+            </a>
+            `;
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `🚀 **Preview deployment**\n\n${preview}`
+              body
             });
