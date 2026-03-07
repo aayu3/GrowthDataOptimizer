@@ -1,4 +1,4 @@
-name: Comment Preview URL
+name: Comment Cloudflare Preview URL
 
 on:
   pull_request:
@@ -6,27 +6,46 @@ on:
 
 permissions:
   pull-requests: write
+  checks: read
 
 jobs:
   comment-preview:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Comment preview URL
+      - name: Wait for Cloudflare check
+        run: sleep 45
+
+      - name: Get Cloudflare preview URL
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = context.payload.pull_request.head.ref;
-            const sanitizedBranch = branch.replace(/\//g, "-");
-            const preview = `https://${sanitizedBranch}.gfl2optimizer.pages.dev`;
-            const body = `
-            🚀 **Preview Deployment**
-            <a href="${preview}" target="_blank" rel="noopener noreferrer">
-              Open Preview
-            </a>
-            `;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.payload.pull_request.head.sha;
+
+            const checks = await github.rest.checks.listForRef({
+              owner,
+              repo,
+              ref: sha
+            });
+
+            const cfCheck = checks.data.check_runs.find(check =>
+              check.name.includes("Cloudflare")
+            );
+
+            if (!cfCheck) {
+              console.log("Cloudflare check not found.");
+              return;
+            }
+
+            const previewUrl = cfCheck.details_url;
+
+            const body = `🚀 **Preview Deployment**${previewUrl}`;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
               issue_number: context.issue.number,
               body
             });
