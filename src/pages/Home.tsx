@@ -9,11 +9,26 @@ import { ExportInventoryModal } from '../components/modals/ExportInventoryModal'
 
 export function Home() {
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
+    const characters = useLiveQuery(() => db.characters.toArray(), []) || [];
     const [searchQuery, setSearchQuery] = useState('');
     const [showImportModal, setShowImportModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
     const navigate = useNavigate();
+
+    const favoriteDolls = characters.filter(c => c.isFavorite).map(c => c.dollName);
+
+    const toggleFavorite = async (e: React.MouseEvent, dollName: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const character = characters.find(c => c.dollName === dollName);
+        if (character) {
+            await db.characters.update(dollName, { isFavorite: !character.isFavorite });
+        } else {
+            await db.characters.add({ dollName, isFavorite: true });
+        }
+    };
 
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
@@ -34,7 +49,13 @@ export function Home() {
 
     const availableDolls = Object.keys(dollsData).filter(doll =>
         doll.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    ).sort((a, b) => {
+        const aFav = favoriteDolls.includes(a);
+        const bFav = favoriteDolls.includes(b);
+        if (aFav && !bFav) return -1;
+        if (!aFav && bFav) return 1;
+        return a.localeCompare(b);
+    });
 
     return (
         <div className={`app-container ${isExiting ? 'page-exit-down' : 'page-enter-down'}`}>
@@ -97,9 +118,38 @@ export function Home() {
                                         transform: `translateY(${offsetY})`,
                                         width: '160px',
                                         padding: '1.5rem',
-                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                        position: 'relative'
                                     }}
                                 >
+                                    <div
+                                        onClick={(e) => toggleFavorite(e, doll)}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '8px',
+                                            right: '12px',
+                                            zIndex: 10,
+                                            cursor: 'pointer',
+                                            color: '#ffffff',
+                                            filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <svg
+                                            width="28"
+                                            height="28"
+                                            viewBox="0 0 24 24"
+                                            fill={favoriteDolls.includes(doll) ? "currentColor" : "none"}
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                        </svg>
+                                    </div>
                                     <div className="doll-img-container" style={{ width: '100px', height: '100px', marginBottom: '1rem' }}>
                                         <img src={imgPath} alt={doll} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                     </div>

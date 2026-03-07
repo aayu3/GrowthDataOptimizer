@@ -133,6 +133,20 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                             if (!pendingImport) return;
                             await db.relics.clear();
                             await db.relics.bulkAdd(pendingImport);
+
+                            // Auto-favorite equipped dolls
+                            const equippedDolls = [...new Set(pendingImport.filter(r => r.equipped).map(r => r.equipped))];
+                            for (const doll of equippedDolls) {
+                                const character = await db.characters.get(doll);
+                                if (character) {
+                                    if (!character.isFavorite) {
+                                        await db.characters.update(doll, { isFavorite: true });
+                                    }
+                                } else {
+                                    await db.characters.add({ dollName: doll, isFavorite: true });
+                                }
+                            }
+
                             onClose();
                         }}>
                         Replace Inventory
@@ -144,6 +158,20 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                         onClick={async () => {
                             if (!pendingImport) return;
                             await db.relics.bulkAdd(pendingImport);
+
+                            // Auto-favorite equipped dolls
+                            const equippedDolls = [...new Set(pendingImport.filter(r => r.equipped).map(r => r.equipped))];
+                            for (const doll of equippedDolls) {
+                                const character = await db.characters.get(doll);
+                                if (character) {
+                                    if (!character.isFavorite) {
+                                        await db.characters.update(doll, { isFavorite: true });
+                                    }
+                                } else {
+                                    await db.characters.add({ dollName: doll, isFavorite: true });
+                                }
+                            }
+
                             onClose();
                         }}>
                         Merge Current
