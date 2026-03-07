@@ -1,14 +1,17 @@
-import { useState, useRef, MouseEvent, useEffect } from 'react';
+import { useState, useRef, MouseEvent, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gfl2Logo from '../assets/gfl2-logo.webp';
 import gfl2LogoLight from '../assets/gfl2-logo-light.webp';
+import { db } from '../db/database';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 const SAMPLE_DOLLS = ['Qiongjiu', 'Peritya', 'Sabrina', 'Colphne', 'Groza', 'Nemesis', 'Klukai', 'Suomi'];
 
-function FloatingCard({ dollName, initialPos, mouseX, mouseY }: { dollName: string, initialPos: { top: string, left: string, delay: number }, mouseX: number, mouseY: number }) {
+function FloatingCard({ dollName, initialPos, mouseX, mouseY, onClick }: { dollName: string, initialPos: { top: string, left: string, delay: number }, mouseX: number, mouseY: number, onClick: () => void }) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [transform, setTransform] = useState('perspective(1200px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
     const imgPath = new URL(`../assets/doll_images/${dollName}.webp`, import.meta.url).href;
+    const buildsFound = useMemo(() => Math.floor(Math.random() * (90000 - 30000 + 1) + 30000).toLocaleString(), []);
 
     // Calculate distance and angle relative to the global mouse position
     useEffect(() => {
@@ -65,14 +68,15 @@ function FloatingCard({ dollName, initialPos, mouseX, mouseY }: { dollName: stri
                 padding: '1rem',
                 zIndex: 1
             }}
+            onClick={onClick}
         >
             <div className="doll-img-container" style={{ width: '60px', height: '60px' }}>
                 <img src={imgPath} alt={dollName} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{dollName}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>+24% CRIT DMG</span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Optimized Build</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--success)' }}>{buildsFound} Builds Found</span>
+                {/*<span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Optimized Build</span>*/}
             </div>
         </div>
     );
@@ -84,11 +88,11 @@ export function Landing() {
     const [mouseY, setMouseY] = useState(window.innerHeight / 2);
     const [isExiting, setIsExiting] = useState(false);
 
-    const handleExit = () => {
+    const handleExit = (path?: string) => {
         if (isExiting) return;
         setIsExiting(true);
         setTimeout(() => {
-            navigate('/characters');
+            navigate(path || '/characters');
         }, 500);
     };
 
@@ -133,6 +137,26 @@ export function Landing() {
         { top: '45%', left: '85%', delay: 1.2 }
     ];
 
+    const characters = useLiveQuery(() => db.characters.toArray(), []) || [];
+    const displayDolls = useMemo(() => {
+        const topDolls = characters
+            .filter(c => c.isFavorite)
+            .sort((a, b) => {
+                const af = a.favoriteOrder ?? 999999;
+                const bf = b.favoriteOrder ?? 999999;
+                return af - bf;
+            })
+            .map(c => c.dollName);
+
+        const result = [...topDolls];
+        for (let i = 0; result.length < 8 && i < SAMPLE_DOLLS.length; i++) {
+            if (!result.includes(SAMPLE_DOLLS[i])) {
+                result.push(SAMPLE_DOLLS[i]);
+            }
+        }
+        return result.slice(0, 8);
+    }, [characters]);
+
     return (
         <div
             onMouseMove={handleGlobalMouseMove}
@@ -148,8 +172,15 @@ export function Landing() {
                 {theme === 'light' ? '☾' : '☀'}
             </button>
 
-            {SAMPLE_DOLLS.map((doll, idx) => (
-                <FloatingCard key={doll} dollName={doll} initialPos={cardPositions[idx]} mouseX={mouseX} mouseY={mouseY} />
+            {displayDolls.map((doll, idx) => (
+                <FloatingCard
+                    key={doll}
+                    dollName={doll}
+                    initialPos={cardPositions[idx]}
+                    mouseX={mouseX}
+                    mouseY={mouseY}
+                    onClick={() => handleExit(`/doll/${doll}`)}
+                />
             ))}
 
             <style>{`
@@ -207,7 +238,7 @@ export function Landing() {
 
             <button
                 className="high-contrast-btn"
-                onClick={handleExit}
+                onClick={() => handleExit()}
                 style={{ zIndex: 5, fontSize: '1.25rem', padding: '1.2rem 4rem' }}
             >
                 Start Building
