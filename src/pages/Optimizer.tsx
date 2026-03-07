@@ -15,6 +15,7 @@ import { CurrentlyEquipped } from '../components/optimizer/CurrentlyEquipped';
 import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
+import { useLocalStorage } from '../utils/useLocalStorage';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
@@ -62,10 +63,18 @@ export function Optimizer() {
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
 
     // Skill Sorting
-    const [skillSortBy, setSkillSortBy] = useState<'lvl' | 'type'>('lvl');
+    const [skillSortBy, setSkillSortBy] = useLocalStorage<'lvl' | 'type'>('optimizer-skillSortBy', 'lvl');
 
+    // Load dollSettings from Dexie
     useEffect(() => {
-        if (selectedDoll) {
+        if (!selectedDoll) {
+            setSimIgnoredSkills([]);
+            return;
+        }
+
+        let isMounted = true;
+
+        function generateDefaultIgnoredSkills() {
             const dData = selectedDollData;
             const dollElement = dData?.element || 'Physical';
             const ignored: string[] = [];
@@ -80,11 +89,48 @@ export function Optimizer() {
                     ignored.push(skillName);
                 }
             }
-            setSimIgnoredSkills(ignored);
-        } else {
-            setSimIgnoredSkills([]);
+            if (isMounted) setSimIgnoredSkills(ignored);
         }
+
+        db.dollSettings.get(selectedDoll).then(settings => {
+            if (!isMounted) return;
+            if (settings) {
+                if (settings.constraints) setConstraints(settings.constraints);
+                else setConstraints(defaultConstraints);
+
+                if (settings.activeSkillFilters) setActiveSkillFilters(settings.activeSkillFilters);
+                else setActiveSkillFilters([]);
+
+                if (settings.simStats) setSimStats(settings.simStats);
+                else setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+
+                if (settings.simIgnoredSkills) setSimIgnoredSkills(settings.simIgnoredSkills);
+                else generateDefaultIgnoredSkills();
+            } else {
+                setConstraints(defaultConstraints);
+                setActiveSkillFilters([]);
+                setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+                generateDefaultIgnoredSkills();
+            }
+        });
+        return () => { isMounted = false; };
     }, [selectedDoll, selectedDollData]);
+
+    // Save dollSettings to Dexie
+    // Use a small debounce to prevent overwhelming IndexedDB with rapid slider changes
+    useEffect(() => {
+        if (!selectedDoll) return;
+        const saveTimeout = setTimeout(() => {
+            db.dollSettings.put({
+                dollName: selectedDoll,
+                constraints,
+                activeSkillFilters,
+                simStats,
+                simIgnoredSkills
+            }).catch(e => console.warn("Failed to save doll settings to IndexedDB", e));
+        }, 500);
+        return () => clearTimeout(saveTimeout);
+    }, [selectedDoll, constraints, activeSkillFilters, simStats, simIgnoredSkills]);
 
     const pushAction = (action: HistoryAction) => {
         setUndoStack(prev => [...prev, action]);
