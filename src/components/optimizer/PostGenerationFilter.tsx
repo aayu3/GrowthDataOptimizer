@@ -79,14 +79,14 @@ export function PostGenerationFilter({
             </div>
 
             {Object.keys(postSkillFilters).length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
                     {Object.entries(postSkillFilters).map(([skill, minLvl]) => {
                         const cat = getSkillCategory(skill);
                         return (
-                            <div key={skill} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '220px' }}>
+                            <div key={skill} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', width: '420px', maxWidth: '100%' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '160px', flexShrink: 0 }}>
                                     <img src={getCatBadgeIconUrl(cat)} alt={cat} style={{ width: '18px', height: '18px' }} />
-                                    <span style={{ fontSize: '0.95rem' }}>{skill}</span>
+                                    <span style={{ fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{skill}</span>
                                 </div>
                                 <input
                                     type="range"
@@ -110,7 +110,7 @@ export function PostGenerationFilter({
                                         delete updated[skill];
                                         return updated;
                                     })}
-                                    style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem' }}
+                                    style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', flexShrink: 0 }}
                                     title="Remove Filter"
                                 >×</button>
                             </div>
