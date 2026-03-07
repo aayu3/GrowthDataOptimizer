@@ -4,7 +4,7 @@ import { Relic, HistoryAction, BuildResult } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
-import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildStats, calculateBuildDamage } from '../../utils/buildUtils';
 
 interface CurrentlyEquippedProps {
@@ -41,6 +41,7 @@ export function CurrentlyEquipped({
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
@@ -55,8 +56,7 @@ export function CurrentlyEquipped({
                         disabled={undoStack.length === 0}
                         onClick={handleUndo}
                         title="Undo last equip/unequip action"
-                    >
-                        ↶
+                    >↶
                     </button>
                     <button
                         className="glow-btn"
@@ -64,8 +64,7 @@ export function CurrentlyEquipped({
                         disabled={redoStack.length === 0}
                         onClick={handleRedo}
                         title="Redo last undone action"
-                    >
-                        ↷
+                    >↷
                     </button>
                     {equippedRelics.length > 0 && (
                         <button
@@ -202,9 +201,19 @@ export function CurrentlyEquipped({
                                             }
                                         })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
-                                                <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
-                                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                            <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div
+                                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
+                                                    onClick={() => setExpandedSkill(expandedSkill === skill ? null : skill)}
+                                                >
+                                                    <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
+                                                    <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                                </div>
+                                                {expandedSkill === skill && (
+                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
+                                                        {getSkillDescription(skill, lvl)}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                 </div>

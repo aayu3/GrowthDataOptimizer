@@ -1,7 +1,7 @@
 import React from 'react';
 import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
-import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildDamage } from '../../utils/buildUtils';
 
 interface OptimizationResultsProps {
@@ -36,6 +36,8 @@ export function OptimizationResults({
     setSelectedRelicInResults,
     skillSortBy
 }: OptimizationResultsProps) {
+    const [expandedSkillKey, setExpandedSkillKey] = React.useState<string | null>(null);
+
     if (results.length === 0) return null;
 
     return (
@@ -114,9 +116,19 @@ export function OptimizationResults({
                                             }
                                         })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
-                                                <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
-                                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                            <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div
+                                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
+                                                    onClick={() => setExpandedSkillKey(expandedSkillKey === `${i}-${skill}` ? null : `${i}-${skill}`)}
+                                                >
+                                                    <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
+                                                    <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                                </div>
+                                                {expandedSkillKey === `${i}-${skill}` && (
+                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
+                                                        {getSkillDescription(skill, lvl)}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                 </div>
