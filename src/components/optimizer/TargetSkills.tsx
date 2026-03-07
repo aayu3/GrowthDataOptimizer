@@ -34,14 +34,14 @@ export function TargetSkills({
                             key={cat}
                             onClick={() => setSelectedCategoryForFilter(cat)}
                             style={{
-                                background: selectedCategoryForFilter === cat ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                border: 'none',
-                                color: selectedCategoryForFilter === cat ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                background: selectedCategoryForFilter === cat ? `var(--cat-${cat.toLowerCase()})` : 'transparent',
+                                border: `1px solid ${selectedCategoryForFilter === cat ? 'transparent' : `var(--cat-${cat.toLowerCase()})`}`,
+                                color: selectedCategoryForFilter === cat ? 'white' : `var(--cat-${cat.toLowerCase()})`,
                                 cursor: 'pointer',
-                                padding: '0.5rem 1rem',
+                                padding: '0.4rem 1rem',
                                 borderRadius: 'var(--radius-button)',
                                 fontSize: '0.9rem',
-                                fontWeight: selectedCategoryForFilter === cat ? 600 : 400,
+                                fontWeight: 600,
                                 transition: 'all 0.2s',
                                 whiteSpace: 'nowrap'
                             }}
@@ -59,9 +59,9 @@ export function TargetSkills({
                                 key={skill}
                                 onClick={() => isActive ? removeSkillFilter(skill) : addSkillFilter(skill)}
                                 style={{
-                                    background: isActive ? 'var(--accent-glow)' : 'rgba(255,255,255,0.03)',
-                                    border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.1)'}`,
-                                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                    background: isActive ? `var(--cat-${selectedCategoryForFilter.toLowerCase()})` : 'rgba(255,255,255,0.03)',
+                                    border: `1px solid ${isActive ? 'transparent' : 'rgba(255,255,255,0.1)'}`,
+                                    color: isActive ? 'white' : 'var(--text-secondary)',
                                     padding: '0.4rem 0.8rem',
                                     borderRadius: 'var(--radius-button)',
                                     fontSize: '0.85rem',

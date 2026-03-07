@@ -61,6 +61,9 @@ export function Optimizer() {
     const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
 
+    // Skill Sorting
+    const [skillSortBy, setSkillSortBy] = useState<'lvl' | 'type'>('lvl');
+
     useEffect(() => {
         if (selectedDoll) {
             const dData = selectedDollData;
@@ -526,6 +529,8 @@ export function Optimizer() {
                                 showDamageSimulation={showDamageSimulation}
                                 simStats={simStats}
                                 simIgnoredSkills={simIgnoredSkills}
+                                skillSortBy={skillSortBy}
+                                setSkillSortBy={setSkillSortBy}
                             />
                         </div>
                     </div>
@@ -631,6 +636,7 @@ export function Optimizer() {
                             selectedDoll={selectedDoll}
                             selectedRelicInResults={selectedRelicInResults}
                             setSelectedRelicInResults={setSelectedRelicInResults}
+                            skillSortBy={skillSortBy}
                         />
                     )}
 

@@ -16,7 +16,7 @@
   --shadow-color: rgba(102, 126, 234, 0.1);
   --radius: 6px;
   --radius-button: 24px;
-  --radius-image: 12px;
+  --radius-image: 4px;
 
   --tier-4: #df9e00;
   --tier-3: #7968ba;
@@ -68,6 +68,20 @@ body {
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+* {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
 
 .app-container {
   display: flex;
@@ -501,19 +515,6 @@ body {
   /* Scrollbar space */
 }
 
-.db-grid-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.db-grid-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius);
-}
-
-.db-grid-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: var(--radius);
-}
 
 .db-grid {
   display: grid;

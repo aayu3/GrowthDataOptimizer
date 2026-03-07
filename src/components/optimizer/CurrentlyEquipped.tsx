@@ -4,7 +4,7 @@ import { Relic, HistoryAction, BuildResult } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
-import { getCatBadgeIconUrl } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
 import { calculateBuildStats, calculateBuildDamage } from '../../utils/buildUtils';
 
 interface CurrentlyEquippedProps {
@@ -19,6 +19,8 @@ interface CurrentlyEquippedProps {
     showDamageSimulation: boolean;
     simStats: any;
     simIgnoredSkills: string[];
+    skillSortBy: 'lvl' | 'type';
+    setSkillSortBy: (val: 'lvl' | 'type') => void;
 }
 
 export function CurrentlyEquipped({
@@ -32,10 +34,13 @@ export function CurrentlyEquipped({
     setRelicToUnequip,
     showDamageSimulation,
     simStats,
-    simIgnoredSkills
+    simIgnoredSkills,
+    skillSortBy,
+    setSkillSortBy
 }: CurrentlyEquippedProps) {
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
@@ -80,18 +85,18 @@ export function CurrentlyEquipped({
                     )}
                     <button
                         className="glow-btn"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
+                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: !isEditMode ? 'white' : 'transparent', color: !isEditMode ? 'black' : 'white', border: !isEditMode ? '1px solid white' : '1px solid rgba(255,255,255,0.2)' }}
                         onClick={() => {
-                            setIsEditingEquip(true);
+                            setIsEditMode(!isEditMode);
                             setSelectedEquippedRelic(null);
                         }}
                     >
-                        + Equip Relic
+                        {isEditMode ? 'Done Editing' : 'Edit Relics'}
                     </button>
                 </div>
             </div>
 
-            {equippedRelics.length > 0 ? (
+            {(equippedRelics.length > 0 || isEditMode) ? (
                 <>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.75rem' }}>
                         {equippedRelics.map(r => (
@@ -100,18 +105,45 @@ export function CurrentlyEquipped({
                                     relic={r}
                                     isSelected={selectedEquippedRelic?.id === r.id}
                                     onClick={() => setSelectedEquippedRelic(r)}
-                                    onUnequip={() => {
+                                    hideEquippedIcon={true}
+                                    onUnequip={isEditMode ? () => {
                                         setRelicToUnequip(r);
                                         if (selectedEquippedRelic?.id === r.id) {
                                             setSelectedEquippedRelic(null);
                                         }
-                                    }}
+                                    } : undefined}
                                 />
                             </div>
                         ))}
+                        {isEditMode && (
+                            <div style={{ width: '56px', height: '56px' }}>
+                                <button
+                                    onClick={() => {
+                                        setIsEditingEquip(true);
+                                        setSelectedEquippedRelic(null);
+                                    }}
+                                    style={{
+                                        width: '100%', height: '100%', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.4)', borderRadius: 'var(--radius-image)', color: 'rgba(255,255,255,0.6)', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                        e.currentTarget.style.color = 'white';
+                                        e.currentTarget.style.borderColor = 'white';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                        e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
+                                    }}
+                                    title="Add Relic"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    {(() => {
+                    {equippedRelics.length > 0 && (() => {
                         const equippedStats = calculateBuildStats(equippedRelics);
                         return (
                             <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginTop: '1rem' }}>
@@ -123,11 +155,54 @@ export function CurrentlyEquipped({
                                         </div>
                                     ))}
                                 </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Skills</div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            className={`glow-btn ${skillSortBy === 'type' ? 'active' : ''}`}
+                                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: skillSortBy === 'type' ? 'white' : 'transparent', color: skillSortBy === 'type' ? 'black' : 'white', border: '1px solid white' }}
+                                            onClick={() => setSkillSortBy('type')}
+                                        >
+                                            Type
+                                        </button>
+                                        <button
+                                            className={`glow-btn ${skillSortBy === 'lvl' ? 'active' : ''}`}
+                                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: skillSortBy === 'lvl' ? 'white' : 'transparent', color: skillSortBy === 'lvl' ? 'black' : 'white', border: '1px solid white' }}
+                                            onClick={() => setSkillSortBy('lvl')}
+                                        >
+                                            Lvl
+                                        </button>
+                                    </div>
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr)', gap: '0.5rem', fontSize: '0.85rem' }}>
                                     {Object.entries(equippedStats.effectiveSkillLevels)
-                                        .sort(([, a], [, b]) => b - a)
+                                        .sort((a, b) => {
+                                            if (skillSortBy === 'lvl') {
+                                                if (b[1] !== a[1]) return b[1] - a[1];
+                                                return a[0].localeCompare(b[0]);
+                                            } else {
+                                                const catA = getSkillCategory(a[0]);
+                                                const catB = getSkillCategory(b[0]);
+
+                                                // Sort by category count (most amount of types first)
+                                                // We can compute counts on the fly
+                                                const counts: Record<string, number> = {};
+                                                Object.keys(equippedStats.effectiveSkillLevels).forEach(k => {
+                                                    const c = getSkillCategory(k);
+                                                    counts[c] = (counts[c] || 0) + 1;
+                                                });
+
+                                                if (counts[catA] !== counts[catB]) {
+                                                    return counts[catB] - counts[catA];
+                                                }
+                                                // If same count, sort by category name
+                                                if (catA !== catB) return catA.localeCompare(catB);
+                                                // If same category, sort by level
+                                                return b[1] - a[1];
+                                            }
+                                        })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>
+                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
                                                 <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                 <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                             </div>
