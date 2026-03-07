@@ -288,8 +288,8 @@ export function Home() {
                                             right: '12px',
                                             zIndex: 10,
                                             cursor: 'pointer',
-                                            color: '#ffffff',
-                                            filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))',
+                                            color: 'var(--accent-color)',
+                                            filter: 'drop-shadow(0 0 4px var(--accent-glow))',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center'
