@@ -29,7 +29,7 @@ export function Optimizer() {
     const [constraints, setConstraints] = useState<OptimizerConstraints>(defaultConstraints);
     const [activeSkillFilters, setActiveSkillFilters] = useState<string[]>([]);
     const [selectedCategoryForFilter, setSelectedCategoryForFilter] = useState<string>('Bulwark');
-    const [includeOtherEquipped, setIncludeOtherEquipped] = useState(true);
+    const [includeOtherEquipped, setIncludeOtherEquipped] = useState(false);
 
     // Results state
     const [results, setResults] = useState<BuildResult[]>([]);
@@ -469,8 +469,8 @@ export function Optimizer() {
                 <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgPath})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.1, filter: 'blur(20px)' }}></div>
                 <img src={imgPath} alt={selectedDoll} style={{ maxWidth: '80%', maxHeight: '80vh', objectFit: 'contain', zIndex: 2, filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' }} />
                 <div style={{ position: 'absolute', bottom: '3rem', left: '3rem', zIndex: 5 }}>
-                    <h1 style={{ fontSize: '4rem', margin: 0, textTransform: 'uppercase', letterSpacing: '4px', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{selectedDoll}</h1>
-                    <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', margin: 0 }}>Optimization Tuning</p>
+                    <h1 style={{ fontSize: '3rem', margin: 0, letterSpacing: '3px', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{selectedDoll}</h1>
+                    <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', margin: 0 }}>Optimization Tuning</p>
                 </div>
             </div>
 

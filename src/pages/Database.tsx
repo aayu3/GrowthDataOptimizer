@@ -8,8 +8,8 @@ export function Database() {
             <header className="header-glow">
                 <h1>GFL2 <span>Growth Data Optimizer</span></h1>
                 <div className="nav-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
-                    <Link to="/" className="back-btn" style={{ position: 'relative', textDecoration: 'none' }}>
-                        Go to Optimizer
+                    <Link to="/characters" className="back-btn" style={{ position: 'relative', textDecoration: 'none' }}>
+                        Optimize Dolls
                     </Link>
                 </div>
             </header>
