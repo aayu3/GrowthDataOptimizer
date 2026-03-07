@@ -4,7 +4,7 @@ import { Relic, HistoryAction, BuildResult } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
-import { getCatBadgeIconUrl } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
 import { calculateBuildStats, calculateBuildDamage } from '../../utils/buildUtils';
 
 interface CurrentlyEquippedProps {
@@ -19,6 +19,8 @@ interface CurrentlyEquippedProps {
     showDamageSimulation: boolean;
     simStats: any;
     simIgnoredSkills: string[];
+    skillSortBy: 'lvl' | 'type';
+    setSkillSortBy: (val: 'lvl' | 'type') => void;
 }
 
 export function CurrentlyEquipped({
@@ -32,7 +34,9 @@ export function CurrentlyEquipped({
     setRelicToUnequip,
     showDamageSimulation,
     simStats,
-    simIgnoredSkills
+    simIgnoredSkills,
+    skillSortBy,
+    setSkillSortBy
 }: CurrentlyEquippedProps) {
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
@@ -123,11 +127,54 @@ export function CurrentlyEquipped({
                                         </div>
                                     ))}
                                 </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Skills</div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            className={`glow-btn ${skillSortBy === 'type' ? 'active' : ''}`}
+                                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: skillSortBy === 'type' ? 'white' : 'transparent', color: skillSortBy === 'type' ? 'black' : 'white', border: '1px solid white' }}
+                                            onClick={() => setSkillSortBy('type')}
+                                        >
+                                            Type
+                                        </button>
+                                        <button
+                                            className={`glow-btn ${skillSortBy === 'lvl' ? 'active' : ''}`}
+                                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: skillSortBy === 'lvl' ? 'white' : 'transparent', color: skillSortBy === 'lvl' ? 'black' : 'white', border: '1px solid white' }}
+                                            onClick={() => setSkillSortBy('lvl')}
+                                        >
+                                            Lvl
+                                        </button>
+                                    </div>
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr)', gap: '0.5rem', fontSize: '0.85rem' }}>
                                     {Object.entries(equippedStats.effectiveSkillLevels)
-                                        .sort(([, a], [, b]) => b - a)
+                                        .sort((a, b) => {
+                                            if (skillSortBy === 'lvl') {
+                                                if (b[1] !== a[1]) return b[1] - a[1];
+                                                return a[0].localeCompare(b[0]);
+                                            } else {
+                                                const catA = getSkillCategory(a[0]);
+                                                const catB = getSkillCategory(b[0]);
+
+                                                // Sort by category count (most amount of types first)
+                                                // We can compute counts on the fly
+                                                const counts: Record<string, number> = {};
+                                                Object.keys(equippedStats.effectiveSkillLevels).forEach(k => {
+                                                    const c = getSkillCategory(k);
+                                                    counts[c] = (counts[c] || 0) + 1;
+                                                });
+
+                                                if (counts[catA] !== counts[catB]) {
+                                                    return counts[catB] - counts[catA];
+                                                }
+                                                // If same count, sort by category name
+                                                if (catA !== catB) return catA.localeCompare(catB);
+                                                // If same category, sort by level
+                                                return b[1] - a[1];
+                                            }
+                                        })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>
+                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
                                                 <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                 <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                             </div>

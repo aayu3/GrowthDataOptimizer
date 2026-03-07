@@ -1,7 +1,7 @@
 import React from 'react';
 import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
-import { getCatBadgeIconUrl } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
 import { calculateBuildDamage } from '../../utils/buildUtils';
 
 interface OptimizationResultsProps {
@@ -18,6 +18,7 @@ interface OptimizationResultsProps {
     selectedRelicInResults: Relic | null;
     setSelectedRelicInResults: React.Dispatch<React.SetStateAction<Relic | null>>;
     totalResults: number;
+    skillSortBy: 'lvl' | 'type';
 }
 
 export function OptimizationResults({
@@ -32,7 +33,8 @@ export function OptimizationResults({
     onEquipBuild,
     selectedDoll,
     selectedRelicInResults,
-    setSelectedRelicInResults
+    setSelectedRelicInResults,
+    skillSortBy
 }: OptimizationResultsProps) {
     if (results.length === 0) return null;
 
@@ -85,11 +87,34 @@ export function OptimizationResults({
                                         </div>
                                     ))}
                                 </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' }}>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Skills</div>
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem' }}>
                                     {Object.entries(res.effectiveSkillLevels)
-                                        .sort(([, a], [, b]) => b - a)
+                                        .sort((a, b) => {
+                                            if (skillSortBy === 'lvl') {
+                                                if (b[1] !== a[1]) return b[1] - a[1];
+                                                return a[0].localeCompare(b[0]);
+                                            } else {
+                                                const catA = getSkillCategory(a[0]);
+                                                const catB = getSkillCategory(b[0]);
+
+                                                const counts: Record<string, number> = {};
+                                                Object.keys(res.effectiveSkillLevels).forEach(k => {
+                                                    const c = getSkillCategory(k);
+                                                    counts[c] = (counts[c] || 0) + 1;
+                                                });
+
+                                                if (counts[catA] !== counts[catB]) {
+                                                    return counts[catB] - counts[catA];
+                                                }
+                                                if (catA !== catB) return catA.localeCompare(catB);
+                                                return b[1] - a[1];
+                                            }
+                                        })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>
+                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
                                                 <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                 <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                             </div>
