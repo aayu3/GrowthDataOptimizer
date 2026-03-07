@@ -109,11 +109,14 @@ export function Optimizer() {
 
                 if (settings.simIgnoredSkills) setSimIgnoredSkills(settings.simIgnoredSkills);
                 else generateDefaultIgnoredSkills();
+
+                setIncludeOtherEquipped(settings.includeOtherEquipped ?? false);
             } else {
                 setConstraints(defaultConstraints);
                 setActiveSkillFilters([]);
                 setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
                 generateDefaultIgnoredSkills();
+                setIncludeOtherEquipped(false);
             }
         });
         return () => { isMounted = false; };
@@ -129,11 +132,12 @@ export function Optimizer() {
                 constraints,
                 activeSkillFilters,
                 simStats,
-                simIgnoredSkills
+                simIgnoredSkills,
+                includeOtherEquipped
             }).catch(e => console.warn("Failed to save doll settings to IndexedDB", e));
         }, 500);
         return () => clearTimeout(saveTimeout);
-    }, [selectedDoll, constraints, activeSkillFilters, simStats, simIgnoredSkills]);
+    }, [selectedDoll, constraints, activeSkillFilters, simStats, simIgnoredSkills, includeOtherEquipped]);
 
     const pushAction = (action: HistoryAction) => {
         setUndoStack(prev => [...prev, action]);
