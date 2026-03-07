@@ -8,6 +8,8 @@ interface CharacterPassivesProps {
     applyBonusRequirements: (bonus: any, isActive: boolean) => void;
 }
 
+const tierNames = ['Embryo', 'Seedling', 'Sprout', 'Shoot', 'Bud', 'Blossom'];
+
 export function CharacterPassives({ selectedDollData, constraints, applyBonusRequirements }: CharacterPassivesProps) {
     return (
         <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
@@ -44,7 +46,9 @@ export function CharacterPassives({ selectedDollData, constraints, applyBonusReq
                             title="Click to set as Optimizer Target"
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                <strong style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)' }}>Bonus Tier {bonus.tier}</strong>
+                                <strong style={{ color: isActive ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
+                                    {tierNames[bonus.tier - 1] || `Bonus Tier ${bonus.tier}`}
+                                </strong>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     {Object.entries(requirements).map(([cat, req]) => (
                                         <span key={cat} style={{ fontSize: '0.8rem', background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', gap: '0.3rem', color: (constraints.targetCategoryLevels[cat] || 0) >= req ? 'var(--success)' : 'var(--text-secondary)' }}>

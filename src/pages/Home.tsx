@@ -79,6 +79,8 @@ export function Home() {
                             type="text"
                             className="search-dolls-input"
                             placeholder="Search Dolls..."
+                            onFocus={(e) => e.target.placeholder = ''}
+                            onBlur={(e) => e.target.placeholder = 'Search Dolls...'}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
