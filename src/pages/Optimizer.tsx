@@ -15,6 +15,7 @@ import { CurrentlyEquipped } from '../components/optimizer/CurrentlyEquipped';
 import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
+import { useLocalStorage } from '../utils/useLocalStorage';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
@@ -62,10 +63,21 @@ export function Optimizer() {
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
 
     // Skill Sorting
-    const [skillSortBy, setSkillSortBy] = useState<'lvl' | 'type'>('lvl');
+    const [skillSortBy, setSkillSortBy] = useLocalStorage<'lvl' | 'type'>('optimizer-skillSortBy', 'lvl');
 
+    // Post-generation filters
+    const [postSkillFilters, setPostSkillFilters] = useState<Record<string, number>>({});
+
+    // Load dollSettings from Dexie
     useEffect(() => {
-        if (selectedDoll) {
+        if (!selectedDoll) {
+            setSimIgnoredSkills([]);
+            return;
+        }
+
+        let isMounted = true;
+
+        function generateDefaultIgnoredSkills() {
             const dData = selectedDollData;
             const dollElement = dData?.element || 'Physical';
             const ignored: string[] = [];
@@ -80,11 +92,52 @@ export function Optimizer() {
                     ignored.push(skillName);
                 }
             }
-            setSimIgnoredSkills(ignored);
-        } else {
-            setSimIgnoredSkills([]);
+            if (isMounted) setSimIgnoredSkills(ignored);
         }
+
+        db.dollSettings.get(selectedDoll).then(settings => {
+            if (!isMounted) return;
+            if (settings) {
+                if (settings.constraints) setConstraints(settings.constraints);
+                else setConstraints(defaultConstraints);
+
+                if (settings.activeSkillFilters) setActiveSkillFilters(settings.activeSkillFilters);
+                else setActiveSkillFilters([]);
+
+                if (settings.simStats) setSimStats(settings.simStats);
+                else setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+
+                if (settings.simIgnoredSkills) setSimIgnoredSkills(settings.simIgnoredSkills);
+                else generateDefaultIgnoredSkills();
+
+                setIncludeOtherEquipped(settings.includeOtherEquipped ?? false);
+            } else {
+                setConstraints(defaultConstraints);
+                setActiveSkillFilters([]);
+                setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+                generateDefaultIgnoredSkills();
+                setIncludeOtherEquipped(false);
+            }
+        });
+        return () => { isMounted = false; };
     }, [selectedDoll, selectedDollData]);
+
+    // Save dollSettings to Dexie
+    // Use a small debounce to prevent overwhelming IndexedDB with rapid slider changes
+    useEffect(() => {
+        if (!selectedDoll) return;
+        const saveTimeout = setTimeout(() => {
+            db.dollSettings.put({
+                dollName: selectedDoll,
+                constraints,
+                activeSkillFilters,
+                simStats,
+                simIgnoredSkills,
+                includeOtherEquipped
+            }).catch(e => console.warn("Failed to save doll settings to IndexedDB", e));
+        }, 500);
+        return () => clearTimeout(saveTimeout);
+    }, [selectedDoll, constraints, activeSkillFilters, simStats, simIgnoredSkills, includeOtherEquipped]);
 
     const pushAction = (action: HistoryAction) => {
         setUndoStack(prev => [...prev, action]);
@@ -329,6 +382,63 @@ export function Optimizer() {
         return cats;
     }, [relicInfo]);
 
+    const filteredIndices = useMemo(() => {
+        if (!rawResults || rawResults.length === 0) return new Uint32Array(0);
+
+        const totalBuilds = rawResults.length / 7;
+        const requiredSkills = Object.entries(postSkillFilters);
+        if (requiredSkills.length === 0) {
+            const all = new Uint32Array(totalBuilds);
+            for (let i = 0; i < totalBuilds; i++) all[i] = i;
+            return all;
+        }
+
+        const valid: number[] = [];
+        const intToRelic = new Map<number, Relic>();
+        optimizedRelics.forEach((r, idx) => {
+            if (r.id) intToRelic.set(idx + 1, r);
+        });
+
+        for (let i = 0; i < totalBuilds; i++) {
+            const offset = i * 7;
+            const buildSkillLevels: Record<string, number> = {};
+
+            for (let j = 0; j < 6; j++) {
+                const relicIdInt = rawResults[offset + j];
+                if (relicIdInt > 0) {
+                    const relic = intToRelic.get(relicIdInt);
+                    if (relic) {
+                        if (relic.main_skill?.name) {
+                            buildSkillLevels[relic.main_skill.name] = (buildSkillLevels[relic.main_skill.name] || 0) + relic.main_skill.level;
+                        }
+                        for (const aux of relic.aux_skills) {
+                            if (aux?.name) {
+                                buildSkillLevels[aux.name] = (buildSkillLevels[aux.name] || 0) + aux.level;
+                            }
+                        }
+                    }
+                }
+            }
+
+            let isValid = true;
+            for (const [skill, minLvl] of requiredSkills) {
+                if ((buildSkillLevels[skill] || 0) < minLvl) {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (isValid) valid.push(i);
+        }
+
+        return new Uint32Array(valid);
+    }, [rawResults, postSkillFilters, optimizedRelics]);
+
+    // Reset pagination when filter changes
+    useEffect(() => {
+        setResultPage(0);
+    }, [postSkillFilters, rawResults]);
+
     // --- LAZY RECONSTRUCTION OF UI BUILDS VIA PAGINATION ---
     useEffect(() => {
         if (!rawResults || rawResults.length === 0) {
@@ -338,7 +448,7 @@ export function Optimizer() {
 
         const buildObjects: BuildResult[] = [];
         const startIdx = resultPage * resultsPerPage;
-        const endIdx = Math.min(startIdx + resultsPerPage, rawResults.length / 7);
+        const endIdx = Math.min(startIdx + resultsPerPage, filteredIndices.length);
 
         // Helper maps
         const intToRelic = new Map<number, Relic>();
@@ -348,7 +458,8 @@ export function Optimizer() {
 
         // Reconstruct just the relics for the current page
         for (let i = startIdx; i < endIdx; i++) {
-            const offset = i * 7;
+            const buildIdx = filteredIndices[i];
+            const offset = buildIdx * 7;
             const buildRelics: Relic[] = [];
             for (let j = 0; j < 6; j++) {
                 const relicIdInt = rawResults[offset + j];
@@ -410,7 +521,7 @@ export function Optimizer() {
         }
 
         setResults(buildObjects);
-    }, [rawResults, resultPage, optimizedRelics, categorizedSkills, skillsData]);
+    }, [rawResults, filteredIndices, resultPage, optimizedRelics, categorizedSkills, skillsData]);
 
 
 
@@ -627,7 +738,7 @@ export function Optimizer() {
                             resultPage={resultPage}
                             setResultPage={setResultPage}
                             resultsPerPage={resultsPerPage}
-                            totalResults={rawResults.length / 7}
+                            totalResults={filteredIndices.length}
                             showDamageSimulation={showDamageSimulation}
                             simStats={simStats}
                             simIgnoredSkills={simIgnoredSkills}
@@ -637,6 +748,9 @@ export function Optimizer() {
                             selectedRelicInResults={selectedRelicInResults}
                             setSelectedRelicInResults={setSelectedRelicInResults}
                             skillSortBy={skillSortBy}
+                            postSkillFilters={postSkillFilters}
+                            setPostSkillFilters={setPostSkillFilters}
+                            categorizedSkills={categorizedSkills}
                         />
                     )}
 

@@ -1,7 +1,7 @@
 {
     "Sentinel": {
         "Attack Boost": {
-            "effect": "Attack is increased by {x}",
+            "effect": "Attack is increased by {x}%",
             "x": [
                 0.8,
                 1.2,
@@ -12,10 +12,11 @@
             ],
             "element": "none",
             "stat": "ATK",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Thronebreaker": {
-            "effect": "Damage dealt to boss units is increased by {x}",
+            "effect": "Damage dealt to boss units is increased by {x}%",
             "x": [
                 2,
                 2.5,
@@ -26,10 +27,11 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Area Specialization": {
-            "effect": "AoE damage dealt is increased by {x}",
+            "effect": "AoE damage dealt is increased by {x}%",
             "x": [
                 2,
                 2.5,
@@ -40,10 +42,11 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Pinpoint Specialization": {
-            "effect": "Targeted damage dealt is increased by {x}",
+            "effect": "Targeted damage dealt is increased by {x}%",
             "x": [
                 2,
                 2.5,
@@ -54,10 +57,11 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Critical Boost": {
-            "effect": "Critical rate is increased by {x}",
+            "effect": "Critical rate is increased by {x}%",
             "x": [
                 1,
                 2,
@@ -65,10 +69,11 @@
             ],
             "element": "none",
             "stat": "CRIT_RATE",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Physical Boost": {
-            "effect": "Physical damage dealt is increased by {x}",
+            "effect": "Physical damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -78,10 +83,11 @@
             ],
             "element": "Physical",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Burn Boost": {
-            "effect": "Burn damage dealt is increased by {x}",
+            "effect": "Burn damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -91,10 +97,11 @@
             ],
             "element": "Burn",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Hydro Boost": {
-            "effect": "Hydro damage dealt is increased by {x}",
+            "effect": "Hydro damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -104,10 +111,11 @@
             ],
             "element": "Hydro",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Electric Boost": {
-            "effect": "Electric damage dealt is increased by {x}",
+            "effect": "Electric damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -117,10 +125,11 @@
             ],
             "element": "Electric",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Freeze Boost": {
-            "effect": "Freeze damage dealt is increased by {x}",
+            "effect": "Freeze damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -130,10 +139,11 @@
             ],
             "element": "Freeze",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Corrosion Boost": {
-            "effect": "Corrosion damage dealt is increased by {x}",
+            "effect": "Corrosion damage dealt is increased by {x}%",
             "x": [
                 0.2,
                 0.5,
@@ -143,10 +153,11 @@
             ],
             "element": "Corrosion",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Raid Stance": {
-            "effect": "Damage dealt by out-of-turn attacks is increased by {x}",
+            "effect": "Damage dealt by out-of-turn attacks is increased by {x}%",
             "x": [
                 0.2,
                 0.6,
@@ -156,10 +167,11 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Onslaught Stance": {
-            "effect": "Damage dealt by active skills is increased by {x}",
+            "effect": "Damage dealt by active skills is increased by {x}%",
             "x": [
                 0.2,
                 0.6,
@@ -169,20 +181,22 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Follow-Up Strike": {
-            "effect": "Damage dealt to enemy units in Stability Break is increased by {x}",
+            "effect": "Damage dealt to enemy units in Stability Break is increased by {x}%",
             "x": [
                 0.5,
                 1
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Headhunter": {
-            "effect": "Damage dealt to enemy units more than 6 tiles away is increased by {x}",
+            "effect": "Damage dealt to enemy units more than 6 tiles away is increased by {x}%",
             "x": [
                 0.4,
                 0.8,
@@ -190,7 +204,8 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         }
     },
     "Vanguard": {
@@ -203,7 +218,8 @@
             ],
             "element": "none",
             "stat": "HEAL",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "CQC Elite": {
             "effect": "Damage dealt to enemy units within 3 tiles is increased by {x}%",
@@ -214,7 +230,8 @@
             ],
             "element": "none",
             "stat": "DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Shock and Awe": {
             "effect": "The first enemy unit damaged each turn takes an additional {x} points of fixed stability damage. This effect can trigger once per turn.",
@@ -224,7 +241,8 @@
             ],
             "element": "none",
             "stat": "STABILITY",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Precision Blow": {
             "effect": "When dealing targeted damage, critical damage is increased by {x}%",
@@ -238,7 +256,8 @@
             ],
             "element": "none",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Beheading Blade": {
             "effect": "Critical damage dealt to boss units is increased by {x}%",
@@ -252,7 +271,8 @@
             ],
             "element": "none",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Smite Boost": {
             "effect": "Critical damage is increased by {x}%",
@@ -266,7 +286,8 @@
             ],
             "element": "none",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Area Smite": {
             "effect": "When dealing AoE damage, critical damage is increased by {x}%",
@@ -280,7 +301,8 @@
             ],
             "element": "none",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Physical Smite": {
             "effect": "When dealing Physical damage, critical damage is increased by {x}%",
@@ -293,7 +315,8 @@
             ],
             "element": "Physical",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Burning Smite": {
             "effect": "When dealing Burn damage, critical damage is increased by {x}%",
@@ -306,7 +329,8 @@
             ],
             "element": "Burn",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Electric Smite": {
             "effect": "When dealing Electric damage, critical damage is increased by {x}%",
@@ -319,7 +343,8 @@
             ],
             "element": "Electric",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Corrosive Smite": {
             "effect": "When dealing Corrosion damage, critical damage is increased by {x}%",
@@ -332,7 +357,8 @@
             ],
             "element": "Corrosion",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Freezing Smite": {
             "effect": "When dealing Freeze damage, critical damage is increased by {x}%",
@@ -345,7 +371,8 @@
             ],
             "element": "Freeze",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Hydro Smite": {
             "effect": "When dealing Hydro damage, critical damage is increased by {x}%",
@@ -358,7 +385,8 @@
             ],
             "element": "Hydro",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Onslaught Mastery": {
             "effect": "When making an active attack, critical damage is increased by {x}%",
@@ -371,7 +399,8 @@
             ],
             "element": "none",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         },
         "Ambush Mastery": {
             "effect": "When making an out-of-turn attack, critical damage is increased by {x}%",
@@ -384,7 +413,8 @@
             ],
             "element": "none",
             "stat": "CRIT_DMG",
-            "scaling": "none"
+            "scaling": "none",
+            "DPS": true
         }
     },
     "Support": {
@@ -399,7 +429,398 @@
             ],
             "element": "none",
             "stat": "ATK",
-            "scaling": "HP"
+            "scaling": "HP",
+            "DPS": true
+        },
+        "Fighting Spirit": {
+            "effect": "Attack and max HP is increased by {x}%.",
+            "x": [
+                0.4,
+                0.6,
+                1,
+                1.2,
+                1.6,
+                1.8
+            ],
+            "element": "none",
+            "stat": "HP",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Healing Boost": {
+            "effect": "Healing and shield effects applied are increased by {x}%.",
+            "x": [
+                1.5,
+                2,
+                3,
+                3.5,
+                4.5,
+                5
+            ],
+            "element": "none",
+            "stat": "HEAL_SHIELD",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Life Recovery": {
+            "effect": "At the end of this unit's action, restores HP equal to {x}% of max HP. This effect can be triggered once every turn.",
+            "x": [
+                0.5,
+                1,
+                1.5
+            ],
+            "element": "none",
+            "stat": "HEAL",
+            "scaling": "HP",
+            "DPS": false
+        },
+        "Equilibrium Recovery": {
+            "effect": "At the end of this unit's action, restores {x} points of stability. This effect can be triggered once every turn.",
+            "x": [
+                1,
+                2
+            ],
+            "element": "none",
+            "stat": "STABILITY_RESTORE",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Ichor Resonance": {
+            "effect": "Max HP is increased by {x}% of initial attack.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "none",
+            "stat": "HP",
+            "scaling": "ATK",
+            "DPS": false
+        },
+        "Purification Feedback": {
+            "effect": "After cleansing an allied unit's debuffs, this unit's attack and max HP are increased by {x}% for 2 rounds.",
+            "x": [
+                1,
+                2,
+                3
+            ],
+            "element": "none",
+            "stat": "HP",
+            "scaling": "none",
+            "DPS": false
+        },
+        "HP Unity": {
+            "effect": "All allied units' max HPis increased by {x}%. Does not stack.",
+            "x": [
+                0.3,
+                0.4,
+                0.6,
+                0.7,
+                0.9,
+                1
+            ],
+            "element": "none",
+            "stat": "HP",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Attack Unity": {
+            "effect": "All allied units' attack is increased by {x}%. Does not stack.",
+            "x": [
+                0.3,
+                0.4,
+                0.6,
+                0.7,
+                0.9,
+                1
+            ],
+            "element": "none",
+            "stat": "ATK",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Physical Unity": {
+            "effect": "Physical damage dealt by allied units is increased by {x}%. Does not stack.",
+            "x": [
+                0.1,
+                0.3,
+                0.5,
+                0.7,
+                0.9
+            ],
+            "element": "Physical",
+            "stat": "DMG",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Burn Unity": {
+            "effect": "Burn damage dealt by allied units is increased by {x}%. Does not stack.",
+            "x": [
+                0.1,
+                0.3,
+                0.5,
+                0.7,
+                0.9
+            ],
+            "element": "Burn",
+            "stat": "DMG",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Hydro Unity": {
+            "effect": "Hydro damage dealt by allied units is increased by {x}%. Does not stack.",
+            "x": [
+                0.1,
+                0.3,
+                0.5,
+                0.7,
+                0.9
+            ],
+            "element": "Hydro",
+            "stat": "DMG",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Electric Unity": {
+            "effect": "Electric damage dealt by allied units is increased by {x}%. Does not stack.",
+            "x": [
+                0.1,
+                0.3,
+                0.5,
+                0.7,
+                0.9
+            ],
+            "element": "Electric",
+            "stat": "DMG",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Freeze Unity": {
+            "effect": "Freeze damage dealt by allied units is increased by {x}%. Does not stack.",
+            "x": [
+                0.1,
+                0.3,
+                0.5,
+                0.7,
+                0.9
+            ],
+            "element": "Freeze",
+            "stat": "DMG",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Corrosion Unity": {
+            "effect": "Corrosion damage dealt by allied units is increased by {x}%. Does not stack.",
+            "x": [
+                0.1,
+                0.3,
+                0.5,
+                0.7,
+                0.9
+            ],
+            "element": "Corrosion",
+            "stat": "DMG",
+            "scaling": "none",
+            "DPS": false
+        }
+    },
+    "Bulwark": {
+        "Annular Defense": {
+            "effect": "AoE damage taken is reduced by {x}%",
+            "x": [
+                2,
+                2.5,
+                3.5,
+                4,
+                5,
+                5.5
+            ],
+            "element": "none",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Pinpoint Defense": {
+            "effect": "Targeted damage taken is reduced by {x}%",
+            "x": [
+                2,
+                2.5,
+                3.5,
+                4,
+                5,
+                5.5
+            ],
+            "element": "none",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Lex Talionis": {
+            "effect": "When taking damage, deals fixed damage to the attacker equal to {x}% of the user's max HP. This damage cannot exceed 100% of this unit's attack.",
+            "x": [
+                2,
+                4,
+                6
+            ],
+            "element": "none",
+            "stat": "DMG_REFLECT",
+            "scaling": "HP",
+            "DPS": false
+        },
+        "HP Boost": {
+            "effect": "Max HP is increased by {x}%.",
+            "x": [
+                0.8,
+                1.2,
+                2,
+                2.4,
+                3.2,
+                3.6
+            ],
+            "element": "none",
+            "stat": "HP",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Defense Boost": {
+            "effect": "Defense is increased by {x}%.",
+            "x": [
+                0.8,
+                1.2,
+                2,
+                2.4,
+                3.2,
+                3.6
+            ],
+            "element": "none",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Boss Countermeasures": {
+            "effect": "Damage taken from boss units is reduced by {x}%.",
+            "x": [
+                0.4,
+                0.8
+            ],
+            "element": "none",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Breakout Countermeasures": {
+            "effect": "When there are 2 or more enemy units within 3 tiles of this unit, damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "none",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Lone Rider Countermeasures": {
+            "effect": "When there is only 1 enemy unit within 3 tiles of this unit, damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.5,
+                0.8,
+                1.1,
+                1.4
+            ],
+            "element": "none",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Physical Resistance": {
+            "effect": "Physical damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Physical",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Burn Resistance": {
+            "effect": "Burn damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Burn",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Hydro Resistance": {
+            "effect": "Hydro damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Hydro",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Electric Resistance": {
+            "effect": "Electric damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Electric",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Freeze Resistance": {
+            "effect": "Freeze damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Freeze",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
+        },
+        "Corrosion Resistance": {
+            "effect": "Corrosion damage taken is reduced by {x}%.",
+            "x": [
+                0.2,
+                0.4,
+                0.6,
+                0.8,
+                1
+            ],
+            "element": "Corrosion",
+            "stat": "DEF",
+            "scaling": "none",
+            "DPS": false
         }
     }
 }

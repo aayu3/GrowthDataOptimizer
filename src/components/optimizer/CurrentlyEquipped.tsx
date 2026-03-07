@@ -4,7 +4,7 @@ import { Relic, HistoryAction, BuildResult } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
-import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildStats, calculateBuildDamage } from '../../utils/buildUtils';
 
 interface CurrentlyEquippedProps {
@@ -41,6 +41,7 @@ export function CurrentlyEquipped({
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
 
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
@@ -55,8 +56,7 @@ export function CurrentlyEquipped({
                         disabled={undoStack.length === 0}
                         onClick={handleUndo}
                         title="Undo last equip/unequip action"
-                    >
-                        ↶
+                    >↶
                     </button>
                     <button
                         className="glow-btn"
@@ -64,8 +64,7 @@ export function CurrentlyEquipped({
                         disabled={redoStack.length === 0}
                         onClick={handleRedo}
                         title="Redo last undone action"
-                    >
-                        ↷
+                    >↷
                     </button>
                     {equippedRelics.length > 0 && (
                         <button
@@ -85,7 +84,7 @@ export function CurrentlyEquipped({
                     )}
                     <button
                         className="glow-btn"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: !isEditMode ? 'white' : 'transparent', color: !isEditMode ? 'black' : 'white', border: !isEditMode ? '1px solid white' : '1px solid rgba(255,255,255,0.2)' }}
+                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: isEditMode ? 'var(--accent-glow)' : 'white', color: isEditMode ? 'inherit' : 'black', border: isEditMode ? '1px solid transparent' : '1px solid white' }}
                         onClick={() => {
                             setIsEditMode(!isEditMode);
                             setSelectedEquippedRelic(null);
@@ -202,16 +201,26 @@ export function CurrentlyEquipped({
                                             }
                                         })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
-                                                <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
-                                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                            <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div
+                                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
+                                                    onClick={() => setExpandedSkill(expandedSkill === skill ? null : skill)}
+                                                >
+                                                    <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
+                                                    <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                                </div>
+                                                {expandedSkill === skill && (
+                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
+                                                        {getSkillDescription(skill, lvl)}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                 </div>
                                 {showDamageSimulation && (
                                     <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
                                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>Simulated Average Damage</div>
-                                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--accent-glow)', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)' }}>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)' }}>
                                             {Math.round(calculateBuildDamage(
                                                 {
                                                     relics: equippedRelics,

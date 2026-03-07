@@ -1,8 +1,9 @@
 import React from 'react';
 import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
-import { getCatBadgeIconUrl, getSkillCategory } from '../../utils/relicUtils';
+import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildDamage } from '../../utils/buildUtils';
+import { PostGenerationFilter } from './PostGenerationFilter';
 
 interface OptimizationResultsProps {
     results: BuildResult[];
@@ -19,6 +20,9 @@ interface OptimizationResultsProps {
     setSelectedRelicInResults: React.Dispatch<React.SetStateAction<Relic | null>>;
     totalResults: number;
     skillSortBy: 'lvl' | 'type';
+    postSkillFilters: Record<string, number>;
+    setPostSkillFilters: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+    categorizedSkills: Record<string, string[]>;
 }
 
 export function OptimizationResults({
@@ -34,17 +38,44 @@ export function OptimizationResults({
     selectedDoll,
     selectedRelicInResults,
     setSelectedRelicInResults,
-    skillSortBy
+    totalResults,
+    skillSortBy,
+    postSkillFilters,
+    setPostSkillFilters,
+    categorizedSkills
 }: OptimizationResultsProps) {
-    if (results.length === 0) return null;
+    const [expandedSkillKey, setExpandedSkillKey] = React.useState<string | null>(null);
+    const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
 
     return (
         <section className="results-section">
-            <div className="results-header">
-                <h2>Results ({results.length} found)</h2>
-                <button className="export-btn" onClick={handleExportJSON}>
-                    ⬇ Export to JSON
-                </button>
+            <div className="results-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2>Results ({totalResults} found)</h2>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <button
+                            className="glow-btn"
+                            style={{
+                                padding: '0.4rem 1rem',
+                                background: isFilterOpen ? 'var(--accent-glow)' : 'white',
+                                color: isFilterOpen ? 'inherit' : 'black'
+                            }}
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                        >
+                            Filter
+                        </button>
+                        <button className="export-btn" onClick={handleExportJSON}>
+                            ⬇ Export to JSON
+                        </button>
+                    </div>
+                </div>
+                {isFilterOpen && (
+                    <PostGenerationFilter
+                        postSkillFilters={postSkillFilters}
+                        setPostSkillFilters={setPostSkillFilters}
+                        categorizedSkills={categorizedSkills}
+                    />
+                )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr)', gap: '2rem', alignItems: 'start' }}>
                 <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
@@ -75,7 +106,7 @@ export function OptimizationResults({
                             </div>
                             <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
                                 {showDamageSimulation && (
-                                    <div style={{ color: 'var(--accent-glow)', fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
                                         Avg DMG: {Math.round(res.simulatedDamage || 0).toLocaleString()}
                                     </div>
                                 )}
@@ -114,9 +145,19 @@ export function OptimizationResults({
                                             }
                                         })
                                         .map(([skill, lvl]) => (
-                                            <div key={skill} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none' }}>
-                                                <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
-                                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                            <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <div
+                                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
+                                                    onClick={() => setExpandedSkillKey(expandedSkillKey === `${i}-${skill}` ? null : `${i}-${skill}`)}
+                                                >
+                                                    <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
+                                                    <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
+                                                </div>
+                                                {expandedSkillKey === `${i}-${skill}` && (
+                                                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
+                                                        {getSkillDescription(skill, lvl)}
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                 </div>
@@ -150,12 +191,12 @@ export function OptimizationResults({
                             ← Previous
                         </button>
                         <span style={{ color: 'var(--text-secondary)' }}>
-                            Page {resultPage + 1} of {Math.ceil(results.length / resultsPerPage)} (Showing {resultPage * resultsPerPage + 1} - {Math.min((resultPage + 1) * resultsPerPage, results.length)} of {results.length})
+                            Page {resultPage + 1} of {Math.ceil(totalResults / resultsPerPage)} (Showing {resultPage * resultsPerPage + 1} - {Math.min((resultPage + 1) * resultsPerPage, totalResults)} of {totalResults})
                         </span>
                         <button
                             className="glow-btn"
-                            disabled={resultPage >= Math.ceil(results.length / resultsPerPage) - 1}
-                            onClick={() => setResultPage(Math.min(Math.ceil(results.length / resultsPerPage) - 1, resultPage + 1))}
+                            disabled={resultPage >= Math.ceil(totalResults / resultsPerPage) - 1}
+                            onClick={() => setResultPage(Math.min(Math.ceil(totalResults / resultsPerPage) - 1, resultPage + 1))}
                             style={{ padding: '0.4rem 1rem' }}
                         >
                             Next →
