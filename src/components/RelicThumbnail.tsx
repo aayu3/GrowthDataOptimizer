@@ -7,9 +7,10 @@ interface RelicThumbnailProps {
     isSelected?: boolean;
     onClick?: () => void;
     onUnequip?: () => void;
+    hideEquippedIcon?: boolean;
 }
 
-export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelected = false, onClick, onUnequip }) => {
+export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelected = false, onClick, onUnequip, hideEquippedIcon = false }) => {
     // Aggregate category totals for the thumbnail badge
     const catTotals: Record<string, number> = {};
     const allSkills = [relic.main_skill, ...relic.aux_skills];
@@ -39,7 +40,7 @@ export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelecte
                 ))}
             </div>
 
-            {relic.equipped && (
+            {!hideEquippedIcon && relic.equipped && (
                 <div className="relic-thumb-equipped" title={`Equipped by ${relic.equipped}`}>
                     <img src={getDollImageUrl(relic.equipped)} alt={relic.equipped} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
@@ -54,21 +55,19 @@ export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelecte
                     style={{
                         position: 'absolute',
                         top: '-4px',
-                        left: '-4px',
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        background: '#ff4757',
-                        color: 'white',
-                        border: '2px solid #2f3542',
+                        left: '2px',
+                        background: 'transparent',
+                        color: '#ff4c4c',
+                        border: 'none',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '12px',
+                        fontSize: '22px',
                         fontWeight: 'bold',
                         cursor: 'pointer',
                         zIndex: 10,
                         padding: 0,
+                        textShadow: '0 0 4px rgba(0,0,0,0.8), 1px 1px 2px black',
                     }}
                     title="Unequip this relic"
                 >

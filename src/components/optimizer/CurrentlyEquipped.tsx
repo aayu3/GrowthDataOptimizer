@@ -40,6 +40,7 @@ export function CurrentlyEquipped({
 }: CurrentlyEquippedProps) {
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
@@ -84,18 +85,18 @@ export function CurrentlyEquipped({
                     )}
                     <button
                         className="glow-btn"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
+                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: !isEditMode ? 'white' : 'transparent', color: !isEditMode ? 'black' : 'white', border: !isEditMode ? '1px solid white' : '1px solid rgba(255,255,255,0.2)' }}
                         onClick={() => {
-                            setIsEditingEquip(true);
+                            setIsEditMode(!isEditMode);
                             setSelectedEquippedRelic(null);
                         }}
                     >
-                        + Equip Relic
+                        {isEditMode ? 'Done Editing' : 'Edit Relics'}
                     </button>
                 </div>
             </div>
 
-            {equippedRelics.length > 0 ? (
+            {(equippedRelics.length > 0 || isEditMode) ? (
                 <>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '0.75rem' }}>
                         {equippedRelics.map(r => (
@@ -104,18 +105,45 @@ export function CurrentlyEquipped({
                                     relic={r}
                                     isSelected={selectedEquippedRelic?.id === r.id}
                                     onClick={() => setSelectedEquippedRelic(r)}
-                                    onUnequip={() => {
+                                    hideEquippedIcon={true}
+                                    onUnequip={isEditMode ? () => {
                                         setRelicToUnequip(r);
                                         if (selectedEquippedRelic?.id === r.id) {
                                             setSelectedEquippedRelic(null);
                                         }
-                                    }}
+                                    } : undefined}
                                 />
                             </div>
                         ))}
+                        {isEditMode && (
+                            <div style={{ width: '56px', height: '56px' }}>
+                                <button
+                                    onClick={() => {
+                                        setIsEditingEquip(true);
+                                        setSelectedEquippedRelic(null);
+                                    }}
+                                    style={{
+                                        width: '100%', height: '100%', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.4)', borderRadius: 'var(--radius-image)', color: 'rgba(255,255,255,0.6)', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                        e.currentTarget.style.color = 'white';
+                                        e.currentTarget.style.borderColor = 'white';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                                        e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
+                                    }}
+                                    title="Add Relic"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    {(() => {
+                    {equippedRelics.length > 0 && (() => {
                         const equippedStats = calculateBuildStats(equippedRelics);
                         return (
                             <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginTop: '1rem' }}>

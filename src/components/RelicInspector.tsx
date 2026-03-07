@@ -1,6 +1,6 @@
 import React from 'react';
 import { Relic } from '../optimizer/types';
-import { getSkillDescription, getDollImageUrl } from '../utils/relicUtils';
+import { getSkillDescription, getDollImageUrl, getSkillCategory } from '../utils/relicUtils';
 
 export interface RelicInspectorProps {
     selectedRelic: Relic | null;
@@ -45,7 +45,7 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
             <div className="db-inspector-body">
                 <div className="inspector-skill-group">
                     <div className="inspector-skill-title">Main Skill</div>
-                    <div className="inspector-skill-item">
+                    <div className="inspector-skill-item" style={{ outline: getSkillCategory(selectedRelic.main_skill.name) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(selectedRelic.main_skill.name).toLowerCase()})` : 'none' }}>
                         <div className="inspector-skill-name">
                             <span>{selectedRelic.main_skill.name}</span>
                             <span className="inspector-skill-level">Lv. {selectedRelic.main_skill.level}</span>
@@ -60,7 +60,7 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
                     <div className="inspector-skill-group">
                         <div className="inspector-skill-title">Auxiliary Skills</div>
                         {selectedRelic.aux_skills.map((aux, idx) => (
-                            <div key={idx} className="inspector-skill-item">
+                            <div key={idx} className="inspector-skill-item" style={{ outline: getSkillCategory(aux.name) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(aux.name).toLowerCase()})` : 'none' }}>
                                 <div className="inspector-skill-name">
                                     <span>{aux.name}</span>
                                     <span className="inspector-skill-level">Lv. {aux.level}</span>
