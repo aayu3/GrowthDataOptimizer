@@ -3,6 +3,7 @@ import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildDamage } from '../../utils/buildUtils';
+import { PostGenerationFilter } from './PostGenerationFilter';
 
 interface OptimizationResultsProps {
     results: BuildResult[];
@@ -19,6 +20,9 @@ interface OptimizationResultsProps {
     setSelectedRelicInResults: React.Dispatch<React.SetStateAction<Relic | null>>;
     totalResults: number;
     skillSortBy: 'lvl' | 'type';
+    postSkillFilters: Record<string, number>;
+    setPostSkillFilters: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+    categorizedSkills: Record<string, string[]>;
 }
 
 export function OptimizationResults({
@@ -34,19 +38,44 @@ export function OptimizationResults({
     selectedDoll,
     selectedRelicInResults,
     setSelectedRelicInResults,
-    skillSortBy
+    totalResults,
+    skillSortBy,
+    postSkillFilters,
+    setPostSkillFilters,
+    categorizedSkills
 }: OptimizationResultsProps) {
     const [expandedSkillKey, setExpandedSkillKey] = React.useState<string | null>(null);
-
-    if (results.length === 0) return null;
+    const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
 
     return (
         <section className="results-section">
-            <div className="results-header">
-                <h2>Results ({results.length} found)</h2>
-                <button className="export-btn" onClick={handleExportJSON}>
-                    ⬇ Export to JSON
-                </button>
+            <div className="results-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2>Results ({totalResults} found)</h2>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <button
+                            className="glow-btn"
+                            style={{
+                                padding: '0.4rem 1rem',
+                                background: isFilterOpen ? 'var(--accent-glow)' : 'white',
+                                color: isFilterOpen ? 'inherit' : 'black'
+                            }}
+                            onClick={() => setIsFilterOpen(!isFilterOpen)}
+                        >
+                            Filter
+                        </button>
+                        <button className="export-btn" onClick={handleExportJSON}>
+                            ⬇ Export to JSON
+                        </button>
+                    </div>
+                </div>
+                {isFilterOpen && (
+                    <PostGenerationFilter
+                        postSkillFilters={postSkillFilters}
+                        setPostSkillFilters={setPostSkillFilters}
+                        categorizedSkills={categorizedSkills}
+                    />
+                )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr)', gap: '2rem', alignItems: 'start' }}>
                 <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
@@ -162,12 +191,12 @@ export function OptimizationResults({
                             ← Previous
                         </button>
                         <span style={{ color: 'var(--text-secondary)' }}>
-                            Page {resultPage + 1} of {Math.ceil(results.length / resultsPerPage)} (Showing {resultPage * resultsPerPage + 1} - {Math.min((resultPage + 1) * resultsPerPage, results.length)} of {results.length})
+                            Page {resultPage + 1} of {Math.ceil(totalResults / resultsPerPage)} (Showing {resultPage * resultsPerPage + 1} - {Math.min((resultPage + 1) * resultsPerPage, totalResults)} of {totalResults})
                         </span>
                         <button
                             className="glow-btn"
-                            disabled={resultPage >= Math.ceil(results.length / resultsPerPage) - 1}
-                            onClick={() => setResultPage(Math.min(Math.ceil(results.length / resultsPerPage) - 1, resultPage + 1))}
+                            disabled={resultPage >= Math.ceil(totalResults / resultsPerPage) - 1}
+                            onClick={() => setResultPage(Math.min(Math.ceil(totalResults / resultsPerPage) - 1, resultPage + 1))}
                             style={{ padding: '0.4rem 1rem' }}
                         >
                             Next →

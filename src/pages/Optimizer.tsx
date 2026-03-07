@@ -65,6 +65,9 @@ export function Optimizer() {
     // Skill Sorting
     const [skillSortBy, setSkillSortBy] = useLocalStorage<'lvl' | 'type'>('optimizer-skillSortBy', 'lvl');
 
+    // Post-generation filters
+    const [postSkillFilters, setPostSkillFilters] = useState<Record<string, number>>({});
+
     // Load dollSettings from Dexie
     useEffect(() => {
         if (!selectedDoll) {
@@ -375,6 +378,63 @@ export function Optimizer() {
         return cats;
     }, [relicInfo]);
 
+    const filteredIndices = useMemo(() => {
+        if (!rawResults || rawResults.length === 0) return new Uint32Array(0);
+
+        const totalBuilds = rawResults.length / 7;
+        const requiredSkills = Object.entries(postSkillFilters);
+        if (requiredSkills.length === 0) {
+            const all = new Uint32Array(totalBuilds);
+            for (let i = 0; i < totalBuilds; i++) all[i] = i;
+            return all;
+        }
+
+        const valid: number[] = [];
+        const intToRelic = new Map<number, Relic>();
+        optimizedRelics.forEach((r, idx) => {
+            if (r.id) intToRelic.set(idx + 1, r);
+        });
+
+        for (let i = 0; i < totalBuilds; i++) {
+            const offset = i * 7;
+            const buildSkillLevels: Record<string, number> = {};
+
+            for (let j = 0; j < 6; j++) {
+                const relicIdInt = rawResults[offset + j];
+                if (relicIdInt > 0) {
+                    const relic = intToRelic.get(relicIdInt);
+                    if (relic) {
+                        if (relic.main_skill?.name) {
+                            buildSkillLevels[relic.main_skill.name] = (buildSkillLevels[relic.main_skill.name] || 0) + relic.main_skill.level;
+                        }
+                        for (const aux of relic.aux_skills) {
+                            if (aux?.name) {
+                                buildSkillLevels[aux.name] = (buildSkillLevels[aux.name] || 0) + aux.level;
+                            }
+                        }
+                    }
+                }
+            }
+
+            let isValid = true;
+            for (const [skill, minLvl] of requiredSkills) {
+                if ((buildSkillLevels[skill] || 0) < minLvl) {
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (isValid) valid.push(i);
+        }
+
+        return new Uint32Array(valid);
+    }, [rawResults, postSkillFilters, optimizedRelics]);
+
+    // Reset pagination when filter changes
+    useEffect(() => {
+        setResultPage(0);
+    }, [postSkillFilters, rawResults]);
+
     // --- LAZY RECONSTRUCTION OF UI BUILDS VIA PAGINATION ---
     useEffect(() => {
         if (!rawResults || rawResults.length === 0) {
@@ -384,7 +444,7 @@ export function Optimizer() {
 
         const buildObjects: BuildResult[] = [];
         const startIdx = resultPage * resultsPerPage;
-        const endIdx = Math.min(startIdx + resultsPerPage, rawResults.length / 7);
+        const endIdx = Math.min(startIdx + resultsPerPage, filteredIndices.length);
 
         // Helper maps
         const intToRelic = new Map<number, Relic>();
@@ -394,7 +454,8 @@ export function Optimizer() {
 
         // Reconstruct just the relics for the current page
         for (let i = startIdx; i < endIdx; i++) {
-            const offset = i * 7;
+            const buildIdx = filteredIndices[i];
+            const offset = buildIdx * 7;
             const buildRelics: Relic[] = [];
             for (let j = 0; j < 6; j++) {
                 const relicIdInt = rawResults[offset + j];
@@ -456,7 +517,7 @@ export function Optimizer() {
         }
 
         setResults(buildObjects);
-    }, [rawResults, resultPage, optimizedRelics, categorizedSkills, skillsData]);
+    }, [rawResults, filteredIndices, resultPage, optimizedRelics, categorizedSkills, skillsData]);
 
 
 
@@ -673,7 +734,7 @@ export function Optimizer() {
                             resultPage={resultPage}
                             setResultPage={setResultPage}
                             resultsPerPage={resultsPerPage}
-                            totalResults={rawResults.length / 7}
+                            totalResults={filteredIndices.length}
                             showDamageSimulation={showDamageSimulation}
                             simStats={simStats}
                             simIgnoredSkills={simIgnoredSkills}
@@ -683,6 +744,9 @@ export function Optimizer() {
                             selectedRelicInResults={selectedRelicInResults}
                             setSelectedRelicInResults={setSelectedRelicInResults}
                             skillSortBy={skillSortBy}
+                            postSkillFilters={postSkillFilters}
+                            setPostSkillFilters={setPostSkillFilters}
+                            categorizedSkills={categorizedSkills}
                         />
                     )}
 

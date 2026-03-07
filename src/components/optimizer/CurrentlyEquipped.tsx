@@ -84,7 +84,7 @@ export function CurrentlyEquipped({
                     )}
                     <button
                         className="glow-btn"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: !isEditMode ? 'white' : 'transparent', color: !isEditMode ? 'black' : 'white', border: !isEditMode ? '1px solid white' : '1px solid rgba(255,255,255,0.2)' }}
+                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: isEditMode ? 'var(--accent-glow)' : 'white', color: isEditMode ? 'inherit' : 'black', border: isEditMode ? '1px solid transparent' : '1px solid white' }}
                         onClick={() => {
                             setIsEditMode(!isEditMode);
                             setSelectedEquippedRelic(null);
