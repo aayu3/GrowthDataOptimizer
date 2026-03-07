@@ -220,7 +220,7 @@ export function CurrentlyEquipped({
                                 {showDamageSimulation && (
                                     <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
                                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>Simulated Average Damage</div>
-                                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--accent-glow)', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)' }}>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)' }}>
                                             {Math.round(calculateBuildDamage(
                                                 {
                                                     relics: equippedRelics,
