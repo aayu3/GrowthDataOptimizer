@@ -6,6 +6,8 @@ export interface CharacterLoadout {
     targetConstraints?: any;
     // Potentially specific saved builds
     savedBuilds?: Relic[][];
+    isFavorite?: boolean;
+    favoriteOrder?: number;
 }
 
 export const db = new Dexie('GrowthDataOptimizerDB') as Dexie & {

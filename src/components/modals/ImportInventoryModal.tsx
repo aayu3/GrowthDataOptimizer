@@ -133,6 +133,27 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                             if (!pendingImport) return;
                             await db.relics.clear();
                             await db.relics.bulkAdd(pendingImport);
+
+                            // Auto-favorite equipped dolls
+                            const equippedDolls = [...new Set(pendingImport.filter(r => r.equipped).map(r => r.equipped))];
+                            if (equippedDolls.length > 0) {
+                                const allChars = await db.characters.toArray();
+                                let maxOrder = allChars.reduce((max, c) => Math.max(max, c.favoriteOrder ?? 0), -1);
+
+                                for (const doll of equippedDolls) {
+                                    const character = allChars.find(c => c.dollName === doll);
+                                    if (character) {
+                                        if (!character.isFavorite) {
+                                            maxOrder++;
+                                            await db.characters.update(doll, { isFavorite: true, favoriteOrder: maxOrder });
+                                        }
+                                    } else {
+                                        maxOrder++;
+                                        await db.characters.add({ dollName: doll, isFavorite: true, favoriteOrder: maxOrder });
+                                    }
+                                }
+                            }
+
                             onClose();
                         }}>
                         Replace Inventory
@@ -144,6 +165,27 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                         onClick={async () => {
                             if (!pendingImport) return;
                             await db.relics.bulkAdd(pendingImport);
+
+                            // Auto-favorite equipped dolls
+                            const equippedDolls = [...new Set(pendingImport.filter(r => r.equipped).map(r => r.equipped))];
+                            if (equippedDolls.length > 0) {
+                                const allChars = await db.characters.toArray();
+                                let maxOrder = allChars.reduce((max, c) => Math.max(max, c.favoriteOrder ?? 0), -1);
+
+                                for (const doll of equippedDolls) {
+                                    const character = allChars.find(c => c.dollName === doll);
+                                    if (character) {
+                                        if (!character.isFavorite) {
+                                            maxOrder++;
+                                            await db.characters.update(doll, { isFavorite: true, favoriteOrder: maxOrder });
+                                        }
+                                    } else {
+                                        maxOrder++;
+                                        await db.characters.add({ dollName: doll, isFavorite: true, favoriteOrder: maxOrder });
+                                    }
+                                }
+                            }
+
                             onClose();
                         }}>
                         Merge Current
