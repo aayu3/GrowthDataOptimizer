@@ -44,7 +44,7 @@ export function OptimizationResults({
     setPostSkillFilters,
     categorizedSkills
 }: OptimizationResultsProps) {
-    const [expandedSkillKey, setExpandedSkillKey] = React.useState<string | null>(null);
+    const [expandedSkillKeys, setExpandedSkillKeys] = React.useState<Set<string>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
 
     return (
@@ -148,12 +148,12 @@ export function OptimizationResults({
                                             <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <div
                                                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
-                                                    onClick={() => setExpandedSkillKey(expandedSkillKey === `${i}-${skill}` ? null : `${i}-${skill}`)}
+                                                    onClick={() => setExpandedSkillKeys(prev => { const next = new Set(prev); const key = `${i}-${skill}`; next.has(key) ? next.delete(key) : next.add(key); return next; })}
                                                 >
                                                     <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                     <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                                 </div>
-                                                {expandedSkillKey === `${i}-${skill}` && (
+                                                {expandedSkillKeys.has(`${i}-${skill}`) && (
                                                     <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
                                                         {getSkillDescription(skill, lvl)}
                                                     </div>

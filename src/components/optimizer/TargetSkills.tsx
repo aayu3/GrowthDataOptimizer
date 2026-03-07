@@ -23,7 +23,7 @@ export function TargetSkills({
     addSkillFilter,
     removeSkillFilter
 }: TargetSkillsProps) {
-    const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+    const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
 
     return (
         <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
@@ -89,7 +89,7 @@ export function TargetSkills({
                         <div key={skill} className="input-group" style={{ position: 'relative' }}>
                             <div
                                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                                onClick={() => setExpandedSkill(expandedSkill === skill ? null : skill)}
+                                onClick={() => setExpandedSkills(prev => { const next = new Set(prev); next.has(skill) ? next.delete(skill) : next.add(skill); return next; })}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                     <img src={getCatBadgeIconUrl(getSkillCategory(skill))} alt="cat" style={{ width: '14px', height: '14px' }} />
@@ -124,7 +124,7 @@ export function TargetSkills({
                                 })()}
                                 <span style={{ minWidth: '20px', textAlign: 'right', fontWeight: 'bold' }}>{constraints.targetSkillLevels[skill] || 0}</span>
                             </div>
-                            {expandedSkill === skill && (
+                            {expandedSkills.has(skill) && (
                                 <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', marginTop: '0.5rem' }}>
                                     {getSkillDescription(skill, constraints.targetSkillLevels[skill] || 0)}
                                 </div>
