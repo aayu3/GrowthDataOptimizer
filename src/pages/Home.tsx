@@ -215,6 +215,18 @@ export function Home() {
                     <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowExportModal(true)}>
                         Export Inventory
                     </button>
+                    {liveFavorites.length > 0 && (
+                        <button
+                            className="glow-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsEditMode(!isEditMode);
+                            }}
+                            style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }}
+                        >
+                            {isEditMode ? 'Done' : 'Edit Favorites'}
+                        </button>
+                    )}
                 </div>
                 <div style={{ marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     {relics.length > 0 ? <span className="success">✓ Database holds {relics.length} Relics</span> : <span>No relics loaded.</span>}
@@ -223,7 +235,7 @@ export function Home() {
 
             <main className="main-content">
                 <section className="glass-panel" style={{ position: 'relative', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem', marginTop: '1rem', position: 'relative' }}>
                         <input
                             type="text"
                             className="search-dolls-input"
