@@ -626,7 +626,7 @@
             "DPS": false
         }
     },
-    "Defense": {
+    "Bulwark": {
         "Annular Defense": {
             "effect": "AoE damage taken is reduced by {x}%",
             "x": [
