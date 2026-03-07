@@ -16,7 +16,8 @@ jobs:
         with:
           script: |
             const branch = context.payload.pull_request.head.ref;
-            const preview = `https://${branch}.gfl2optimizer.pages.dev`;
+            const sanitizedBranch = branch.replace(/\//g, "-");
+            const preview = `https://${sanitizedBranch}.gfl2optimizer.pages.dev`;
             const body = `
             🚀 **Preview Deployment**
             <a href="${preview}" target="_blank" rel="noopener noreferrer">
