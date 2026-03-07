@@ -41,7 +41,7 @@ export function CurrentlyEquipped({
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+    const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
 
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
@@ -204,12 +204,12 @@ export function CurrentlyEquipped({
                                             <div key={skill} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <div
                                                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: 'var(--radius)', outline: getSkillCategory(skill) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(skill).toLowerCase()})` : 'none', cursor: 'pointer' }}
-                                                    onClick={() => setExpandedSkill(expandedSkill === skill ? null : skill)}
+                                                    onClick={() => setExpandedSkills(prev => { const next = new Set(prev); next.has(skill) ? next.delete(skill) : next.add(skill); return next; })}
                                                 >
                                                     <span style={{ color: 'var(--text-secondary)' }}>{skill}</span>
                                                     <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>Lv. {lvl}</span>
                                                 </div>
-                                                {expandedSkill === skill && (
+                                                {expandedSkills.has(skill) && (
                                                     <div style={{ background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: 'var(--radius)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
                                                         {getSkillDescription(skill, lvl)}
                                                     </div>
