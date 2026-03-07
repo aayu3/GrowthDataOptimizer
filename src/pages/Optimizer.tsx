@@ -459,7 +459,7 @@ export function Optimizer() {
         );
     }
 
-    const imgPath = new URL(`../assets/doll_images/${selectedDoll}.png`, import.meta.url).href;
+    const imgPath = new URL(`../assets/doll_images/${selectedDoll}.webp`, import.meta.url).href;
 
     return (
         <div className="optimizer-page" style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
