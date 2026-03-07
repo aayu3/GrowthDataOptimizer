@@ -143,6 +143,8 @@ export function Home() {
 
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
+            // Don't navigate while a modal is open
+            if (showImportModal || showExportModal) return;
             // If scrolling UP and we are at the top of the page
             if (e.deltaY < -50 && window.scrollY <= 0) {
                 if (!isExiting) {
@@ -156,7 +158,7 @@ export function Home() {
 
         window.addEventListener('wheel', handleWheel);
         return () => window.removeEventListener('wheel', handleWheel);
-    }, [isExiting, navigate]);
+    }, [isExiting, navigate, showImportModal, showExportModal]);
 
     const availableDolls = Object.keys(dollsData).filter(doll =>
         doll.toLowerCase().includes(searchQuery.toLowerCase())
