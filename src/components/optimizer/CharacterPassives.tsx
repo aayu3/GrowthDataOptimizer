@@ -1,6 +1,7 @@
 
 import { DollDefinition, OptimizerConstraints } from '../../optimizer/types';
 import { getCatBadgeIconUrl } from '../../utils/relicUtils';
+import { ElementalText } from '../ElementalText';
 
 interface CharacterPassivesProps {
     selectedDollData: DollDefinition;
@@ -58,7 +59,7 @@ export function CharacterPassives({ selectedDollData, constraints, applyBonusReq
                                     ))}
                                 </div>
                             </div>
-                            <div style={{ fontSize: '0.9rem', color: isActive ? 'white' : 'var(--text-secondary)' }}>{bonus.description}</div>
+                            <div style={{ fontSize: '0.9rem', color: isActive ? 'white' : 'var(--text-secondary)' }}><ElementalText text={bonus.description} /></div>
                             <div className="bonus-hover-hint">{isActive ? 'Remove Target' : 'Apply Target'}</div>
                         </div>
                     );
