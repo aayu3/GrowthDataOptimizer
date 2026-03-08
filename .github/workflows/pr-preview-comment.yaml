@@ -41,7 +41,7 @@ jobs:
 
             const previewUrl = cfCheck.details_url;
 
-            const body = `🚀 **Preview Deployment**${previewUrl}`;
+            const body = `🚀 **Preview Deployment**:\n${previewUrl}`;
 
             await github.rest.issues.createComment({
               owner,
