@@ -48,51 +48,55 @@ export function CurrentlyEquipped({
 
     return (
         <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Currently Equipped</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button
-                        className="glow-btn"
-                        style={{ padding: '0.2rem 0.4rem', fontSize: '1rem', opacity: undoStack.length === 0 ? 0.5 : 1, cursor: undoStack.length === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', boxShadow: 'none', color: undoStack.length === 0 ? 'rgba(255, 255, 255, 0.3)' : 'var(--accent-color)' }}
-                        disabled={undoStack.length === 0}
-                        onClick={handleUndo}
-                        title="Undo last equip/unequip action"
-                    >↶
-                    </button>
-                    <button
-                        className="glow-btn"
-                        style={{ padding: '0.2rem 0.4rem', fontSize: '1rem', opacity: redoStack.length === 0 ? 0.5 : 1, cursor: redoStack.length === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', boxShadow: 'none', color: redoStack.length === 0 ? 'rgba(255, 255, 255, 0.3)' : 'var(--accent-color)' }}
-                        disabled={redoStack.length === 0}
-                        onClick={handleRedo}
-                        title="Redo last undone action"
-                    >↷
-                    </button>
-                    {equippedRelics.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                         <button
-                            className="export-btn"
-                            title="Export equipped relics to share this build"
-                            onClick={() => {
-                                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(equippedRelics, null, 2));
-                                const dlAnchorElem = document.createElement('a');
-                                dlAnchorElem.setAttribute("href", dataStr);
-                                dlAnchorElem.setAttribute("download", `equipped_relics_${selectedDoll}.json`);
-                                dlAnchorElem.click();
-                            }}
-                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            Export Build
+                            className="glow-btn"
+                            style={{ padding: '0.2rem 0.4rem', fontSize: '1rem', opacity: undoStack.length === 0 ? 0.5 : 1, cursor: undoStack.length === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', boxShadow: 'none', color: undoStack.length === 0 ? 'rgba(255, 255, 255, 0.3)' : 'var(--accent-color)' }}
+                            disabled={undoStack.length === 0}
+                            onClick={handleUndo}
+                            title="Undo last equip/unequip action"
+                        >↶
                         </button>
-                    )}
-                    <button
-                        className="glow-btn"
-                        style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: isEditMode ? 'var(--accent-glow)' : 'white', color: isEditMode ? 'inherit' : 'black', border: isEditMode ? '1px solid transparent' : '1px solid white' }}
-                        onClick={() => {
-                            setIsEditMode(!isEditMode);
-                            setSelectedEquippedRelic(null);
-                        }}
-                    >
-                        {isEditMode ? 'Done Editing' : 'Edit Relics'}
-                    </button>
+                        <button
+                            className="glow-btn"
+                            style={{ padding: '0.2rem 0.4rem', fontSize: '1rem', opacity: redoStack.length === 0 ? 0.5 : 1, cursor: redoStack.length === 0 ? 'not-allowed' : 'pointer', background: 'transparent', border: 'none', boxShadow: 'none', color: redoStack.length === 0 ? 'rgba(255, 255, 255, 0.3)' : 'var(--accent-color)' }}
+                            disabled={redoStack.length === 0}
+                            onClick={handleRedo}
+                            title="Redo last undone action"
+                        >↷
+                        </button>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
+                        {equippedRelics.length > 0 && (
+                            <button
+                                className="export-btn"
+                                title="Export equipped relics to share this build"
+                                onClick={() => {
+                                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(equippedRelics, null, 2));
+                                    const dlAnchorElem = document.createElement('a');
+                                    dlAnchorElem.setAttribute("href", dataStr);
+                                    dlAnchorElem.setAttribute("download", `equipped_relics_${selectedDoll}.json`);
+                                    dlAnchorElem.click();
+                                }}
+                                style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                            >
+                                Export Build
+                            </button>
+                        )}
+                        <button
+                            className="glow-btn"
+                            style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', background: isEditMode ? 'var(--accent-glow)' : 'white', color: isEditMode ? 'inherit' : 'black', border: isEditMode ? '1px solid transparent' : '1px solid white' }}
+                            onClick={() => {
+                                setIsEditMode(!isEditMode);
+                                setSelectedEquippedRelic(null);
+                            }}
+                        >
+                            {isEditMode ? 'Done Editing' : 'Edit Relics'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
