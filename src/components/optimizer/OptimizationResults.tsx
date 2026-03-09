@@ -206,7 +206,6 @@ export function OptimizationResults({
                                             relic={r}
                                             isSelected={selectedRelicInResults?.id === r.id && selectedRelicInResults?.id !== undefined}
                                             onClick={() => setSelectedRelicInResults(r)}
-                                            hideEquippedIcon={true}
                                         />
                                     </div>
                                 ))}
