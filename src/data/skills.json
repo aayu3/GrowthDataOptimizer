@@ -43,7 +43,8 @@
             "element": "none",
             "stat": "DMG",
             "scaling": "none",
-            "DPS": true
+            "DPS": true,
+            "attackType": "aoe"
         },
         "Pinpoint Specialization": {
             "effect": "Targeted damage dealt is increased by {x}%",
@@ -58,7 +59,8 @@
             "element": "none",
             "stat": "DMG",
             "scaling": "none",
-            "DPS": true
+            "DPS": true,
+            "attackType": "single"
         },
         "Critical Boost": {
             "effect": "Critical rate is increased by {x}%",
@@ -257,7 +259,8 @@
             "element": "none",
             "stat": "CRIT_DMG",
             "scaling": "none",
-            "DPS": true
+            "DPS": true,
+            "attackType": "single"
         },
         "Beheading Blade": {
             "effect": "Critical damage dealt to boss units is increased by {x}%",
@@ -302,7 +305,8 @@
             "element": "none",
             "stat": "CRIT_DMG",
             "scaling": "none",
-            "DPS": true
+            "DPS": true,
+            "attackType": "aoe"
         },
         "Physical Smite": {
             "effect": "When dealing Physical damage, critical damage is increased by {x}%",

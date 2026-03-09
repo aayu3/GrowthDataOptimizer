@@ -5,7 +5,7 @@ import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
-import { calculateBuildStats, calculateBuildDamage } from '../../utils/buildUtils';
+import { calculateBuildStats, calculateBuildDamage, DamageType, AttackMode } from '../../utils/buildUtils';
 import { ElementalText } from '../ElementalText';
 
 interface CurrentlyEquippedProps {
@@ -22,6 +22,9 @@ interface CurrentlyEquippedProps {
     simIgnoredSkills: string[];
     skillSortBy: 'lvl' | 'type';
     setSkillSortBy: (val: 'lvl' | 'type') => void;
+    damageType: DamageType;
+    setDamageType: React.Dispatch<React.SetStateAction<DamageType>>;
+    attackMode: AttackMode;
 }
 
 export function CurrentlyEquipped({
@@ -37,12 +40,23 @@ export function CurrentlyEquipped({
     simStats,
     simIgnoredSkills,
     skillSortBy,
-    setSkillSortBy
+    setSkillSortBy,
+    damageType,
+    setDamageType,
+    attackMode,
 }: CurrentlyEquippedProps) {
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
+
+    const damageTypeOptions: { value: DamageType; label: string }[] = [
+        { value: 'average', label: 'Avg' },
+        { value: 'base', label: 'Non-Crit' },
+        { value: 'crit', label: 'Crit' },
+    ];
+
+    const dmgLabel = damageType === 'average' ? 'Simulated Avg DMG' : damageType === 'crit' ? 'Simulated Crit DMG' : 'Simulated Non-Crit DMG';
 
     const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
 
@@ -223,9 +237,31 @@ export function CurrentlyEquipped({
                                         ))}
                                 </div>
                                 {showDamageSimulation && (
-                                    <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
-                                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>Simulated Average Damage</div>
-                                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)' }}>
+                                    <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{dmgLabel}</div>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                                {damageTypeOptions.map(opt => (
+                                                    <button
+                                                        key={opt.value}
+                                                        onClick={() => setDamageType(opt.value)}
+                                                        style={{
+                                                            padding: '2px 8px',
+                                                            fontSize: '0.7rem',
+                                                            borderRadius: 'var(--radius)',
+                                                            border: '1px solid rgba(255,255,255,0.3)',
+                                                            background: damageType === opt.value ? 'white' : 'transparent',
+                                                            color: damageType === opt.value ? 'black' : 'rgba(255,255,255,0.7)',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.15s',
+                                                        }}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white', textShadow: '0 0 10px rgba(242, 108, 21, 0.5)', textAlign: 'center' }}>
                                             {Math.round(calculateBuildDamage(
                                                 {
                                                     relics: equippedRelics,
@@ -234,7 +270,9 @@ export function CurrentlyEquipped({
                                                 } as BuildResult,
                                                 simStats,
                                                 simIgnoredSkills,
-                                                true // log Details
+                                                true,
+                                                damageType,
+                                                attackMode
                                             )).toLocaleString()}
                                         </div>
                                     </div>

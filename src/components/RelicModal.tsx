@@ -21,18 +21,11 @@ export const RelicModal: React.FC<RelicModalProps> = ({ relic, onClose, onEdit, 
                 style={{ position: 'relative', width: '400px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto' }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <button
-                    onClick={onClose}
-                    style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,0,0,0.2)', color: '#ff4c4c', border: '1px solid rgba(255,0,0,0.4)', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: '3px' }}
-                >×</button>
-                <div style={{ marginTop: '20px' }}>
-                    <RelicInspector
-                        selectedRelic={relic}
-                        onClose={onClose}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                    />
-                </div>
+                <RelicInspector
+                    selectedRelic={relic}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
             </aside>
         </div>
     );

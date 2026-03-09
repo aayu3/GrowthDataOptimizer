@@ -16,6 +16,7 @@ import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
 import { useLocalStorage } from '../utils/useLocalStorage';
+import { DamageType, AttackMode } from '../utils/buildUtils';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
@@ -61,6 +62,18 @@ export function Optimizer() {
     const [showDamageSimulation, setShowDamageSimulation] = useState(false);
     const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
+    const [damageType, setDamageType] = useState<DamageType>('average');
+
+    // Derive attack mode from the ignored skills list
+    const attackMode = useMemo<AttackMode>(() => {
+        const AOE_SKILLS = ['Area Specialization', 'Area Smite', 'Annular Defense'];
+        const SINGLE_SKILLS = ['Pinpoint Specialization', 'Precision Blow', 'Pinpoint Defense'];
+        const hasAllAoe = AOE_SKILLS.every(s => simIgnoredSkills.includes(s));
+        const hasAllSingle = SINGLE_SKILLS.every(s => simIgnoredSkills.includes(s));
+        if (hasAllAoe && !hasAllSingle) return 'single';
+        if (hasAllSingle && !hasAllAoe) return 'aoe';
+        return 'both';
+    }, [simIgnoredSkills]);
 
     // Skill Sorting
     const [skillSortBy, setSkillSortBy] = useLocalStorage<'lvl' | 'type'>('optimizer-skillSortBy', 'lvl');
@@ -664,6 +677,9 @@ export function Optimizer() {
                                 simIgnoredSkills={simIgnoredSkills}
                                 skillSortBy={skillSortBy}
                                 setSkillSortBy={setSkillSortBy}
+                                damageType={damageType}
+                                setDamageType={setDamageType}
+                                attackMode={attackMode}
                             />
                         </div>
                     </div>
@@ -773,6 +789,9 @@ export function Optimizer() {
                             postSkillFilters={postSkillFilters}
                             setPostSkillFilters={setPostSkillFilters}
                             categorizedSkills={categorizedSkills}
+                            damageType={damageType}
+                            setDamageType={setDamageType}
+                            attackMode={attackMode}
                             currentDollRelicIds={new Set(relics.filter(r => r.equipped === selectedDoll).map(r => r.id!))}
                         />
                     )}
