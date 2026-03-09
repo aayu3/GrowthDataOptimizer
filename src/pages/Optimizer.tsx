@@ -763,21 +763,22 @@ export function Optimizer() {
                         </section>
                     )}
 
-                    {relicToUnequip && (
-                        <ConfirmUnequipModal
-                            relic={relicToUnequip}
-                            onConfirm={handleConfirmUnequip}
-                            onCancel={() => setRelicToUnequip(null)}
-                        />
-                    )}
-                    {selectedRelicInResults && (
-                        <RelicModal
-                            relic={selectedRelicInResults}
-                            onClose={() => setSelectedRelicInResults(null)}
-                        />
-                    )}
+
                 </div>
             </div>
+            {relicToUnequip && (
+                <ConfirmUnequipModal
+                    relic={relicToUnequip}
+                    onConfirm={handleConfirmUnequip}
+                    onCancel={() => setRelicToUnequip(null)}
+                />
+            )}
+            {selectedRelicInResults && (
+                <RelicModal
+                    relic={selectedRelicInResults}
+                    onClose={() => setSelectedRelicInResults(null)}
+                />
+            )}
         </div>
     );
 }
