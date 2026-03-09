@@ -57,7 +57,7 @@ export function OptimizationResults({
         // async function to prevent double clicking "Equip builds"
         // if a dupe request is fired while the first is in process,
         // it will just return below instead of attempting to equip twice
-        if (equippingBuilds.has(buildNumber)) return;
+        if (equippingBuilds.size > 0) return;
 
         setEquippingBuilds(prev => new Set(prev).add(buildNumber));
         try {
@@ -125,11 +125,12 @@ export function OptimizationResults({
                                     (() => {
                                         const buildNumber = resultPage * resultsPerPage + i + 1;
                                         const isEquipped = res.relics.length > 0 && res.relics.length === currentDollRelicIds.size && res.relics.every(r => r.id && currentDollRelicIds.has(r.id));
-                                        const isEquipping = equippingBuilds.has(buildNumber);
-                                        const isDisabled = isEquipped || isEquipping;
+                                        const isEquippingThis = equippingBuilds.has(buildNumber);
+                                        const isEquippingAny = equippingBuilds.size > 0;
+                                        const isDisabled = isEquipped || isEquippingAny;
                                         return (
                                             <button
-                                                className={`glow-btn ${isEquipping ? 'loading' : ''}`}
+                                                className={`glow-btn ${isEquippingThis ? 'loading' : ''}`}
                                                 style={{
                                                     padding: '0.4rem 1rem',
                                                     fontSize: '0.85rem',
@@ -138,9 +139,9 @@ export function OptimizationResults({
                                                 }}
                                                 onClick={() => !isDisabled && handleEquip(res, buildNumber)}
                                                 disabled={isDisabled}
-                                                title={isEquipped ? `Already equipped` : `Equip this combination to ${selectedDoll}`}
+                                                title={isEquipped ? `Already equipped` : isEquippingAny && !isEquippingThis ? `Another build is currently being equipped` : `Equip this combination to ${selectedDoll}`}
                                             >
-                                                {isEquipped ? 'Already Equipped' : isEquipping ? 'Equipping...' : `Equip to ${selectedDoll}`}
+                                                {isEquipped ? 'Already Equipped' : isEquippingThis ? 'Equipping...' : `Equip to ${selectedDoll}`}
                                             </button>
                                         );
                                     })()
