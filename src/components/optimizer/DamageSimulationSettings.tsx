@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import skillsData from '../../data/skills.json';
+import { AttackMode } from '../../utils/buildUtils';
 
 interface DamageSimulationSettingsProps {
     simStats: any;
@@ -8,10 +9,99 @@ interface DamageSimulationSettingsProps {
     setSimIgnoredSkills: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export function DamageSimulationSettings({ simStats, setSimStats, simIgnoredSkills, setSimIgnoredSkills }: DamageSimulationSettingsProps) {
+const attackModeOptions: { value: AttackMode; label: string; icon: string }[] = [
+    { value: 'both', label: 'Both', icon: '⚔️' },
+    { value: 'single', label: 'Single Target', icon: '🎯' },
+    { value: 'aoe', label: 'AoE', icon: '💥' },
+];
+
+/** Collect all skills tagged with a specific attackType from skills.json */
+function getSkillsByAttackType(type: 'aoe' | 'single'): string[] {
+    const result: string[] = [];
+    for (const category of Object.values(skillsData as Record<string, Record<string, any>>)) {
+        for (const [skillName, skillDef] of Object.entries(category)) {
+            if (skillDef.attackType === type) result.push(skillName);
+        }
+    }
+    return result;
+}
+
+const AOE_ONLY_SKILLS = getSkillsByAttackType('aoe');
+const SINGLE_ONLY_SKILLS = getSkillsByAttackType('single');
+const ALL_MODE_SKILLS = [...AOE_ONLY_SKILLS, ...SINGLE_ONLY_SKILLS];
+
+export function DamageSimulationSettings({
+    simStats,
+    setSimStats,
+    simIgnoredSkills,
+    setSimIgnoredSkills,
+}: DamageSimulationSettingsProps) {
+
+    /** Derive the active mode by checking whether all AoE-only or all Single-only skills are ignored */
+    const effectiveMode = useMemo<AttackMode>(() => {
+        const hasAllAoe = AOE_ONLY_SKILLS.length > 0 && AOE_ONLY_SKILLS.every(s => simIgnoredSkills.includes(s));
+        const hasAllSingle = SINGLE_ONLY_SKILLS.length > 0 && SINGLE_ONLY_SKILLS.every(s => simIgnoredSkills.includes(s));
+        if (hasAllAoe && !hasAllSingle) return 'single';
+        if (hasAllSingle && !hasAllAoe) return 'aoe';
+        return 'both';
+    }, [simIgnoredSkills]);
+
+    const handleModeChange = (newMode: AttackMode) => {
+        setSimIgnoredSkills(prev => {
+            // Remove all previously mode-auto-added skills
+            const stripped = prev.filter(s => !ALL_MODE_SKILLS.includes(s));
+            if (newMode === 'single') {
+                const toAdd = AOE_ONLY_SKILLS.filter(s => !stripped.includes(s));
+                return [...stripped, ...toAdd];
+            }
+            if (newMode === 'aoe') {
+                const toAdd = SINGLE_ONLY_SKILLS.filter(s => !stripped.includes(s));
+                return [...stripped, ...toAdd];
+            }
+            return stripped; // 'both' — just remove mode skills
+        });
+    };
+
     return (
         <section className="results-section glassmorphism" style={{ marginTop: '2rem' }}>
             <h2>Damage Simulation Settings</h2>
+
+            {/* Attack Mode Toggle */}
+            <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                    Attack Mode
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {attackModeOptions.map(opt => {
+                        const isActive = effectiveMode === opt.value;
+                        return (
+                            <button
+                                key={opt.value}
+                                onClick={() => handleModeChange(opt.value)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.45rem 1rem',
+                                    borderRadius: 'var(--radius-button)',
+                                    border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.15)'}`,
+                                    background: isActive ? 'var(--accent-glow)' : 'rgba(255,255,255,0.04)',
+                                    color: isActive ? 'white' : 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: isActive ? 700 : 400,
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isActive ? '0 0 12px rgba(242, 108, 21, 0.3)' : 'none',
+                                }}
+                            >
+                                <span>{opt.icon}</span>
+                                <span>{opt.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 {Object.entries(simStats).map(([stat, val]) => (
                     <div key={stat} className="input-group">
@@ -27,15 +117,34 @@ export function DamageSimulationSettings({ simStats, setSimStats, simIgnoredSkil
 
             <h3>Ignored Skills in Calculation</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                {simIgnoredSkills.map(skill => (
-                    <span key={skill} style={{ background: 'rgba(255,60,60,0.2)', color: '#ffaaaa', padding: '4px 8px', borderRadius: 'var(--radius)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {skill}
-                        <button
-                            onClick={() => setSimIgnoredSkills(prev => prev.filter(s => s !== skill))}
-                            style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', lineHeight: 1 }}
-                        >×</button>
-                    </span>
-                ))}
+                {simIgnoredSkills.map(skill => {
+                    const isModeSkill = ALL_MODE_SKILLS.includes(skill);
+                    const modeIcon = AOE_ONLY_SKILLS.includes(skill) ? '🎯' : '💥';
+                    return (
+                        <span
+                            key={skill}
+                            title={isModeSkill ? 'Auto-excluded by attack mode' : 'Manually ignored'}
+                            style={{
+                                background: isModeSkill ? 'rgba(255, 160, 40, 0.15)' : 'rgba(255,60,60,0.2)',
+                                color: isModeSkill ? '#ffcc88' : '#ffaaaa',
+                                padding: '4px 8px',
+                                borderRadius: 'var(--radius)',
+                                fontSize: '0.85rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                border: isModeSkill ? '1px solid rgba(255,160,40,0.25)' : '1px solid transparent',
+                            }}
+                        >
+                            {isModeSkill && <span style={{ fontSize: '0.7rem', opacity: 0.75 }}>{modeIcon}</span>}
+                            {skill}
+                            <button
+                                onClick={() => setSimIgnoredSkills(prev => prev.filter(s => s !== skill))}
+                                style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', lineHeight: 1 }}
+                            >×</button>
+                        </span>
+                    );
+                })}
             </div>
             <div className="input-group" style={{ maxWidth: '300px' }}>
                 <select
@@ -63,4 +172,3 @@ export function DamageSimulationSettings({ simStats, setSimStats, simIgnoredSkil
         </section>
     );
 }
-

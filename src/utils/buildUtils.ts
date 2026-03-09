@@ -24,8 +24,9 @@ export const calculateBuildStats = (buildRelics: Relic[]) => {
 };
 
 export type DamageType = 'average' | 'crit' | 'base';
+export type AttackMode = 'both' | 'aoe' | 'single';
 
-export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkills: string[], logDetails: boolean = false, damageType: DamageType = 'average') => {
+export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkills: string[], logDetails: boolean = false, damageType: DamageType = 'average', attackMode: AttackMode = 'both') => {
     let totalAtkBuff = 0;
     let totalCritRateBuff = 0;
     let totalCritDmgBuff = 0;
@@ -39,6 +40,10 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
 
         let skillDef = (skillsData as any).Sentinel?.[skillName] || (skillsData as any).Vanguard?.[skillName] || (skillsData as any).Support?.[skillName];
         if (!skillDef) continue;
+
+        // If the skill only applies to a specific attack type (aoe/single), skip it if mode doesn't match
+        if (attackMode !== 'both' && skillDef.attackType && skillDef.attackType !== attackMode) continue;
+
 
         const effectValue = skillDef.x[level - 1]; // level is 1-indexed
         if (effectValue === undefined) continue;

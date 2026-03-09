@@ -5,7 +5,7 @@ import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
 import { RelicInventoryModal } from '../RelicInventoryModal';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
-import { calculateBuildStats, calculateBuildDamage, DamageType } from '../../utils/buildUtils';
+import { calculateBuildStats, calculateBuildDamage, DamageType, AttackMode } from '../../utils/buildUtils';
 import { ElementalText } from '../ElementalText';
 
 interface CurrentlyEquippedProps {
@@ -24,6 +24,7 @@ interface CurrentlyEquippedProps {
     setSkillSortBy: (val: 'lvl' | 'type') => void;
     damageType: DamageType;
     setDamageType: React.Dispatch<React.SetStateAction<DamageType>>;
+    attackMode: AttackMode;
 }
 
 export function CurrentlyEquipped({
@@ -42,6 +43,7 @@ export function CurrentlyEquipped({
     setSkillSortBy,
     damageType,
     setDamageType,
+    attackMode,
 }: CurrentlyEquippedProps) {
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
@@ -265,7 +267,8 @@ export function CurrentlyEquipped({
                                                 simStats,
                                                 simIgnoredSkills,
                                                 true,
-                                                damageType
+                                                damageType,
+                                                attackMode
                                             )).toLocaleString()}
                                         </div>
                                     </div>

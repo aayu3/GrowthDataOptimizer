@@ -2,7 +2,7 @@ import React from 'react';
 import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
-import { calculateBuildDamage, DamageType } from '../../utils/buildUtils';
+import { calculateBuildDamage, DamageType, AttackMode } from '../../utils/buildUtils';
 import { PostGenerationFilter } from './PostGenerationFilter';
 import { ElementalText } from '../ElementalText';
 
@@ -26,6 +26,7 @@ interface OptimizationResultsProps {
     categorizedSkills: Record<string, string[]>;
     damageType: DamageType;
     setDamageType: React.Dispatch<React.SetStateAction<DamageType>>;
+    attackMode: AttackMode;
 }
 
 export function OptimizationResults({
@@ -48,6 +49,7 @@ export function OptimizationResults({
     categorizedSkills,
     damageType,
     setDamageType,
+    attackMode,
 }: OptimizationResultsProps) {
     const [expandedSkillKeys, setExpandedSkillKeys] = React.useState<Set<string>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
@@ -94,7 +96,7 @@ export function OptimizationResults({
                 <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
                     {results.map(r => {
                         if (showDamageSimulation) {
-                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType);
+                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType, attackMode);
                         }
                         return r;
                     }).sort((a, b) => {
