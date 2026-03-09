@@ -112,12 +112,7 @@ export function OptimizationResults({
                             r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills);
                         }
                         return r;
-                    }).sort((a, b) => {
-                        if (showDamageSimulation && a.simulatedDamage && b.simulatedDamage) {
-                            return b.simulatedDamage - a.simulatedDamage;
-                        }
-                        return 0; // maintain original optimize sorting if not simulating
-                    }).slice(resultPage * resultsPerPage, (resultPage + 1) * resultsPerPage).map((res, i) => (
+                    }).map((res, i) => (
                         <div key={i} className="result-card glassmorphism">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                 <h3 style={{ margin: 0 }}>Build #{resultPage * resultsPerPage + i + 1}</h3>
