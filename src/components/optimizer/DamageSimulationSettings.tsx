@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import skillsData from '../../data/skills.json';
 import { AttackMode } from '../../utils/buildUtils';
 
@@ -36,6 +37,7 @@ export function DamageSimulationSettings({
     simIgnoredSkills,
     setSimIgnoredSkills,
 }: DamageSimulationSettingsProps) {
+    const [showInfo, setShowInfo] = useState(false);
 
     /** Derive the active mode by checking whether all AoE-only or all Single-only skills are ignored */
     const effectiveMode = useMemo<AttackMode>(() => {
@@ -64,7 +66,95 @@ export function DamageSimulationSettings({
 
     return (
         <section className="results-section glassmorphism" style={{ marginTop: '2rem' }}>
-            <h2>Damage Simulation Settings</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
+                <h2 style={{ margin: 0, padding: 0, border: 'none' }}>Damage Simulation Settings</h2>
+                <button
+                    onClick={() => setShowInfo(true)}
+                    title="How damage is calculated"
+                    style={{
+                        background: 'none',
+                        border: '1px solid rgba(255,255,255,0.25)',
+                        color: 'var(--text-secondary)',
+                        borderRadius: '50%',
+                        width: '15px',
+                        height: '15px',
+                        fontSize: '0.3rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        transition: 'all 0.2s',
+                        lineHeight: 1,
+                        padding: 0,
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'white'; (e.currentTarget as HTMLButtonElement).style.color = 'white'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.25)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)'; }}
+                >i</button>
+            </div>
+
+            {showInfo && createPortal(
+                <div
+                    onClick={() => setShowInfo(false)}
+                    style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        className="card glassmorphism"
+                        style={{ width: '520px', maxWidth: '92vw', maxHeight: '90vh', overflowY: 'auto' }}
+                    >
+                        <h3 style={{ marginTop: 0, marginBottom: '1.25rem', fontSize: '1.1rem' }}>How Damage Is Estimated</h3>
+
+                        {/* Formula 1 */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Base Damage</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontFamily: 'Georgia, serif' }}>
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Base</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>=</span>
+                                {/* Fraction */}
+                                <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                                    <span style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', paddingBottom: '2px', paddingLeft: '4px', paddingRight: '4px' }}>ATK</span>
+                                    <span style={{ paddingTop: '2px', paddingLeft: '4px', paddingRight: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                        1 +
+                                        <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                                            <span style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', paddingBottom: '1px', paddingLeft: '2px', paddingRight: '2px', fontSize: '0.85em' }}>DEF</span>
+                                            <span style={{ paddingTop: '1px', paddingLeft: '2px', paddingRight: '2px', fontSize: '0.85em' }}>ATK</span>
+                                        </span>
+                                    </span>
+                                </span>
+                                <span style={{ color: 'var(--text-secondary)' }}>×</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                    (1 + <span style={{ color: '#a0d4ff' }}>Σ DMG Buffs</span>)
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Formula 2 */}
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Average Damage</div>
+                            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontFamily: 'Georgia, serif', lineHeight: 2 }}>
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Avg</span>
+                                <span style={{ color: 'var(--text-secondary)' }}> = </span>
+                                (1 − <span style={{ color: '#ffd580' }}>Crit Rate</span>)
+                                <span style={{ color: 'var(--text-secondary)' }}> × </span>
+                                <span style={{ color: 'var(--accent-color)' }}>Base</span>
+                                <span style={{ color: 'var(--text-secondary)' }}> + </span>
+                                <span style={{ color: '#ffd580' }}>Crit Rate</span>
+                                <span style={{ color: 'var(--text-secondary)' }}> × </span>
+                                <span style={{ color: '#ffb347' }}>Crit DMG</span>
+                                <span style={{ color: 'var(--text-secondary)' }}> × </span>
+                                <span style={{ color: 'var(--accent-color)' }}>Base</span>
+                            </div>
+                        </div>
+
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, padding: '0.75rem', background: 'rgba(255,200,100,0.05)', border: '1px solid rgba(255,200,100,0.15)', borderRadius: 'var(--radius)' }}>
+                            ⚠️ Since we don't have skill multipliers for each doll, this damage number is best used for <strong style={{ color: 'white' }}>comparing builds against each other</strong>. It does not reflect accurate in-game damage numbers.
+                        </p>
+                    </div>
+                </div>,
+                document.body
+            )}
 
             {/* Attack Mode Toggle */}
             <div style={{ marginBottom: '1.5rem' }}>
