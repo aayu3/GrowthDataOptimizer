@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { Relic } from '../../optimizer/types';
 
 interface ConfirmUnequipModalProps {
@@ -8,9 +9,15 @@ interface ConfirmUnequipModalProps {
 }
 
 export function ConfirmUnequipModal({ relic, onConfirm, onCancel }: ConfirmUnequipModalProps) {
+    useEffect(() => {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = prev; };
+    }, []);
+
     return (
         <div
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000 }}
             onClick={onCancel}
         >
             <div
