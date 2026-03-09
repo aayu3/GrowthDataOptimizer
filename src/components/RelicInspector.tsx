@@ -1,6 +1,7 @@
 import React from 'react';
 import { Relic } from '../optimizer/types';
 import { getSkillDescription, getDollImageUrl, getSkillCategory } from '../utils/relicUtils';
+import { ElementalText } from './ElementalText';
 
 export interface RelicInspectorProps {
     selectedRelic: Relic | null;
@@ -34,11 +35,11 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
                     <div className="inspector-skill-title">Main Skill</div>
                     <div className="inspector-skill-item" style={{ outline: getSkillCategory(selectedRelic.main_skill.name) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(selectedRelic.main_skill.name).toLowerCase()})` : 'none' }}>
                         <div className="inspector-skill-name">
-                            <span>{selectedRelic.main_skill.name}</span>
+                            <span><ElementalText text={selectedRelic.main_skill.name} /></span>
                             <span className="inspector-skill-level">Lv. {selectedRelic.main_skill.level}</span>
                         </div>
                         <div className="inspector-skill-desc">
-                            {getSkillDescription(selectedRelic.main_skill.name, selectedRelic.main_skill.level)}
+                            <ElementalText text={getSkillDescription(selectedRelic.main_skill.name, selectedRelic.main_skill.level)} />
                         </div>
                     </div>
                 </div>
@@ -49,11 +50,11 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
                         {selectedRelic.aux_skills.map((aux, idx) => (
                             <div key={idx} className="inspector-skill-item" style={{ outline: getSkillCategory(aux.name) !== 'Unknown' ? `1px solid var(--cat-${getSkillCategory(aux.name).toLowerCase()})` : 'none' }}>
                                 <div className="inspector-skill-name">
-                                    <span>{aux.name}</span>
+                                    <span><ElementalText text={aux.name} /></span>
                                     <span className="inspector-skill-level">Lv. {aux.level}</span>
                                 </div>
                                 <div className="inspector-skill-desc">
-                                    {getSkillDescription(aux.name, aux.level)}
+                                    <ElementalText text={getSkillDescription(aux.name, aux.level)} />
                                 </div>
                             </div>
                         ))}
