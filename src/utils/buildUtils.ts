@@ -23,7 +23,9 @@ export const calculateBuildStats = (buildRelics: Relic[]) => {
     return { rawCategoryLevels, effectiveSkillLevels };
 };
 
-export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkills: string[], logDetails: boolean = false) => {
+export type DamageType = 'average' | 'crit' | 'base';
+
+export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkills: string[], logDetails: boolean = false, damageType: DamageType = 'average') => {
     let totalAtkBuff = 0;
     let totalCritRateBuff = 0;
     let totalCritDmgBuff = 0;
@@ -67,7 +69,10 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
     const finalCritDmg = (stats.CRIT_DMG + totalCritDmgBuff) / 100.0;
 
     const baseDamage = finalAtk / (1 + (stats.EnemyDEF / finalAtk)) * (1 + totalDamageBuff);
-    const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * baseDamage * (1 + finalCritDmg));
+    const critDamage = baseDamage * (1 + finalCritDmg);
+    const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * critDamage);
 
+    if (damageType === 'base') return baseDamage;
+    if (damageType === 'crit') return critDamage;
     return averageDamage;
 };

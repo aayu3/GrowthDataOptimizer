@@ -16,6 +16,7 @@ import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
 import { useLocalStorage } from '../utils/useLocalStorage';
+import { DamageType } from '../utils/buildUtils';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
@@ -61,6 +62,7 @@ export function Optimizer() {
     const [showDamageSimulation, setShowDamageSimulation] = useState(false);
     const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
+    const [damageType, setDamageType] = useState<DamageType>('average');
 
     // Skill Sorting
     const [skillSortBy, setSkillSortBy] = useLocalStorage<'lvl' | 'type'>('optimizer-skillSortBy', 'lvl');
@@ -642,6 +644,8 @@ export function Optimizer() {
                                 simIgnoredSkills={simIgnoredSkills}
                                 skillSortBy={skillSortBy}
                                 setSkillSortBy={setSkillSortBy}
+                                damageType={damageType}
+                                setDamageType={setDamageType}
                             />
                         </div>
                     </div>
@@ -751,6 +755,8 @@ export function Optimizer() {
                             postSkillFilters={postSkillFilters}
                             setPostSkillFilters={setPostSkillFilters}
                             categorizedSkills={categorizedSkills}
+                            damageType={damageType}
+                            setDamageType={setDamageType}
                         />
                     )}
 

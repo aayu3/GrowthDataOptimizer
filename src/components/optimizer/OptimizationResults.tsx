@@ -2,7 +2,7 @@ import React from 'react';
 import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
-import { calculateBuildDamage } from '../../utils/buildUtils';
+import { calculateBuildDamage, DamageType } from '../../utils/buildUtils';
 import { PostGenerationFilter } from './PostGenerationFilter';
 import { ElementalText } from '../ElementalText';
 
@@ -24,6 +24,8 @@ interface OptimizationResultsProps {
     postSkillFilters: Record<string, number>;
     setPostSkillFilters: React.Dispatch<React.SetStateAction<Record<string, number>>>;
     categorizedSkills: Record<string, string[]>;
+    damageType: DamageType;
+    setDamageType: React.Dispatch<React.SetStateAction<DamageType>>;
 }
 
 export function OptimizationResults({
@@ -43,10 +45,20 @@ export function OptimizationResults({
     skillSortBy,
     postSkillFilters,
     setPostSkillFilters,
-    categorizedSkills
+    categorizedSkills,
+    damageType,
+    setDamageType,
 }: OptimizationResultsProps) {
     const [expandedSkillKeys, setExpandedSkillKeys] = React.useState<Set<string>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
+
+    const damageTypeOptions: { value: DamageType; label: string }[] = [
+        { value: 'average', label: 'Avg' },
+        { value: 'base', label: 'Non-Crit' },
+        { value: 'crit', label: 'Crit' },
+    ];
+
+    const dmgLabel = damageType === 'average' ? 'Avg DMG' : damageType === 'crit' ? 'Crit DMG' : 'Non-Crit DMG';
 
     return (
         <section className="results-section">
@@ -82,7 +94,7 @@ export function OptimizationResults({
                 <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
                     {results.map(r => {
                         if (showDamageSimulation) {
-                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills);
+                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType);
                         }
                         return r;
                     }).sort((a, b) => {
@@ -107,8 +119,30 @@ export function OptimizationResults({
                             </div>
                             <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
                                 {showDamageSimulation && (
-                                    <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
-                                        Avg DMG: {Math.round(res.simulatedDamage || 0).toLocaleString()}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                                        <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                                            {dmgLabel}: {Math.round(res.simulatedDamage || 0).toLocaleString()}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                            {damageTypeOptions.map(opt => (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => setDamageType(opt.value)}
+                                                    style={{
+                                                        padding: '2px 8px',
+                                                        fontSize: '0.75rem',
+                                                        borderRadius: 'var(--radius)',
+                                                        border: '1px solid rgba(255,255,255,0.3)',
+                                                        background: damageType === opt.value ? 'white' : 'transparent',
+                                                        color: damageType === opt.value ? 'black' : 'rgba(255,255,255,0.7)',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.15s',
+                                                    }}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                                 <div style={{ display: 'flex', gap: '1rem' }}>
