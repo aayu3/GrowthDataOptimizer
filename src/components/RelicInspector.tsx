@@ -4,12 +4,11 @@ import { getSkillDescription, getDollImageUrl, getSkillCategory } from '../utils
 
 export interface RelicInspectorProps {
     selectedRelic: Relic | null;
-    onClose?: () => void;
     onEdit?: (relic: Relic) => void;
     onDelete?: (relic: Relic) => void;
 }
 
-export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, onClose, onEdit, onDelete }) => {
+export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, onEdit, onDelete }) => {
     if (!selectedRelic) {
         return (
             <div className="empty-inspector">
@@ -20,18 +19,6 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
 
     return (
         <div className="db-inspector-content">
-            {onClose && (
-                <button className="inspector-close-btn" onClick={onClose} style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-secondary)',
-                    cursor: 'pointer',
-                    fontSize: '1.2rem'
-                }}>×</button>
-            )}
             <div className="db-inspector-header">
                 <div className="db-inspector-title">
                     {selectedRelic.type} Relic
