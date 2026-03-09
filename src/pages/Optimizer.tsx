@@ -751,6 +751,7 @@ export function Optimizer() {
                             postSkillFilters={postSkillFilters}
                             setPostSkillFilters={setPostSkillFilters}
                             categorizedSkills={categorizedSkills}
+                            currentDollRelicIds={new Set(relics.filter(r => r.equipped === selectedDoll).map(r => r.id!))}
                         />
                     )}
 
