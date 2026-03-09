@@ -644,8 +644,7 @@
             "element": "none",
             "stat": "DEF",
             "scaling": "none",
-            "DPS": false,
-            "attackType": "aoe"
+            "DPS": false
         },
         "Pinpoint Defense": {
             "effect": "Targeted damage taken is reduced by {x}%",
@@ -660,8 +659,7 @@
             "element": "none",
             "stat": "DEF",
             "scaling": "none",
-            "DPS": false,
-            "attackType": "single"
+            "DPS": false
         },
         "Lex Talionis": {
             "effect": "When taking damage, deals fixed damage to the attacker equal to {x}% of the user's max HP. This damage cannot exceed 100% of this unit's attack.",

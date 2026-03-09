@@ -9,10 +9,10 @@ interface DamageSimulationSettingsProps {
     setSimIgnoredSkills: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const attackModeOptions: { value: AttackMode; label: string; icon: string }[] = [
-    { value: 'both', label: 'Both', icon: '⚔️' },
-    { value: 'single', label: 'Single Target', icon: '🎯' },
-    { value: 'aoe', label: 'AoE', icon: '💥' },
+const attackModeOptions: { value: AttackMode; label: string }[] = [
+    { value: 'both', label: 'Both' },
+    { value: 'single', label: 'Single Target' },
+    { value: 'aoe', label: 'AoE' },
 ];
 
 /** Collect all skills tagged with a specific attackType from skills.json */
@@ -94,8 +94,7 @@ export function DamageSimulationSettings({
                                     boxShadow: isActive ? '0 0 12px rgba(242, 108, 21, 0.3)' : 'none',
                                 }}
                             >
-                                <span>{opt.icon}</span>
-                                <span>{opt.label}</span>
+                                {opt.label}
                             </button>
                         );
                     })}
@@ -119,30 +118,26 @@ export function DamageSimulationSettings({
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                 {simIgnoredSkills.map(skill => {
                     const isModeSkill = ALL_MODE_SKILLS.includes(skill);
-                    const modeIcon = AOE_ONLY_SKILLS.includes(skill) ? '🎯' : '💥';
                     return (
-                        <span
+                        <button
                             key={skill}
-                            title={isModeSkill ? 'Auto-excluded by attack mode' : 'Manually ignored'}
+                            title={isModeSkill ? 'Auto-excluded by attack mode — click to re-enable' : 'Click to remove'}
+                            onClick={() => setSimIgnoredSkills(prev => prev.filter(s => s !== skill))}
                             style={{
-                                background: isModeSkill ? 'rgba(255, 160, 40, 0.15)' : 'rgba(255,60,60,0.2)',
+                                background: 'transparent',
                                 color: isModeSkill ? '#ffcc88' : '#ffaaaa',
-                                padding: '4px 8px',
-                                borderRadius: 'var(--radius)',
+                                padding: '0.4rem 0.8rem',
+                                borderRadius: 'var(--radius-button)',
                                 fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                border: `1px solid ${isModeSkill ? 'rgba(255,160,40,0.6)' : 'rgba(255,80,80,0.6)'}`,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.4rem',
-                                border: isModeSkill ? '1px solid rgba(255,160,40,0.25)' : '1px solid transparent',
+                                transition: 'all 0.2s ease',
                             }}
                         >
-                            {isModeSkill && <span style={{ fontSize: '0.7rem', opacity: 0.75 }}>{modeIcon}</span>}
                             {skill}
-                            <button
-                                onClick={() => setSimIgnoredSkills(prev => prev.filter(s => s !== skill))}
-                                style={{ background: 'none', border: 'none', color: 'var(--error, #ff4c4c)', cursor: 'pointer', lineHeight: 1 }}
-                            >×</button>
-                        </span>
+                        </button>
                     );
                 })}
             </div>
