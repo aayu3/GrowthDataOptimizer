@@ -67,6 +67,14 @@ export function Optimizer() {
 
     // Post-generation filters
     const [postSkillFilters, setPostSkillFilters] = useState<Record<string, number>>({});
+    const [deferredPostSkillFilters, setDeferredPostSkillFilters] = useState<Record<string, number>>({});
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setDeferredPostSkillFilters(postSkillFilters);
+        }, 150);
+        return () => clearTimeout(t);
+    }, [postSkillFilters]);
 
     // Load dollSettings from Dexie
     useEffect(() => {
@@ -386,53 +394,67 @@ export function Optimizer() {
         if (!rawResults || rawResults.length === 0) return new Uint32Array(0);
 
         const totalBuilds = rawResults.length / 7;
-        const requiredSkills = Object.entries(postSkillFilters);
+        const requiredSkills = Object.entries(deferredPostSkillFilters);
         if (requiredSkills.length === 0) {
             const all = new Uint32Array(totalBuilds);
             for (let i = 0; i < totalBuilds; i++) all[i] = i;
             return all;
         }
 
-        const valid: number[] = [];
-        const intToRelic = new Map<number, Relic>();
-        optimizedRelics.forEach((r, idx) => {
-            if (r.id) intToRelic.set(idx + 1, r);
-        });
+        const filterSkillNames = requiredSkills.map(([name]) => name);
+        const filterMinLevels = new Int32Array(requiredSkills.map(([, lvl]) => lvl));
+        const numFilters = filterSkillNames.length;
+        const skillToFilterIdx = new Map<string, number>();
+        filterSkillNames.forEach((name, idx) => skillToFilterIdx.set(name, idx));
+
+        // Pre-calculate which relics have which filtered skills
+        const relicFilterLevels = new Int16Array(optimizedRelics.length * numFilters);
+        for (let rIdx = 0; rIdx < optimizedRelics.length; rIdx++) {
+            const relic = optimizedRelics[rIdx];
+            const skills = [relic.main_skill, ...relic.aux_skills];
+            for (const s of skills) {
+                if (!s || !s.name) continue;
+                const fIdx = skillToFilterIdx.get(s.name);
+                if (fIdx !== undefined) {
+                    relicFilterLevels[rIdx * numFilters + fIdx] += s.level;
+                }
+            }
+        }
+
+        const valid = new Uint32Array(totalBuilds);
+        let validCount = 0;
+        const buildSkillLevels = new Int32Array(numFilters);
 
         for (let i = 0; i < totalBuilds; i++) {
             const offset = i * 7;
-            const buildSkillLevels: Record<string, number> = {};
+            buildSkillLevels.fill(0);
 
             for (let j = 0; j < 6; j++) {
                 const relicIdInt = rawResults[offset + j];
                 if (relicIdInt > 0) {
-                    const relic = intToRelic.get(relicIdInt);
-                    if (relic) {
-                        if (relic.main_skill?.name) {
-                            buildSkillLevels[relic.main_skill.name] = (buildSkillLevels[relic.main_skill.name] || 0) + relic.main_skill.level;
-                        }
-                        for (const aux of relic.aux_skills) {
-                            if (aux?.name) {
-                                buildSkillLevels[aux.name] = (buildSkillLevels[aux.name] || 0) + aux.level;
-                            }
-                        }
+                    const rIdx = relicIdInt - 1;
+                    const rOffset = rIdx * numFilters;
+                    for (let f = 0; f < numFilters; f++) {
+                        buildSkillLevels[f] += relicFilterLevels[rOffset + f];
                     }
                 }
             }
 
             let isValid = true;
-            for (const [skill, minLvl] of requiredSkills) {
-                if ((buildSkillLevels[skill] || 0) < minLvl) {
+            for (let f = 0; f < numFilters; f++) {
+                if (buildSkillLevels[f] < filterMinLevels[f]) {
                     isValid = false;
                     break;
                 }
             }
 
-            if (isValid) valid.push(i);
+            if (isValid) {
+                valid[validCount++] = i;
+            }
         }
 
-        return new Uint32Array(valid);
-    }, [rawResults, postSkillFilters, optimizedRelics]);
+        return valid.slice(0, validCount);
+    }, [rawResults, deferredPostSkillFilters, optimizedRelics]);
 
     // Reset pagination when filter changes
     useEffect(() => {
@@ -751,6 +773,7 @@ export function Optimizer() {
                             postSkillFilters={postSkillFilters}
                             setPostSkillFilters={setPostSkillFilters}
                             categorizedSkills={categorizedSkills}
+                            currentDollRelicIds={new Set(relics.filter(r => r.equipped === selectedDoll).map(r => r.id!))}
                         />
                     )}
 
@@ -762,21 +785,22 @@ export function Optimizer() {
                         </section>
                     )}
 
-                    {relicToUnequip && (
-                        <ConfirmUnequipModal
-                            relic={relicToUnequip}
-                            onConfirm={handleConfirmUnequip}
-                            onCancel={() => setRelicToUnequip(null)}
-                        />
-                    )}
-                    {selectedRelicInResults && (
-                        <RelicModal
-                            relic={selectedRelicInResults}
-                            onClose={() => setSelectedRelicInResults(null)}
-                        />
-                    )}
+
                 </div>
             </div>
+            {relicToUnequip && (
+                <ConfirmUnequipModal
+                    relic={relicToUnequip}
+                    onConfirm={handleConfirmUnequip}
+                    onCancel={() => setRelicToUnequip(null)}
+                />
+            )}
+            {selectedRelicInResults && (
+                <RelicModal
+                    relic={selectedRelicInResults}
+                    onClose={() => setSelectedRelicInResults(null)}
+                />
+            )}
         </div>
     );
 }

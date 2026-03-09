@@ -5,6 +5,7 @@ import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../..
 import { calculateBuildDamage } from '../../utils/buildUtils';
 import { PostGenerationFilter } from './PostGenerationFilter';
 import { ElementalText } from '../ElementalText';
+import { useToast } from '../../contexts/ToastContext';
 
 interface OptimizationResultsProps {
     results: BuildResult[];
@@ -15,7 +16,7 @@ interface OptimizationResultsProps {
     simStats: any;
     simIgnoredSkills: string[];
     handleExportJSON: () => void;
-    onEquipBuild: (build: BuildResult) => void;
+    onEquipBuild: (build: BuildResult) => Promise<void> | void;
     selectedDoll: string;
     selectedRelicInResults: Relic | null;
     setSelectedRelicInResults: React.Dispatch<React.SetStateAction<Relic | null>>;
@@ -24,6 +25,7 @@ interface OptimizationResultsProps {
     postSkillFilters: Record<string, number>;
     setPostSkillFilters: React.Dispatch<React.SetStateAction<Record<string, number>>>;
     categorizedSkills: Record<string, string[]>;
+    currentDollRelicIds: Set<string>;
 }
 
 export function OptimizationResults({
@@ -43,10 +45,35 @@ export function OptimizationResults({
     skillSortBy,
     postSkillFilters,
     setPostSkillFilters,
-    categorizedSkills
+    categorizedSkills,
+    currentDollRelicIds
 }: OptimizationResultsProps) {
     const [expandedSkillKeys, setExpandedSkillKeys] = React.useState<Set<string>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
+    const { showNotification } = useToast();
+    const [equippingBuilds, setEquippingBuilds] = React.useState<Set<number>>(new Set());
+
+    const handleEquip = async (res: BuildResult, buildNumber: number) => {
+        // async function to prevent double clicking "Equip builds"
+        // if a dupe request is fired while the first is in process,
+        // it will just return below instead of attempting to equip twice
+        if (equippingBuilds.size > 0) return;
+
+        setEquippingBuilds(prev => new Set(prev).add(buildNumber));
+        try {
+            await onEquipBuild(res);
+            showNotification({
+                message: `Build ${buildNumber} equipped to ${selectedDoll}`,
+                type: 'success'
+            });
+        } finally {
+            setEquippingBuilds(prev => {
+                const next = new Set(prev);
+                next.delete(buildNumber);
+                return next;
+            });
+        }
+    };
 
     return (
         <section className="results-section">
@@ -85,24 +112,34 @@ export function OptimizationResults({
                             r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills);
                         }
                         return r;
-                    }).sort((a, b) => {
-                        if (showDamageSimulation && a.simulatedDamage && b.simulatedDamage) {
-                            return b.simulatedDamage - a.simulatedDamage;
-                        }
-                        return 0; // maintain original optimize sorting if not simulating
-                    }).slice(resultPage * resultsPerPage, (resultPage + 1) * resultsPerPage).map((res, i) => (
+                    }).map((res, i) => (
                         <div key={i} className="result-card glassmorphism">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                                 <h3 style={{ margin: 0 }}>Build #{resultPage * resultsPerPage + i + 1}</h3>
                                 {selectedDoll && (
-                                    <button
-                                        className="glow-btn"
-                                        style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
-                                        onClick={() => onEquipBuild(res)}
-                                        title={`Equip this combination to ${selectedDoll}`}
-                                    >
-                                        Equip to {selectedDoll}
-                                    </button>
+                                    (() => {
+                                        const buildNumber = resultPage * resultsPerPage + i + 1;
+                                        const isEquipped = res.relics.length > 0 && res.relics.length === currentDollRelicIds.size && res.relics.every(r => r.id && currentDollRelicIds.has(r.id));
+                                        const isEquippingThis = equippingBuilds.has(buildNumber);
+                                        const isEquippingAny = equippingBuilds.size > 0;
+                                        const isDisabled = isEquipped || isEquippingAny;
+                                        return (
+                                            <button
+                                                className={`glow-btn ${isEquippingThis ? 'loading' : ''}`}
+                                                style={{
+                                                    padding: '0.4rem 1rem',
+                                                    fontSize: '0.85rem',
+                                                    opacity: isDisabled ? 0.5 : 1,
+                                                    cursor: isDisabled ? 'not-allowed' : 'pointer'
+                                                }}
+                                                onClick={() => !isDisabled && handleEquip(res, buildNumber)}
+                                                disabled={isDisabled}
+                                                title={isEquipped ? `Already equipped` : isEquippingAny && !isEquippingThis ? `Another build is currently being equipped` : `Equip this combination to ${selectedDoll}`}
+                                            >
+                                                {isEquipped ? 'Already Equipped' : isEquippingThis ? 'Equipping...' : `Equip to ${selectedDoll}`}
+                                            </button>
+                                        );
+                                    })()
                                 )}
                             </div>
                             <div className="stats-row" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1rem' }}>
