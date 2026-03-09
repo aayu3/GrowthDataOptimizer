@@ -3,6 +3,7 @@ import { db } from '../db/database';
 import { Relic, RelicSkill } from '../optimizer/types';
 import relicInfo from '../data/relicinfo.json';
 import { RelicThumbnail } from './RelicThumbnail';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 interface AuxSkillState {
     category: string;
@@ -20,6 +21,9 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
     const [mainSkill, setMainSkill] = useState<RelicSkill>({ name: '', level: 3 });
     const [auxSkills, setAuxSkills] = useState<AuxSkillState[]>([]);
     const [equipped] = useState<string | null>(relicToEdit?.equipped || null);
+
+    // Illegal Relic Confirmation
+    const [illegalRelicWarning, setIllegalRelicWarning] = useState<string | null>(null);
 
     // Derived options from relicInfo
     const relTypes = Object.keys(relicInfo.RELIC_TYPES || {});
@@ -139,7 +143,7 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
         setAuxSkills(newArr);
     };
 
-    const handleSave = async () => {
+    const handleSave = async (force: boolean = false) => {
         const cleanAuxSkills = auxSkills.map(a => a.skill);
         const total_level = mainSkill.level + cleanAuxSkills.reduce((sum, s) => sum + s.level, 0);
 
@@ -147,22 +151,22 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
         let isValid = true;
         let warningMsg = '';
 
-        if (rarity === 'T4' && (total_level < 5 || total_level > 6)) {
-            isValid = false;
-            warningMsg = `A T4 Relic typically has exactly 5 or 6 total skill levels. You currently have ${total_level}.`;
-        } else if (rarity === 'T3' && (total_level < 3 || total_level > 4)) {
-            isValid = false;
-            warningMsg = `A T3 Relic typically has exactly 3 or 4 total skill levels. You currently have ${total_level}.`;
-        } else if (rarity === 'T2' && total_level !== 2) {
-            isValid = false;
-            warningMsg = `A T2 Relic typically has exactly 2 total skill levels. You currently have ${total_level}.`;
-        } // We don't have rules specified for other rarities like T1, so assume they are fine or we don't care.
-
-        if (!isValid) {
-            const confirmed = window.confirm(`WARNING: ${warningMsg}\n\nAre you sure you want to create this illegal relic anyway?`);
-            if (!confirmed) {
-                return;
+        if (!force) {
+            if (rarity === 'T4' && (total_level < 5 || total_level > 6)) {
+                isValid = false;
+                warningMsg = `A T4 Relic typically has exactly 5 or 6 total skill levels. You currently have ${total_level}.`;
+            } else if (rarity === 'T3' && (total_level < 3 || total_level > 4)) {
+                isValid = false;
+                warningMsg = `A T3 Relic typically has exactly 3 or 4 total skill levels. You currently have ${total_level}.`;
+            } else if (rarity === 'T2' && total_level !== 2) {
+                isValid = false;
+                warningMsg = `A T2 Relic typically has exactly 2 total skill levels. You currently have ${total_level}.`;
             }
+        }
+
+        if (!isValid && !force) {
+            setIllegalRelicWarning(warningMsg);
+            return;
         }
 
         const relicData: Relic = {
@@ -306,9 +310,19 @@ export const RelicEditorModal: React.FC<Props> = ({ relicToEdit, onClose }) => {
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem', marginBottom: '0.5rem' }}>
                     <button className="back-btn" onClick={onClose} style={{ position: 'relative', padding: '0.5rem 1rem' }}>Cancel</button>
-                    <button className="glow-btn" onClick={handleSave} style={{ padding: '0.5rem 1rem' }}>Save Relic</button>
+                    <button className="glow-btn" onClick={() => handleSave(false)} style={{ padding: '0.5rem 1rem' }}>Save Relic</button>
                 </div>
             </div>
+
+            {illegalRelicWarning && (
+                <ConfirmationModal
+                    title="Illegal Relic Warning"
+                    message={`WARNING: ${illegalRelicWarning}\n\nAre you sure you want to create this illegal relic anyway?`}
+                    onConfirm={() => handleSave(true)}
+                    onCancel={() => setIllegalRelicWarning(null)}
+                    danger={true}
+                />
+            )}
         </div>
     );
 };

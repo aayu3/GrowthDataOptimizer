@@ -5,6 +5,7 @@ import { Relic } from '../optimizer/types';
 import { RelicThumbnail } from './RelicThumbnail';
 import { RelicModal } from './RelicModal';
 import { RelicEditorModal } from './RelicEditorModal';
+import { ConfirmationModal } from './modals/ConfirmationModal';
 
 export interface RelicDatabaseViewerProps {
     mode?: 'view' | 'select';
@@ -21,6 +22,10 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
     const [selectedRelic, setSelectedRelic] = useState<Relic | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [relicToEdit, setRelicToEdit] = useState<Relic | null>(null);
+
+    // Confirmation Modal state
+    const [showConfirmDeleteAll, setShowConfirmDeleteAll] = useState(false);
+    const [relicToDelete, setRelicToDelete] = useState<Relic | null>(null);
 
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
 
@@ -68,6 +73,20 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
         return filtered;
     }, [relics, filterCategory, filterRarity, searchTerm, sortMethod, sortReverse, excludeEquippedBy]);
 
+    const handleConfirmDeleteAll = async () => {
+        await db.relics.clear();
+        setSelectedRelic(null);
+        setShowConfirmDeleteAll(false);
+    };
+
+    const handleConfirmDeleteRelic = async () => {
+        if (relicToDelete?.id) {
+            await db.relics.delete(relicToDelete.id);
+            if (selectedRelic?.id === relicToDelete.id) setSelectedRelic(null);
+        }
+        setRelicToDelete(null);
+    };
+
     return (
         <div className="db-viewer-layout">
             <div className="db-inventory-section">
@@ -112,12 +131,7 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                             <>
                                 <button
                                     className="glow-btn"
-                                    onClick={async () => {
-                                        if (window.confirm("Are you sure you want to delete ALL relics? This action cannot be undone.")) {
-                                            await db.relics.clear();
-                                            setSelectedRelic(null);
-                                        }
-                                    }}
+                                    onClick={() => setShowConfirmDeleteAll(true)}
                                     style={{
                                         padding: '0.4rem 0.8rem',
                                         fontSize: '0.85rem',
@@ -169,13 +183,8 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                         setRelicToEdit(relic);
                         setIsEditing(true);
                     }}
-                    onDelete={async (relic) => {
-                        if (relic.id) {
-                            if (window.confirm("Are you sure you want to delete this relic?")) {
-                                await db.relics.delete(relic.id);
-                                if (selectedRelic?.id === relic.id) setSelectedRelic(null);
-                            }
-                        }
+                    onDelete={(relic) => {
+                        setRelicToDelete(relic);
                     }}
                 />
             )}
@@ -187,6 +196,26 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                         setIsEditing(false);
                         setRelicToEdit(null);
                     }}
+                />
+            )}
+
+            {showConfirmDeleteAll && (
+                <ConfirmationModal
+                    title="Delete All Relics?"
+                    message="Are you sure you want to delete ALL relics? This action cannot be undone."
+                    onConfirm={handleConfirmDeleteAll}
+                    onCancel={() => setShowConfirmDeleteAll(false)}
+                    danger={true}
+                />
+            )}
+
+            {relicToDelete && (
+                <ConfirmationModal
+                    title="Delete Relic?"
+                    message="Are you sure you want to delete this relic?"
+                    onConfirm={handleConfirmDeleteRelic}
+                    onCancel={() => setRelicToDelete(null)}
+                    danger={true}
                 />
             )}
         </div>
