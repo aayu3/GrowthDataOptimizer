@@ -5,6 +5,7 @@ import gfl2LogoLight from '../assets/gfl2-logo-light.webp';
 import { db } from '../db/database';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { GoogleDriveSyncModal } from '../components/modals/GoogleDriveSyncModal';
+import { KofiButton } from '../components/KofiButton';
 
 const SAMPLE_DOLLS = ['Qiongjiu', 'Peritya', 'Sabrina', 'Colphne', 'Groza', 'Nemesis', 'Klukai', 'Suomi'];
 
@@ -263,6 +264,9 @@ export function Landing() {
                     </svg>
                     Sync
                 </button>
+            </div>
+            <div style={{ marginTop: '2rem', zIndex: 5 }}>
+                <KofiButton />
             </div>
 
             {showGoogleDriveModal && (
