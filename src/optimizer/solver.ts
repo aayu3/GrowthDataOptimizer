@@ -234,7 +234,6 @@ export class RelicSolver {
             uniqueTop.push(...additional.map(i => i.relic));
         }
 
-        console.log(`Optimization starting with ${uniqueTop.length} candidate relics.`);
 
         // --- PRE-DEDUPLICATION INTO ARCHETYPES ---
         const archetypeMap = new Map<string, RelicArchetype>();
@@ -273,7 +272,6 @@ export class RelicSolver {
         }
 
         const archetypes = Array.from(archetypeMap.values());
-        console.log(`Condensed into ${archetypes.length} unique relic archetypes.`);
 
         // Re-allocate arrays in case new skills were found during archetype gen
         if (this.targetCategoryLevels.length < this.categoryIdToName.length) {

@@ -6,6 +6,7 @@ import dollsData from '../data/dolls.json';
 import { SelectionRelicIcon } from '../components/SelectionRelicIcon';
 import { ImportInventoryModal } from '../components/modals/ImportInventoryModal';
 import { ExportInventoryModal } from '../components/modals/ExportInventoryModal';
+import { GoogleDriveSyncModal } from '../components/modals/GoogleDriveSyncModal';
 
 export function Home() {
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
@@ -13,6 +14,7 @@ export function Home() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showImportModal, setShowImportModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
+    const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
     const [draggedDoll, setDraggedDoll] = useState<string | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -144,7 +146,7 @@ export function Home() {
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
             // Don't navigate while a modal is open
-            if (showImportModal || showExportModal) return;
+            if (showImportModal || showExportModal || showGoogleDriveModal) return;
             // If scrolling UP and we are at the top of the page
             if (e.deltaY < -50 && window.scrollY <= 0) {
                 if (!isExiting) {
@@ -158,7 +160,7 @@ export function Home() {
 
         window.addEventListener('wheel', handleWheel);
         return () => window.removeEventListener('wheel', handleWheel);
-    }, [isExiting, navigate, showImportModal, showExportModal]);
+    }, [isExiting, navigate, showGoogleDriveModal, showImportModal, showExportModal]);
 
     const availableDolls = Object.keys(dollsData).filter(doll =>
         doll.toLowerCase().includes(searchQuery.toLowerCase())
@@ -206,7 +208,6 @@ export function Home() {
                 }
             `}</style>
             <header className="header-glow" style={{ position: 'sticky', top: 0, zIndex: 100, padding: '1.5rem', background: 'var(--bg-panel)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--bg-panel-border)', marginBottom: '3rem' }}>
-                <h1 style={{ fontSize: '2rem' }}>Choose your focus.</h1>
                 <div className="nav-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
                     <Link to="/database" className="back-btn" style={{ position: 'relative', textDecoration: 'none' }}>
                         Browse Database
@@ -216,6 +217,19 @@ export function Home() {
                     </button>
                     <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowExportModal(true)}>
                         Export Data
+                    </button>
+                    <button
+                        className="glow-btn"
+                        style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)', display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}
+                        onClick={() => setShowGoogleDriveModal(true)}
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#4285F4" d="M21.35 11.1H12v2.98h5.33c-.23 1.5-1.88 4.4-5.33 4.4-3.21 0-5.83-2.66-5.83-5.94s2.62-5.94 5.83-5.94c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.69 4.05 14.58 3 12 3 6.92 3 2.8 7.12 2.8 12.2S6.92 21.4 12 21.4c6.92 0 8.62-6.07 8.62-8.96 0-.6-.06-1.03-.14-1.34Z" />
+                            <path fill="#FBBC05" d="M3 12.2c0 1.64.39 3.19 1.08 4.56l2.85-2.2c-.17-.5-.26-1.04-.26-1.6 0-.56.09-1.1.26-1.6l-2.85-2.2C3.39 9.01 3 10.56 3 12.2Z" />
+                            <path fill="#34A853" d="M12 21.4c2.52 0 4.64-.83 6.19-2.25l-3.03-2.35c-.81.56-1.85.95-3.16.95-3.44 0-5.1-2.9-5.33-4.39l-2.83 2.18C5.38 18.78 8.42 21.4 12 21.4Z" />
+                            <path fill="#EA4335" d="M21.35 11.1H12v2.98h5.33c-.11.72-.54 1.81-1.5 2.72l3.03 2.35c1.82-1.68 2.76-4.16 2.76-7.11 0-.6-.06-1.03-.14-1.34Z" />
+                        </svg>
+                        Sync
                     </button>
                     {liveFavorites.length > 0 && (
                         <button
@@ -341,6 +355,11 @@ export function Home() {
             {
                 showExportModal && (
                     <ExportInventoryModal relics={relics} onClose={() => setShowExportModal(false)} />
+                )
+            }
+            {
+                showGoogleDriveModal && (
+                    <GoogleDriveSyncModal onClose={() => setShowGoogleDriveModal(false)} />
                 )
             }
         </div >

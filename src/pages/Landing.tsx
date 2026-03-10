@@ -4,6 +4,7 @@ import gfl2Logo from '../assets/gfl2-logo.webp';
 import gfl2LogoLight from '../assets/gfl2-logo-light.webp';
 import { db } from '../db/database';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { GoogleDriveSyncModal } from '../components/modals/GoogleDriveSyncModal';
 
 const SAMPLE_DOLLS = ['Qiongjiu', 'Peritya', 'Sabrina', 'Colphne', 'Groza', 'Nemesis', 'Klukai', 'Suomi'];
 
@@ -87,6 +88,7 @@ export function Landing() {
     const [mouseX, setMouseX] = useState(window.innerWidth / 2);
     const [mouseY, setMouseY] = useState(window.innerHeight / 2);
     const [isExiting, setIsExiting] = useState(false);
+    const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
 
     const handleExit = (path?: string) => {
         if (isExiting) return;
@@ -97,6 +99,7 @@ export function Landing() {
     };
 
     const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+        if (showGoogleDriveModal) return;
         if (e.deltaY > 50) {
             handleExit();
         }
@@ -203,6 +206,8 @@ export function Landing() {
                 @media (max-width: 768px) {
                     .landing-title { font-size: 3rem; }
                     .floating-card { display: none !important; }
+                    .landing-cta-row { flex-direction: column; width: min(90vw, 360px); }
+                    .landing-cta-row button { width: 100%; justify-content: center; }
                 }
                 .page-exit-up {
                     animation: slide-up-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -236,13 +241,33 @@ export function Landing() {
                 Optimize without the spreadsheet.
             </h1>
 
-            <button
-                className="high-contrast-btn"
-                onClick={() => handleExit()}
-                style={{ zIndex: 5, fontSize: '1.25rem', padding: '1.2rem 4rem' }}
-            >
-                Start Building
-            </button>
+            <div className="landing-cta-row" style={{ display: 'flex', gap: '1rem', zIndex: 5, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button
+                    className="high-contrast-btn"
+                    onClick={() => handleExit()}
+                    style={{ fontSize: '1.25rem', padding: '1.2rem 4rem' }}
+                >
+                    Start Building
+                </button>
+                <button
+                    className="glow-btn"
+                    onClick={() => setShowGoogleDriveModal(true)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.85rem', fontSize: '1rem', padding: '1.05rem 1.6rem' }}
+                >
+                    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#4285F4" d="M21.35 11.1H12v2.98h5.33c-.23 1.5-1.88 4.4-5.33 4.4-3.21 0-5.83-2.66-5.83-5.94s2.62-5.94 5.83-5.94c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.69 4.05 14.58 3 12 3 6.92 3 2.8 7.12 2.8 12.2S6.92 21.4 12 21.4c6.92 0 8.62-6.07 8.62-8.96 0-.6-.06-1.03-.14-1.34Z" />
+                        <path fill="#34A853" d="M3.87 7.02l2.45 1.8C6.98 7.22 9.27 5.6 12 5.6c1.83 0 3.06.78 3.76 1.45l2.56-2.47C16.69 4.05 14.58 3 12 3 8.48 3 5.43 5.01 3.87 7.02Z" opacity="0" />
+                        <path fill="#FBBC05" d="M3 12.2c0 1.64.39 3.19 1.08 4.56l2.85-2.2c-.17-.5-.26-1.04-.26-1.6 0-.56.09-1.1.26-1.6l-2.85-2.2C3.39 9.01 3 10.56 3 12.2Z" />
+                        <path fill="#34A853" d="M12 21.4c2.52 0 4.64-.83 6.19-2.25l-3.03-2.35c-.81.56-1.85.95-3.16.95-3.44 0-5.1-2.9-5.33-4.39l-2.83 2.18C5.38 18.78 8.42 21.4 12 21.4Z" />
+                        <path fill="#EA4335" d="M21.35 11.1H12v2.98h5.33c-.11.72-.54 1.81-1.5 2.72l3.03 2.35c1.82-1.68 2.76-4.16 2.76-7.11 0-.6-.06-1.03-.14-1.34Z" />
+                    </svg>
+                    Sync
+                </button>
+            </div>
+
+            {showGoogleDriveModal && (
+                <GoogleDriveSyncModal onClose={() => setShowGoogleDriveModal(false)} />
+            )}
         </div>
     );
 }
