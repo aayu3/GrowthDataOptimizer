@@ -2,6 +2,8 @@
 
 A web application designed to help players of Girls Frontline 2 (GFL2) manage and optimize their in-game equipment (relics). The tool allows users to import their inventory, browse their available gear, and automatically calculate the best setup for their characters.
 
+**[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N51V6NN9)**
+
 ---
 
 ## User Guide
