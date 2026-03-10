@@ -47,8 +47,8 @@ export function Optimizer() {
 
     const [threads, setThreads] = useState<number>(navigator.hardwareConcurrency || 4);
     const [threadsInput, setThreadsInput] = useState<string>((navigator.hardwareConcurrency || 4).toString());
-    const [maxTotalBuilds, setMaxTotalBuilds] = useState<number>(500000000);
-    const [maxBuildsInput, setMaxBuildsInput] = useState<string>('500000000');
+    const [maxTotalBuilds, setMaxTotalBuilds] = useState<number>(5000000);
+    const [maxBuildsInput, setMaxBuildsInput] = useState<string>('5000000');
     const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
     const workerPoolRef = useRef<Worker[]>([]);
