@@ -237,7 +237,6 @@ export function DamageSimulationSettings({
                     onChange={(e) => {
                         const val = e.target.value;
                         if (val && !simIgnoredSkills.includes(val)) {
-                            console.log("[Damage Sim] User manually ignoring skill:", val);
                             setSimIgnoredSkills(prev => [...prev, val].filter(Boolean));
                         }
                         e.target.value = '';
