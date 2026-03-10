@@ -212,10 +212,10 @@ export function Home() {
                         Browse Database
                     </Link>
                     <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowImportModal(true)}>
-                        Upload Inventory
+                        Import Data
                     </button>
                     <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowExportModal(true)}>
-                        Export Inventory
+                        Export Data
                     </button>
                     {liveFavorites.length > 0 && (
                         <button

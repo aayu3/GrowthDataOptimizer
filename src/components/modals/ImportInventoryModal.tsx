@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { db } from '../../db/database';
+import { useToast } from '../../contexts/ToastContext';
+import { isAppBackupFile, restoreAppBackup, type AppBackupFile } from '../../utils/backup';
 
 interface ImportInventoryModalProps {
     onClose: () => void;
@@ -10,8 +12,10 @@ type Step = 'upload' | 'configure';
 type ImportMode = 'replace' | 'merge';
 
 export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
+    const { showNotification } = useToast();
     const [isDragging, setIsDragging] = useState(false);
     const [pendingImport, setPendingImport] = useState<any[] | null>(null);
+    const [pendingBackup, setPendingBackup] = useState<AppBackupFile | null>(null);
     const [importFileName, setImportFileName] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -27,6 +31,16 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
         reader.onload = async (event) => {
             try {
                 const json = JSON.parse(event.target?.result as string);
+                setImportFileName(file.name);
+
+                if (isAppBackupFile(json)) {
+                    setPendingBackup(json);
+                    setPendingImport(null);
+                    setStep('upload');
+                    setErrorMsg('');
+                    return;
+                }
+
                 if (Array.isArray(json)) {
                     let skippedCount = 0;
                     const validRelics = [];
@@ -47,7 +61,8 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
                     }
 
                     setPendingImport(validRelics);
-                    setImportFileName(file.name);
+                    setPendingBackup(null);
+                    setStep('upload');
                     if (skippedCount > 0) {
                         setErrorMsg(`Skipped ${skippedCount} relics with unknown/missing types or skills.`);
                     } else {
@@ -98,6 +113,22 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
         setEquipChecked(new Set(dolls));
         setFavoriteChecked(new Set(dolls));
         setStep('configure');
+    };
+
+    const handleRestoreBackup = async () => {
+        if (!pendingBackup) return;
+
+        try {
+            await restoreAppBackup(pendingBackup);
+            showNotification({
+                type: 'success',
+                message: `Restored ${pendingBackup.data.relics.length} relics across all saved app data.`
+            });
+            onClose();
+        } catch (error) {
+            console.error('Failed to restore backup', error);
+            setErrorMsg('Failed to restore backup file.');
+        }
     };
 
     const executeImport = async (
@@ -152,6 +183,10 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
             }
         }
 
+        showNotification({
+            type: 'success',
+            message: mode === 'replace' ? `Imported ${processedRelics.length} relics.` : `Merged ${processedRelics.length} relics.`
+        });
         onClose();
     };
 
@@ -197,8 +232,8 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
 
     const renderUploadScreen = () => (
         <>
-            <h3 style={{ margin: 0 }}>Import Relics</h3>
-            <p>Upload a JSON file containing relics to import.</p>
+            <h3 style={{ margin: 0 }}>Import Data</h3>
+            <p>Upload either a full app backup or a relic-only JSON file.</p>
 
             <div
                 style={{
@@ -232,11 +267,34 @@ export function ImportInventoryModal({ onClose }: ImportInventoryModalProps) {
             {errorMsg && (
                 <p style={{ margin: 0, color: 'var(--error, #ff4c4c)' }}>{errorMsg}</p>
             )}
+            {pendingBackup && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', padding: '0.75rem 0.9rem', borderRadius: 'var(--radius)', background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+                    <p style={{ margin: 0, color: 'var(--success)', fontWeight: 600 }}>Full backup detected</p>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        Restore {pendingBackup.data.relics.length} relics, {pendingBackup.data.characters.length} characters, and {pendingBackup.data.dollSettings.length} doll settings.
+                    </p>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                        Backup date: {new Date(pendingBackup.exportedAt).toLocaleString()}
+                    </p>
+                    <p style={{ margin: 0, color: 'var(--error, #ff4c4c)', fontSize: '0.8rem' }}>
+                        Restoring a full backup replaces your current local app data.
+                    </p>
+                </div>
+            )}
             {pendingImport && (
                 <p style={{ margin: 0, color: 'var(--accent-glow)' }}>Loaded {pendingImport.length} relics.</p>
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                {pendingBackup && (
+                    <button
+                        className="glow-btn"
+                        style={{ background: 'rgba(16, 185, 129, 0.1)', borderColor: 'var(--success)', color: 'var(--success)' }}
+                        onClick={handleRestoreBackup}
+                    >
+                        Restore Full Backup
+                    </button>
+                )}
                 <button
                     className="glow-btn"
                     disabled={!pendingImport}
