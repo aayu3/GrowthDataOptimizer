@@ -3,3 +3,4 @@ dist/
 # Temporary utility files
 diff.txt
 invert_logo.py
+.env.local

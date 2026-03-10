@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { Relic } from '../../optimizer/types';
+import { BACKUP_FILE_NAME, createAppBackup, downloadJsonFile } from '../../utils/backup';
 
 interface ExportInventoryModalProps {
     relics: Relic[];
@@ -7,27 +8,20 @@ interface ExportInventoryModalProps {
 }
 
 export function ExportInventoryModal({ relics, onClose }: ExportInventoryModalProps) {
-    const handleExportInventory = async () => {
-        // Full export from the passed 'relics' or db
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(relics, null, 2));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "relic_inventory.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+    const handleExportBackup = async () => {
+        const backup = await createAppBackup();
+        downloadJsonFile(BACKUP_FILE_NAME, backup);
         onClose();
     };
 
     const handleExportEquipped = () => {
         const equippedRelics = relics.filter(r => r.equipped);
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(equippedRelics, null, 2));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "equipped_relics_all.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        downloadJsonFile('equipped_relics_all.json', equippedRelics);
+        onClose();
+    };
+
+    const handleExportRelics = () => {
+        downloadJsonFile('relic_inventory.json', relics);
         onClose();
     };
 
@@ -41,10 +35,13 @@ export function ExportInventoryModal({ relics, onClose }: ExportInventoryModalPr
                 style={{ width: '400px', maxWidth: '90%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 style={{ margin: 0 }}>Export Relics</h3>
-                <p>What would you like to export?</p>
+                <h3 style={{ margin: 0 }}>Export Data</h3>
+                <p>Choose a full backup for device transfer, or export relic-only JSON for the existing inventory flow.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <button className="glow-btn" onClick={handleExportInventory}>
+                    <button className="glow-btn" onClick={handleExportBackup}>
+                        Export Full Backup
+                    </button>
+                    <button className="glow-btn" onClick={handleExportRelics}>
                         Export All Relics
                     </button>
                     <button className="glow-btn" onClick={handleExportEquipped}>

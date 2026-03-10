@@ -35,3 +35,14 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+### Google Drive sync setup
+
+To enable browser-only Google Drive backup/restore:
+
+1. Create a Google OAuth 2.0 Web application client in Google Cloud.
+2. Enable the Google Drive API for that project.
+3. Add your frontend origins, such as `http://localhost:5173` and your production domain, to the OAuth client.
+4. Copy `.env.example` to `.env.local` and set `VITE_GOOGLE_CLIENT_ID`.
+
+The app uses Google OAuth in the browser and stores a single backup file in Drive `appDataFolder`. No backend, client secret, or manually supplied access token is required.

@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie';
 import { Relic, OptimizerConstraints } from '../optimizer/types';
+import { markDirty } from '../utils/dirtyState';
 
 export interface CharacterLoadout {
     dollName: string;
@@ -33,3 +34,13 @@ db.version(1).stores({
 db.version(2).stores({
     dollSettings: 'dollName'
 });
+
+function hookDirty(table: { hook: any }) {
+    table.hook('creating', markDirty);
+    table.hook('updating', markDirty);
+    table.hook('deleting', markDirty);
+}
+
+hookDirty(db.relics);
+hookDirty(db.characters);
+hookDirty(db.dollSettings);
