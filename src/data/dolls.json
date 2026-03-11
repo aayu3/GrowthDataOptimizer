@@ -1555,7 +1555,7 @@
             {
                 "tier": 6,
                 "description": "At the start of the battle, the 2 allied units with the highest attack have their attack increased by 3%. Does not stack.",
-                "Bulwark": 6,
+                "Bulwark": 9,
                 "Support": 15,
                 "Sentinel": 5
             }
