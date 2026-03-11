@@ -17,6 +17,7 @@ import { DamageSimulationSettings } from '../components/optimizer/DamageSimulati
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
 import { useLocalStorage } from '../utils/useLocalStorage';
 import { DamageType, AttackMode } from '../utils/buildUtils';
+import { getSkillMaxLevel } from '../utils/relicUtils';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
@@ -510,14 +511,6 @@ export function Optimizer() {
             const rawCategoryLevels: Record<string, number> = {};
             const effectiveSkillLevels: Record<string, number> = {};
 
-            const getSkillMax = (skillName: string) => {
-                let max = 6;
-                // Check if the skill name exists in any of the categories in the skillsData
-                const foundSkillEntry = Object.entries(skillsData).find(([name]) => name === skillName);
-                if (foundSkillEntry) max = (foundSkillEntry[1] as any).maxlevel || 6;
-                return max;
-            };
-
             for (const relic of buildRelics) {
                 const skills = [relic.main_skill, ...relic.aux_skills];
                 for (const skill of skills) {
@@ -544,7 +537,7 @@ export function Optimizer() {
             }
 
             for (const [skill, rawLvl] of Object.entries(rawSkillLevels)) {
-                effectiveSkillLevels[skill] = Math.min(rawLvl, getSkillMax(skill));
+                effectiveSkillLevels[skill] = Math.min(rawLvl, getSkillMaxLevel(skill));
             }
 
             buildObjects.push({
