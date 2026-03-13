@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Relic } from '../optimizer/types';
 import { RelicThumbnail } from './RelicThumbnail';
-import { RelicModal } from './RelicModal';
+import { RelicInspector } from './RelicInspector';
 import { RelicEditorModal } from './RelicEditorModal';
 import { ConfirmationModal } from './modals/ConfirmationModal';
 
@@ -174,11 +174,9 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                 </div>
             </div>
 
-            {/* Inspector Modal */}
-            {selectedRelic && (
-                <RelicModal
-                    relic={selectedRelic}
-                    onClose={() => setSelectedRelic(null)}
+            <div className="db-inspector-section">
+                <RelicInspector
+                    selectedRelic={selectedRelic}
                     onEdit={(relic) => {
                         setRelicToEdit(relic);
                         setIsEditing(true);
@@ -187,7 +185,7 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                         setRelicToDelete(relic);
                     }}
                 />
-            )}
+            </div>
 
             {isEditing && (
                 <RelicEditorModal
