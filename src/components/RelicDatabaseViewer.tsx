@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Relic } from '../optimizer/types';
+import relicInfo from '../data/relicinfo.json';
 import { RelicThumbnail } from './RelicThumbnail';
-import { RelicModal } from './RelicModal';
+import { RelicInspector } from './RelicInspector';
 import { RelicEditorModal } from './RelicEditorModal';
 import { ConfirmationModal } from './modals/ConfirmationModal';
 
@@ -17,6 +18,9 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('All');
     const [filterRarity, setFilterRarity] = useState<string>('All');
+    const [filterMainSkill, setFilterMainSkill] = useState<string>('All');
+    const [filterAuxSkill1, setFilterAuxSkill1] = useState<string>('All');
+    const [filterAuxSkill2, setFilterAuxSkill2] = useState<string>('All');
     const [sortMethod, setSortMethod] = useState<string>('Level'); // 'Level' or 'Time'
     const [sortReverse, setSortReverse] = useState<boolean>(false);
     const [selectedRelic, setSelectedRelic] = useState<Relic | null>(null);
@@ -28,6 +32,40 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
     const [relicToDelete, setRelicToDelete] = useState<Relic | null>(null);
 
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
+
+    const availableMainSkills = useMemo(() => {
+        let skills: string[] = [];
+        for (const [catName, catData] of Object.entries((relicInfo as any).RELIC_TYPES)) {
+            if (filterCategory === 'All' || filterCategory === catName) {
+                skills.push(...(catData as any).main_skills);
+            }
+        }
+        return Array.from(new Set(skills)).sort();
+    }, [filterCategory]);
+
+    const availableAuxSkills = useMemo(() => {
+        let skills: string[] = [];
+        for (const catData of Object.values((relicInfo as any).RELIC_TYPES)) {
+            if ((catData as any).aux_skills) {
+                for (const skillName of Object.keys((catData as any).aux_skills)) {
+                    if (skillName.includes('{Element}')) {
+                        for (const el of (relicInfo as any).ELEMENTS) {
+                            skills.push(skillName.replace('{Element}', el));
+                        }
+                    } else {
+                        skills.push(skillName);
+                    }
+                }
+            }
+        }
+        return Array.from(new Set(skills)).sort();
+    }, []);
+
+    useEffect(() => {
+        if (filterMainSkill !== 'All' && !availableMainSkills.includes(filterMainSkill)) {
+            setFilterMainSkill('All');
+        }
+    }, [availableMainSkills, filterMainSkill]);
 
     const displayRelics = useMemo(() => {
         let filtered = relics;
@@ -42,6 +80,18 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
 
         if (filterRarity !== 'All') {
             filtered = filtered.filter(r => r.rarity === filterRarity);
+        }
+
+        if (filterMainSkill !== 'All') {
+            filtered = filtered.filter(r => r.main_skill.name === filterMainSkill);
+        }
+
+        if (filterAuxSkill1 !== 'All') {
+            filtered = filtered.filter(r => r.aux_skills.some(s => s.name === filterAuxSkill1));
+        }
+
+        if (filterAuxSkill2 !== 'All') {
+            filtered = filtered.filter(r => r.aux_skills.some(s => s.name === filterAuxSkill2));
         }
 
         if (searchTerm) {
@@ -71,7 +121,7 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
         });
 
         return filtered;
-    }, [relics, filterCategory, filterRarity, searchTerm, sortMethod, sortReverse, excludeEquippedBy]);
+    }, [relics, filterCategory, filterRarity, filterMainSkill, filterAuxSkill1, filterAuxSkill2, searchTerm, sortMethod, sortReverse, excludeEquippedBy]);
 
     const handleConfirmDeleteAll = async () => {
         await db.relics.clear();
@@ -112,6 +162,21 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                         <option value="Vanguard">Vanguard</option>
                         <option value="Support">Support</option>
                         <option value="Sentinel">Sentinel</option>
+                    </select>
+
+                    <select value={filterMainSkill} onChange={e => setFilterMainSkill(e.target.value)}>
+                        <option value="All">All Main Skills</option>
+                        {availableMainSkills.map(sk => <option key={sk} value={sk}>{sk}</option>)}
+                    </select>
+
+                    <select value={filterAuxSkill1} onChange={e => setFilterAuxSkill1(e.target.value)}>
+                        <option value="All">All Aux Skills 1</option>
+                        {availableAuxSkills.map(sk => <option key={sk} value={sk}>{sk}</option>)}
+                    </select>
+
+                    <select value={filterAuxSkill2} onChange={e => setFilterAuxSkill2(e.target.value)}>
+                        <option value="All">All Aux Skills 2</option>
+                        {availableAuxSkills.map(sk => <option key={sk} value={sk}>{sk}</option>)}
                     </select>
 
                     <select value={sortMethod} onChange={e => setSortMethod(e.target.value)}>
@@ -161,11 +226,7 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                                     relic={r}
                                     isSelected={isSelected}
                                     onClick={() => {
-                                        if (mode === 'select' && onSelect) {
-                                            onSelect(r);
-                                        } else {
-                                            setSelectedRelic(r);
-                                        }
+                                        setSelectedRelic(r);
                                     }}
                                 />
                             );
@@ -174,20 +235,19 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                 </div>
             </div>
 
-            {/* Inspector Modal */}
-            {selectedRelic && (
-                <RelicModal
-                    relic={selectedRelic}
-                    onClose={() => setSelectedRelic(null)}
-                    onEdit={(relic) => {
+            <div className="db-inspector-section">
+                <RelicInspector
+                    selectedRelic={selectedRelic}
+                    onEdit={mode === 'view' ? (relic) => {
                         setRelicToEdit(relic);
                         setIsEditing(true);
-                    }}
-                    onDelete={(relic) => {
+                    } : undefined}
+                    onDelete={mode === 'view' ? (relic) => {
                         setRelicToDelete(relic);
-                    }}
+                    } : undefined}
+                    onSelect={mode === 'select' ? onSelect : undefined}
                 />
-            )}
+            </div>
 
             {isEditing && (
                 <RelicEditorModal

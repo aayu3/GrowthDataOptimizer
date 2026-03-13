@@ -7,9 +7,10 @@ export interface RelicInspectorProps {
     selectedRelic: Relic | null;
     onEdit?: (relic: Relic) => void;
     onDelete?: (relic: Relic) => void;
+    onSelect?: (relic: Relic) => void;
 }
 
-export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, onEdit, onDelete }) => {
+export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, onEdit, onDelete, onSelect }) => {
     if (!selectedRelic) {
         return (
             <div className="empty-inspector">
@@ -73,8 +74,13 @@ export const RelicInspector: React.FC<RelicInspectorProps> = ({ selectedRelic, o
                     </div>
                 )}
 
-                {(onEdit || onDelete) && (
+                {(onEdit || onDelete || onSelect) && (
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                        {onSelect && (
+                            <button className="glow-btn" style={{ flex: 1, padding: '0.4rem 0', fontSize: '0.85rem', background: '#ffffff', color: 'black', borderColor: '#ffffff', boxShadow: '0 0 10px rgba(255,255,255,0.5)' }} onClick={() => onSelect(selectedRelic)}>
+                                Equip
+                            </button>
+                        )}
                         {onEdit && (
                             <button className="glow-btn" style={{ flex: 1, padding: '0.4rem 0', fontSize: '0.85rem' }} onClick={() => onEdit(selectedRelic)}>
                                 Edit Relic
