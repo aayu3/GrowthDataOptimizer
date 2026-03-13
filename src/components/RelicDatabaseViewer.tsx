@@ -161,11 +161,7 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
                                     relic={r}
                                     isSelected={isSelected}
                                     onClick={() => {
-                                        if (mode === 'select' && onSelect) {
-                                            onSelect(r);
-                                        } else {
-                                            setSelectedRelic(r);
-                                        }
+                                        setSelectedRelic(r);
                                     }}
                                 />
                             );
@@ -177,13 +173,14 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
             <div className="db-inspector-section">
                 <RelicInspector
                     selectedRelic={selectedRelic}
-                    onEdit={(relic) => {
+                    onEdit={mode === 'view' ? (relic) => {
                         setRelicToEdit(relic);
                         setIsEditing(true);
-                    }}
-                    onDelete={(relic) => {
+                    } : undefined}
+                    onDelete={mode === 'view' ? (relic) => {
                         setRelicToDelete(relic);
-                    }}
+                    } : undefined}
+                    onSelect={mode === 'select' ? onSelect : undefined}
                 />
             </div>
 
