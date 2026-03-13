@@ -16,7 +16,7 @@ import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
 import { useLocalStorage } from '../utils/useLocalStorage';
-import { DamageType, AttackMode } from '../utils/buildUtils';
+import { DamageType, AttackMode, evaluateDpsForBuilds } from '../utils/buildUtils';
 import { getSkillMaxLevel } from '../utils/relicUtils';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
@@ -63,18 +63,28 @@ export function Optimizer() {
     const [showDamageSimulation, setShowDamageSimulation] = useState(false);
     const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
+    const [deferredSimStats, setDeferredSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+    const [deferredSimIgnoredSkills, setDeferredSimIgnoredSkills] = useState<string[]>([]);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            setDeferredSimStats(simStats);
+            setDeferredSimIgnoredSkills(simIgnoredSkills);
+        }, 800);
+        return () => clearTimeout(t);
+    }, [simStats, simIgnoredSkills]);
+
     const [damageType, setDamageType] = useState<DamageType>('average');
 
-    // Derive attack mode from the ignored skills list
     const attackMode = useMemo<AttackMode>(() => {
         const AOE_SKILLS = ['Area Specialization', 'Area Smite', 'Annular Defense'];
         const SINGLE_SKILLS = ['Pinpoint Specialization', 'Precision Blow', 'Pinpoint Defense'];
-        const hasAllAoe = AOE_SKILLS.every(s => simIgnoredSkills.includes(s));
-        const hasAllSingle = SINGLE_SKILLS.every(s => simIgnoredSkills.includes(s));
+        const hasAllAoe = AOE_SKILLS.every(s => deferredSimIgnoredSkills.includes(s));
+        const hasAllSingle = SINGLE_SKILLS.every(s => deferredSimIgnoredSkills.includes(s));
         if (hasAllAoe && !hasAllSingle) return 'single';
         if (hasAllSingle && !hasAllAoe) return 'aoe';
         return 'both';
-    }, [simIgnoredSkills]);
+    }, [deferredSimIgnoredSkills]);
 
     // Skill Sorting
     const [skillSortBy, setSkillSortBy] = useLocalStorage<'lvl' | 'type'>('optimizer-skillSortBy', 'lvl');
@@ -86,7 +96,7 @@ export function Optimizer() {
     useEffect(() => {
         const t = setTimeout(() => {
             setDeferredPostSkillFilters(postSkillFilters);
-        }, 150);
+        }, 800);
         return () => clearTimeout(t);
     }, [postSkillFilters]);
 
@@ -470,10 +480,37 @@ export function Optimizer() {
         return valid.slice(0, validCount);
     }, [rawResults, deferredPostSkillFilters, optimizedRelics]);
 
+    const sortedIndices = useMemo(() => {
+        if (!showDamageSimulation || filteredIndices.length === 0) {
+            return filteredIndices;
+        }
+
+        const dpsArray = evaluateDpsForBuilds(
+            rawResults,
+            filteredIndices,
+            optimizedRelics,
+            deferredSimStats,
+            deferredSimIgnoredSkills,
+            damageType,
+            attackMode
+        );
+
+        const indicesWithDps = new Int32Array(filteredIndices.length);
+        for (let i = 0; i < filteredIndices.length; i++) indicesWithDps[i] = i;
+
+        indicesWithDps.sort((a, b) => dpsArray[b] - dpsArray[a]);
+
+        const result = new Uint32Array(filteredIndices.length);
+        for (let i = 0; i < filteredIndices.length; i++) {
+            result[i] = filteredIndices[indicesWithDps[i]];
+        }
+        return result;
+    }, [filteredIndices, showDamageSimulation, rawResults, optimizedRelics, deferredSimStats, deferredSimIgnoredSkills, damageType, attackMode]);
+
     // Reset pagination when filter changes
     useEffect(() => {
         setResultPage(0);
-    }, [postSkillFilters, rawResults]);
+    }, [postSkillFilters, rawResults, damageType]);
 
     // --- LAZY RECONSTRUCTION OF UI BUILDS VIA PAGINATION ---
     useEffect(() => {
@@ -484,7 +521,7 @@ export function Optimizer() {
 
         const buildObjects: BuildResult[] = [];
         const startIdx = resultPage * resultsPerPage;
-        const endIdx = Math.min(startIdx + resultsPerPage, filteredIndices.length);
+        const endIdx = Math.min(startIdx + resultsPerPage, sortedIndices.length);
 
         // Helper maps
         const intToRelic = new Map<number, Relic>();
@@ -494,7 +531,7 @@ export function Optimizer() {
 
         // Reconstruct just the relics for the current page
         for (let i = startIdx; i < endIdx; i++) {
-            const buildIdx = filteredIndices[i];
+            const buildIdx = sortedIndices[i];
             const offset = buildIdx * 7;
             const buildRelics: Relic[] = [];
             for (let j = 0; j < 6; j++) {
@@ -549,7 +586,7 @@ export function Optimizer() {
         }
 
         setResults(buildObjects);
-    }, [rawResults, filteredIndices, resultPage, optimizedRelics, categorizedSkills, skillsData]);
+    }, [rawResults, sortedIndices, resultPage, optimizedRelics, categorizedSkills, skillsData]);
 
 
 
@@ -769,7 +806,7 @@ export function Optimizer() {
                             resultPage={resultPage}
                             setResultPage={setResultPage}
                             resultsPerPage={resultsPerPage}
-                            totalResults={filteredIndices.length}
+                            totalResults={sortedIndices.length}
                             showDamageSimulation={showDamageSimulation}
                             simStats={simStats}
                             simIgnoredSkills={simIgnoredSkills}
