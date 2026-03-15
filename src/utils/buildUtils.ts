@@ -99,7 +99,7 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
     }
 
     const externalAtkBuff = (stats.ExternalAtkBuff || 0) / 100.0;
-    const finalAtk = stats.ATK * (1 + totalAtkBuff + externalAtkBuff);
+    const finalAtk = Math.ceil(stats.ATK * (1 + totalAtkBuff + externalAtkBuff));
     
     const finalCritRate = Math.min(100, stats.CRIT_RATE + totalCritRateBuff) / 100.0;
     const finalCritDmg = (stats.CRIT_DMG + totalCritDmgBuff) / 100.0;
@@ -333,7 +333,7 @@ export const evaluateDpsForBuilds = (
         }
 
         const externalAtkBuff = (stats.ExternalAtkBuff || 0) / 100.0;
-        const finalAtk = baseAtk * (1 + totalAtkBuff + externalAtkBuff);
+        const finalAtk = Math.ceil(baseAtk * (1 + totalAtkBuff + externalAtkBuff));
 
         const finalCritRate = Math.min(100, baseCritRate + totalCritRateBuff) / 100.0;
         const finalCritDmg = (baseCritDmg + totalCritDmgBuff) / 100.0;
