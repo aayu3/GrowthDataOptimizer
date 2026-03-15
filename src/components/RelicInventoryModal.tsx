@@ -18,7 +18,7 @@ export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ select
 
     const handleSelect = async (r: any) => {
         if (r.id && selectedDoll && dollsData) {
-            const dollData = (dollsData as Record<string, DollDefinition>)[selectedDoll];
+            const dollData = (dollsData as unknown as Record<string, DollDefinition>)[selectedDoll];
             if (dollData && dollData.allowed_slots) {
                 const maxAllowed = dollData.allowed_slots[r.type] || 0;
                 const currentEquippedTyped = relics.filter(er => er.equipped === selectedDoll && er.type === r.type).length;

@@ -26,7 +26,7 @@ export function Optimizer() {
     const selectedDoll = dollName || '';
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
 
-    const selectedDollData = (dollsData as Record<string, DollDefinition>)[selectedDoll];
+    const selectedDollData = (dollsData as unknown as Record<string, DollDefinition>)[selectedDoll];
 
     // Filters and constraints
     const [constraints, setConstraints] = useState<OptimizerConstraints>(defaultConstraints);
@@ -61,9 +61,9 @@ export function Optimizer() {
 
     // Simulation
     const [showDamageSimulation, setShowDamageSimulation] = useState(false);
-    const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+    const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
-    const [deferredSimStats, setDeferredSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+    const [deferredSimStats, setDeferredSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
     const [deferredSimIgnoredSkills, setDeferredSimIgnoredSkills] = useState<string[]>([]);
 
     useEffect(() => {
@@ -136,8 +136,8 @@ export function Optimizer() {
                 if (settings.activeSkillFilters) setActiveSkillFilters(settings.activeSkillFilters);
                 else setActiveSkillFilters([]);
 
-                if (settings.simStats) setSimStats(settings.simStats);
-                else setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+                if (settings.simStats) setSimStats({ ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100, ...settings.simStats });
+                else setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
 
                 if (settings.simIgnoredSkills) setSimIgnoredSkills(settings.simIgnoredSkills);
                 else generateDefaultIgnoredSkills();
@@ -146,7 +146,7 @@ export function Optimizer() {
             } else {
                 setConstraints(defaultConstraints);
                 setActiveSkillFilters([]);
-                setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0 });
+                setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
                 generateDefaultIgnoredSkills();
                 setIncludeOtherEquipped(false);
             }
@@ -492,7 +492,8 @@ export function Optimizer() {
             deferredSimStats,
             deferredSimIgnoredSkills,
             damageType,
-            attackMode
+            attackMode,
+            selectedDoll
         );
 
         const indicesWithDps = new Int32Array(filteredIndices.length);

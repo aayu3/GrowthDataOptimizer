@@ -148,8 +148,21 @@ export function DamageSimulationSettings({
                             </div>
                         </div>
 
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Skill Base Damage</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontFamily: 'Georgia, serif' }}>
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Skill DMG</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>=</span>
+                                <span style={{ color: 'var(--accent-color)' }}>Avg</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>×</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                    <span style={{ color: '#a0d4ff' }}>Skill Multiplier</span>
+                                </span>
+                            </div>
+                        </div>
+
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, padding: '0.75rem', background: 'rgba(255,200,100,0.05)', border: '1px solid rgba(255,200,100,0.15)', borderRadius: 'var(--radius)' }}>
-                            ⚠️ Since we don't have skill multipliers for each doll, this damage number is best used for <strong style={{ color: 'white' }}>comparing builds against each other</strong>. It does not reflect accurate in-game damage numbers.
+                            ⚠️ This damage number is best used for <strong style={{ color: 'white' }}>comparing builds against each other</strong>. It does not reflect accurate in-game damage numbers.
                         </p>
                     </div>
                 </div>,
@@ -192,16 +205,23 @@ export function DamageSimulationSettings({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                {Object.entries(simStats).map(([stat, val]) => (
-                    <div key={stat} className="input-group">
-                        <label>{stat}</label>
-                        <input
-                            type="number"
-                            value={val as number}
-                            onChange={(e) => setSimStats((prev: any) => ({ ...prev, [stat]: parseFloat(e.target.value) || 0 }))}
-                        />
-                    </div>
-                ))}
+                {Object.entries(simStats).map(([stat, val]) => {
+                    let label = stat;
+                    if (stat === 'ExternalAtkBuff') label = 'External ATK Buff (%)';
+                    else if (stat === 'ExternalDmgBuff') label = 'External DMG Buff (%)';
+                    else if (stat === 'SkillMultiplier') label = 'Skill Multiplier (%)';
+
+                    return (
+                        <div key={stat} className="input-group">
+                            <label>{label}</label>
+                            <input
+                                type="number"
+                                value={val as number}
+                                onChange={(e) => setSimStats((prev: any) => ({ ...prev, [stat]: parseFloat(e.target.value) || 0 }))}
+                            />
+                        </div>
+                    );
+                })}
             </div>
 
             <h3>Ignored Skills in Calculation</h3>
