@@ -114,19 +114,6 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
     const critDamage = baseDamage * (1 + finalCritDmg);
     const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * critDamage);
 
-    if (logDetails) {
-        console.group(`Damage Calculation: ${selectedDoll || 'Default'}`);
-        console.log(`Base ATK: ${stats.ATK}, Final ATK: ${finalAtk.toFixed(2)}`);
-        console.log(`Enemy DEF: ${stats.EnemyDEF}, DEF Reduction Multiplier: ${defReduction.toFixed(4)}`);
-        console.log(`Total ATK Buff: ${(totalAtkBuff * 100).toFixed(2)}%, External ATK Buff: ${(externalAtkBuff * 100).toFixed(2)}%`);
-        console.log(`Total DMG Buff: ${(totalDamageBuff * 100).toFixed(2)}%, External DMG Buff: ${(externalDmgBuff * 100).toFixed(2)}%`);
-        console.log(`Skill Multiplier: ${(skillMultiplier * 100).toFixed(2)}%`);
-        console.log(`Crit Rate: ${(finalCritRate * 100).toFixed(2)}%, Crit DMG: ${(finalCritDmg * 100).toFixed(2)}%`);
-        console.log(`Result -> Base DMG: ${baseDamage.toFixed(2)}, Crit DMG: ${critDamage.toFixed(2)}, Average DMG: ${averageDamage.toFixed(2)}`);
-        console.log(`Active Skills:`, activeSkillsLog);
-        console.log(`Active Passives:`, activePassivesLog);
-        console.groupEnd();
-    }
 
     if (damageType === 'base') return baseDamage;
     if (damageType === 'crit') return critDamage;
