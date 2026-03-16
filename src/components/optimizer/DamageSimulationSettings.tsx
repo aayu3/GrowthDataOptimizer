@@ -38,6 +38,7 @@ export function DamageSimulationSettings({
     setSimIgnoredSkills,
 }: DamageSimulationSettingsProps) {
     const [showInfo, setShowInfo] = useState(false);
+    const [hoveredStat, setHoveredStat] = useState<string | null>(null);
 
     /** Derive the active mode by checking whether all AoE-only or all Single-only skills are ignored */
     const effectiveMode = useMemo<AttackMode>(() => {
@@ -66,32 +67,24 @@ export function DamageSimulationSettings({
 
     return (
         <section className="results-section glassmorphism" style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-                <h2 style={{ margin: 0, padding: 0, border: 'none' }}>Damage Simulation Settings</h2>
-                <button
+            <div style={{ marginBottom: '1rem' }}>
+                <h2 
                     onClick={() => setShowInfo(true)}
                     title="How damage is calculated"
-                    style={{
-                        background: 'none',
-                        border: '1px solid rgba(255,255,255,0.25)',
-                        color: 'var(--text-secondary)',
-                        borderRadius: '50%',
-                        width: '15px',
-                        height: '15px',
-                        fontSize: '0.3rem',
-                        fontWeight: 700,
+                    onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline solid'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
+                    style={{ 
+                        margin: 0, 
+                        padding: 0, 
+                        border: 'none',
                         cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        transition: 'all 0.2s',
-                        lineHeight: 1,
-                        padding: 0,
+                        textDecoration: 'none',
+                        textUnderlineOffset: '4px',
+                        display: 'inline-block'
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'white'; (e.currentTarget as HTMLButtonElement).style.color = 'white'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.25)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary)'; }}
-                >i</button>
+                >
+                    Damage Simulation Settings
+                </h2>
             </div>
 
             {showInfo && createPortal(
@@ -102,24 +95,24 @@ export function DamageSimulationSettings({
                     <div
                         onClick={e => e.stopPropagation()}
                         className="card glassmorphism"
-                        style={{ width: '520px', maxWidth: '92vw', maxHeight: '90vh', overflowY: 'auto' }}
+                        style={{ width: '700px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}
                     >
                         <h3 style={{ marginTop: 0, marginBottom: '1.25rem', fontSize: '1.1rem' }}>How Damage Is Estimated</h3>
 
                         {/* Formula 1 */}
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Base Damage</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontFamily: 'Georgia, serif' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontFamily: 'Georgia, serif', overflowX: 'auto' }}>
                                 <span style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Base</span>
                                 <span style={{ color: 'var(--text-secondary)' }}>=</span>
-                                {/* Fraction */}
-                                <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
-                                    <span style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', paddingBottom: '2px', paddingLeft: '4px', paddingRight: '4px' }}>ATK</span>
-                                    <span style={{ paddingTop: '2px', paddingLeft: '4px', paddingRight: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                                        1 +
-                                        <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-                                            <span style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', paddingBottom: '1px', paddingLeft: '2px', paddingRight: '2px', fontSize: '0.85em' }}>DEF</span>
-                                            <span style={{ paddingTop: '1px', paddingLeft: '2px', paddingRight: '2px', fontSize: '0.85em' }}>ATK</span>
+                                {/* Scaler and Fraction */}
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <span>Scaler (ATK/HP/DEF)</span>
+                                    <span style={{ color: 'var(--text-secondary)' }}>×</span>
+                                    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+                                        <span style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', paddingBottom: '2px', paddingLeft: '4px', paddingRight: '4px' }}>ATK</span>
+                                        <span style={{ paddingTop: '2px', paddingLeft: '4px', paddingRight: '4px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                            ATK + DEF
                                         </span>
                                     </span>
                                 </span>
@@ -148,8 +141,30 @@ export function DamageSimulationSettings({
                             </div>
                         </div>
 
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Skill Base Damage</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', background: 'rgba(0,0,0,0.3)', padding: '0.75rem 1rem', borderRadius: 'var(--radius)', fontFamily: 'Georgia, serif' }}>
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 600 }}>Skill DMG</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>=</span>
+                                <span style={{ color: 'var(--accent-color)' }}>Avg</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>×</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                    <span style={{ color: '#a0d4ff' }}>Skill Multiplier</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, padding: '0.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius)' }}>
+                            <div style={{ fontSize: '0.8rem', color: 'white', marginBottom: '0.4rem', fontWeight: 600 }}>Determining External Buffs</div>
+                            For help determining external attack and damage buffs, consider loading into <strong style={{color: 'white'}}>Target Practice</strong> and viewing the character info screen in the bottom left.
+                            <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem' }}>
+                                <li style={{ marginBottom: '0.3rem' }}><strong>External ATK Buff:</strong> Take the attack shown and divide it by the attack from the Refitting Room screen.</li>
+                                <li><strong>External DMG Buff:</strong> Add up any buffs, weapon effects, etc.</li>
+                            </ul>
+                        </div>
+
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0, padding: '0.75rem', background: 'rgba(255,200,100,0.05)', border: '1px solid rgba(255,200,100,0.15)', borderRadius: 'var(--radius)' }}>
-                            ⚠️ Since we don't have skill multipliers for each doll, this damage number is best used for <strong style={{ color: 'white' }}>comparing builds against each other</strong>. It does not reflect accurate in-game damage numbers.
+                            ⚠️ This damage number is best used for <strong style={{ color: 'white' }}>comparing builds against each other</strong>. It will not always accurately reflect in-game damage numbers.
                         </p>
                     </div>
                 </div>,
@@ -192,16 +207,55 @@ export function DamageSimulationSettings({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                {Object.entries(simStats).map(([stat, val]) => (
-                    <div key={stat} className="input-group">
-                        <label>{stat}</label>
-                        <input
-                            type="number"
-                            value={val as number}
-                            onChange={(e) => setSimStats((prev: any) => ({ ...prev, [stat]: parseFloat(e.target.value) || 0 }))}
-                        />
-                    </div>
-                ))}
+                {Object.entries(simStats).map(([stat, val]) => {
+                    let label = stat;
+                    let tooltip = '';
+                    if (stat === 'ExternalAtkBuff') { label = 'External ATK Buff (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
+                    else if (stat === 'ExternalDmgBuff') { label = 'External DMG Buff (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
+                    else if (stat === 'SkillMultiplier') { label = 'Skill Multiplier (%)'; }
+
+                    return (
+                        <div key={stat} className="input-group" style={{ position: 'relative' }}>
+                            <label
+                                onMouseEnter={() => setHoveredStat(stat)}
+                                onMouseLeave={() => setHoveredStat(null)}
+                                onClick={() => setHoveredStat(prev => prev === stat ? null : stat)}
+                                style={tooltip ? { textDecoration: 'underline dotted', cursor: 'help', display: 'inline-block' } : {}}
+                            >
+                                {label}
+                            </label>
+                            {tooltip && hoveredStat === stat && (
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '100%',
+                                    left: '0',
+                                    marginBottom: '4px',
+                                    background: 'rgba(0,0,0,0.85)',
+                                    color: 'white',
+                                    padding: '0.5rem 0.7rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.75rem',
+                                    width: 'max-content',
+                                    maxWidth: '220px',
+                                    zIndex: 10,
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                    pointerEvents: 'none',
+                                    lineHeight: 1.4,
+                                    fontWeight: 'normal',
+                                    textTransform: 'none',
+                                    letterSpacing: 'normal'
+                                }}>
+                                    {tooltip}
+                                </div>
+                            )}
+                            <input
+                                type="number"
+                                value={val as number}
+                                onChange={(e) => setSimStats((prev: any) => ({ ...prev, [stat]: parseFloat(e.target.value) || 0 }))}
+                            />
+                        </div>
+                    );
+                })}
             </div>
 
             <h3>Ignored Skills in Calculation</h3>

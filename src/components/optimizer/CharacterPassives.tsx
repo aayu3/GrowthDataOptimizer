@@ -21,7 +21,7 @@ export function CharacterPassives({ selectedDollData, constraints, applyBonusReq
                     const requirements: Record<string, number> = {};
 
                     for (const [key, val] of Object.entries(bonus)) {
-                        if (key !== 'tier' && key !== 'description') {
+                        if (key !== 'tier' && key !== 'description' && key !== 'Buff') {
                             requirements[key] = val as number;
                             const targetLvl = constraints.targetCategoryLevels[key] || 0;
                             if (targetLvl < (val as number)) {

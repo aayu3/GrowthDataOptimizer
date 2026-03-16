@@ -272,7 +272,8 @@ export function CurrentlyEquipped({
                                                 simIgnoredSkills,
                                                 true,
                                                 damageType,
-                                                attackMode
+                                                attackMode,
+                                                selectedDoll
                                             )).toLocaleString()}
                                         </div>
                                     </div>

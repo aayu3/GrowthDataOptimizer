@@ -123,7 +123,7 @@ export function OptimizationResults({
                 <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
                     {results.map(r => {
                         if (showDamageSimulation) {
-                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType, attackMode);
+                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType, attackMode, selectedDoll);
                         }
                         return r;
                     }).map((res, i) => (
