@@ -1,4 +1,4 @@
-# GFL2 Growth Data Optimizer
+# [GFL2 Growth Data Optimizer](https://gfl2optimizer.pages.dev/)
 
 A web application designed to help players of Girls Frontline 2 (GFL2) manage and optimize their in-game equipment (relics). The tool allows users to import their inventory, browse their available gear, and automatically calculate the best setup for their characters.
 
