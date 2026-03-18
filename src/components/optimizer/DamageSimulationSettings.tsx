@@ -2,12 +2,16 @@ import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import skillsData from '../../data/skills.json';
 import { AttackMode } from '../../utils/buildUtils';
+import { DollDefinition } from '../../optimizer/types';
 
 interface DamageSimulationSettingsProps {
     simStats: any;
     setSimStats: React.Dispatch<React.SetStateAction<any>>;
     simIgnoredSkills: string[];
     setSimIgnoredSkills: React.Dispatch<React.SetStateAction<string[]>>;
+    simIgnoredPassives: string[];
+    setSimIgnoredPassives: React.Dispatch<React.SetStateAction<string[]>>;
+    selectedDollData?: DollDefinition;
 }
 
 const attackModeOptions: { value: AttackMode; label: string }[] = [
@@ -36,9 +40,15 @@ export function DamageSimulationSettings({
     setSimStats,
     simIgnoredSkills,
     setSimIgnoredSkills,
+    simIgnoredPassives,
+    setSimIgnoredPassives,
+    selectedDollData,
 }: DamageSimulationSettingsProps) {
     const [showInfo, setShowInfo] = useState(false);
     const [hoveredStat, setHoveredStat] = useState<string | null>(null);
+    const [hoveredPassive, setHoveredPassive] = useState<string | null>(null);
+
+    const tierNames = ['Embryo', 'Seedling', 'Sprout', 'Shoot', 'Bud', 'Blossom'];
 
     /** Derive the active mode by checking whether all AoE-only or all Single-only skills are ignored */
     const effectiveMode = useMemo<AttackMode>(() => {
@@ -68,14 +78,14 @@ export function DamageSimulationSettings({
     return (
         <section className="results-section glassmorphism" style={{ marginTop: '2rem' }}>
             <div style={{ marginBottom: '1rem' }}>
-                <h2 
+                <h2
                     onClick={() => setShowInfo(true)}
                     title="How damage is calculated"
                     onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline solid'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
-                    style={{ 
-                        margin: 0, 
-                        padding: 0, 
+                    style={{
+                        margin: 0,
+                        padding: 0,
                         border: 'none',
                         cursor: 'pointer',
                         textDecoration: 'none',
@@ -156,7 +166,7 @@ export function DamageSimulationSettings({
 
                         <div style={{ marginBottom: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6, padding: '0.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius)' }}>
                             <div style={{ fontSize: '0.8rem', color: 'white', marginBottom: '0.4rem', fontWeight: 600 }}>Determining External Buffs</div>
-                            For help determining external attack and damage buffs, consider loading into <strong style={{color: 'white'}}>Target Practice</strong> and viewing the character info screen in the bottom left.
+                            For help determining external attack and damage buffs, consider loading into <strong style={{ color: 'white' }}>Target Practice</strong> and viewing the character info screen in the bottom left.
                             <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem' }}>
                                 <li style={{ marginBottom: '0.3rem' }}><strong>External ATK Buff:</strong> Take the attack shown and divide it by the attack from the Refitting Room screen.</li>
                                 <li><strong>External DMG Buff:</strong> Add up any buffs, weapon effects, etc.</li>
@@ -206,12 +216,46 @@ export function DamageSimulationSettings({
                 </div>
             </div>
 
+            {/* Weakness Exploit */}
+            <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                    Weakness Exploit
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {[0, 1, 2, 3].map(v => {
+                        const isActive = (simStats.WeaknessExploit ?? 1) === v;
+                        return (
+                            <button
+                                key={v}
+                                onClick={() => setSimStats((prev: any) => ({ ...prev, WeaknessExploit: v }))}
+                                style={{
+                                    padding: '0.45rem 1rem',
+                                    borderRadius: 'var(--radius-button)',
+                                    border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.15)'}`,
+                                    background: isActive ? 'var(--accent-glow)' : 'rgba(255,255,255,0.04)',
+                                    color: isActive ? 'white' : 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: isActive ? 700 : 400,
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isActive ? '0 0 12px rgba(242, 108, 21, 0.3)' : 'none',
+                                }}
+                                title={`${v} → ×${(1 + v / 10).toFixed(1)}`}
+                            >
+                                {v} <span style={{ opacity: 0.6, fontSize: '0.75rem' }}></span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-                {Object.entries(simStats).map(([stat, val]) => {
+                {Object.entries(simStats).filter(([stat]) => stat !== 'WeaknessExploit').map(([stat, val]) => {
                     let label = stat;
                     let tooltip = '';
-                    if (stat === 'ExternalAtkBuff') { label = 'External ATK Buff (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
-                    else if (stat === 'ExternalDmgBuff') { label = 'External DMG Buff (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
+                    if (stat === 'ExternalAtkBuff') { label = 'ATK Buffs (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
+                    else if (stat === 'ExternalDmgBuff') { label = 'DMG Buffs (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
+                    else if (stat === 'ExternalCritDmgBuff') { label = 'Crit DMG Buffs (%)'; tooltip = 'Examples include Attachment Set Effects, Weapons, Mod Key effects, and skills from other dolls'; }
                     else if (stat === 'SkillMultiplier') { label = 'Skill Multiplier (%)'; }
 
                     return (
@@ -257,6 +301,71 @@ export function DamageSimulationSettings({
                     );
                 })}
             </div>
+
+            {selectedDollData?.bonuses?.some((b: any) => b.Buff) && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                        Imago Factor
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {(selectedDollData.bonuses as any[]).filter(b => b.Buff).map((bonus: any) => {
+                            const isActive = !simIgnoredPassives.includes(bonus.description);
+                            const label = tierNames[bonus.tier - 1] || `Tier ${bonus.tier}`;
+                            return (
+                                <div key={bonus.description} style={{ position: 'relative' }}>
+                                    <button
+                                        onClick={() => setSimIgnoredPassives(prev =>
+                                            isActive
+                                                ? [...prev, bonus.description]
+                                                : prev.filter(d => d !== bonus.description)
+                                        )}
+                                        onMouseEnter={() => setHoveredPassive(bonus.description)}
+                                        onMouseLeave={() => setHoveredPassive(null)}
+                                        style={{
+                                            padding: '0.45rem 1rem',
+                                            borderRadius: 'var(--radius-button)',
+                                            border: `1px solid ${isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.15)'}`,
+                                            background: isActive ? 'var(--accent-glow)' : 'rgba(255,255,255,0.04)',
+                                            color: isActive ? 'white' : 'var(--text-secondary)',
+                                            cursor: 'pointer',
+                                            fontSize: '0.85rem',
+                                            fontWeight: isActive ? 700 : 400,
+                                            transition: 'all 0.2s ease',
+                                            boxShadow: isActive ? '0 0 12px rgba(242, 108, 21, 0.3)' : 'none',
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                    {hoveredPassive === bonus.description && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '100%',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            marginBottom: '6px',
+                                            background: 'rgba(0,0,0,0.92)',
+                                            color: 'white',
+                                            padding: '0.5rem 0.75rem',
+                                            borderRadius: '6px',
+                                            fontSize: '0.75rem',
+                                            width: 'max-content',
+                                            maxWidth: '260px',
+                                            zIndex: 100,
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                            pointerEvents: 'none',
+                                            lineHeight: 1.5,
+                                            whiteSpace: 'normal',
+                                            textAlign: 'left',
+                                        }}>
+                                            {bonus.description}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <h3>Ignored Skills in Calculation</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>

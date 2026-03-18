@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import OptimizerWorker from '../worker/optimizer.worker?worker';
+import DpsWorker from '../worker/dps.worker?worker';
 import skillsData from '../data/skills.json';
 import dollsData from '../data/dolls.json';
 import relicInfo from '../data/relicinfo.json';
@@ -16,7 +17,7 @@ import { CharacterPassives } from '../components/optimizer/CharacterPassives';
 import { DamageSimulationSettings } from '../components/optimizer/DamageSimulationSettings';
 import { OptimizationResults } from '../components/optimizer/OptimizationResults';
 import { useLocalStorage } from '../utils/useLocalStorage';
-import { DamageType, AttackMode, evaluateDpsForBuilds } from '../utils/buildUtils';
+import { DamageType, AttackMode } from '../utils/buildUtils';
 import { getSkillMaxLevel } from '../utils/relicUtils';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
@@ -35,16 +36,17 @@ export function Optimizer() {
     const [includeOtherEquipped, setIncludeOtherEquipped] = useState(false);
 
     // Results state
-    const [results, setResults] = useState<BuildResult[]>([]);
     const [rawResults, setRawResults] = useState<Uint32Array>(new Uint32Array(0));
     const [optimizedRelics, setOptimizedRelics] = useState<Relic[]>([]);
     const [resultPage, setResultPage] = useState(0);
     const resultsPerPage = 50;
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [isCalculatingDps, setIsCalculatingDps] = useState(false);
     const [hasOptimized, setHasOptimized] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [selectedRelicInResults, setSelectedRelicInResults] = useState<Relic | null>(null);
     const [optimizationTime, setOptimizationTime] = useState<number | null>(null);
+    const [dpsTime, setDpsTime] = useState<number | null>(null);
 
     const [threads, setThreads] = useState<number>(navigator.hardwareConcurrency || 4);
     const [threadsInput, setThreadsInput] = useState<string>((navigator.hardwareConcurrency || 4).toString());
@@ -53,6 +55,7 @@ export function Optimizer() {
     const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
     const workerPoolRef = useRef<Worker[]>([]);
+    const dpsWorkerPoolRef = useRef<Worker[]>([]);
 
     // History Actions
     const [undoStack, setUndoStack] = useState<HistoryAction[]>([]);
@@ -61,18 +64,21 @@ export function Optimizer() {
 
     // Simulation
     const [showDamageSimulation, setShowDamageSimulation] = useState(false);
-    const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
+    const [simStats, setSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, ExternalCritDmgBuff: 0, SkillMultiplier: 100, WeaknessExploit: 1});
     const [simIgnoredSkills, setSimIgnoredSkills] = useState<string[]>([]);
+    const [simIgnoredPassives, setSimIgnoredPassives] = useState<string[]>([]);
     const [deferredSimStats, setDeferredSimStats] = useState({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
     const [deferredSimIgnoredSkills, setDeferredSimIgnoredSkills] = useState<string[]>([]);
+    const [deferredSimIgnoredPassives, setDeferredSimIgnoredPassives] = useState<string[]>([]);
 
     useEffect(() => {
         const t = setTimeout(() => {
             setDeferredSimStats(simStats);
             setDeferredSimIgnoredSkills(simIgnoredSkills);
+            setDeferredSimIgnoredPassives(simIgnoredPassives);
         }, 800);
         return () => clearTimeout(t);
-    }, [simStats, simIgnoredSkills]);
+    }, [simStats, simIgnoredSkills, simIgnoredPassives]);
 
     const [damageType, setDamageType] = useState<DamageType>('average');
 
@@ -136,18 +142,20 @@ export function Optimizer() {
                 if (settings.activeSkillFilters) setActiveSkillFilters(settings.activeSkillFilters);
                 else setActiveSkillFilters([]);
 
-                if (settings.simStats) setSimStats({ ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100, ...settings.simStats });
-                else setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
+                if (settings.simStats) setSimStats({ ExternalAtkBuff: 0, ExternalDmgBuff: 0, ExternalCritDmgBuff: 0, SkillMultiplier: 100, WeaknessExploit: 1, ...settings.simStats });
+                else setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, ExternalCritDmgBuff: 0, SkillMultiplier: 100, WeaknessExploit: 1});
 
                 if (settings.simIgnoredSkills) setSimIgnoredSkills(settings.simIgnoredSkills);
                 else generateDefaultIgnoredSkills();
 
+                setSimIgnoredPassives(settings.simIgnoredPassives ?? []);
                 setIncludeOtherEquipped(settings.includeOtherEquipped ?? false);
             } else {
                 setConstraints(defaultConstraints);
                 setActiveSkillFilters([]);
-                setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, SkillMultiplier: 100 });
+                setSimStats({ ATK: 1000, DEF: 500, HP: 5000, CRIT_RATE: 10, CRIT_DMG: 150, EnemyDEF: 0, ExternalAtkBuff: 0, ExternalDmgBuff: 0, ExternalCritDmgBuff: 0, SkillMultiplier: 100, WeaknessExploit: 1});
                 generateDefaultIgnoredSkills();
+                setSimIgnoredPassives([]);
                 setIncludeOtherEquipped(false);
             }
         });
@@ -165,11 +173,12 @@ export function Optimizer() {
                 activeSkillFilters,
                 simStats,
                 simIgnoredSkills,
+                simIgnoredPassives,
                 includeOtherEquipped
             }).catch(e => console.warn("Failed to save doll settings to IndexedDB", e));
         }, 500);
         return () => clearTimeout(saveTimeout);
-    }, [selectedDoll, constraints, activeSkillFilters, simStats, simIgnoredSkills, includeOtherEquipped]);
+    }, [selectedDoll, constraints, activeSkillFilters, simStats, simIgnoredSkills, simIgnoredPassives, includeOtherEquipped]);
 
     const pushAction = (action: HistoryAction) => {
         setUndoStack(prev => [...prev, action]);
@@ -215,11 +224,11 @@ export function Optimizer() {
 
         setIsOptimizing(true);
         setHasOptimized(false);
-        setResults([]);
         setRawResults(new Uint32Array(0));
         setResultPage(0);
         setErrorMsg('');
         setOptimizationTime(null);
+        setDpsTime(null);
 
         const startTime = performance.now();
 
@@ -480,33 +489,113 @@ export function Optimizer() {
         return valid.slice(0, validCount);
     }, [rawResults, deferredPostSkillFilters, optimizedRelics]);
 
-    const sortedIndices = useMemo(() => {
+    const [sortedIndices, setSortedIndices] = useState<Uint32Array>(new Uint32Array(0));
+
+    useEffect(() => {
         if (!showDamageSimulation || filteredIndices.length === 0) {
-            return filteredIndices;
+            setSortedIndices(filteredIndices);
+            return;
         }
 
-        const dpsArray = evaluateDpsForBuilds(
-            rawResults,
-            filteredIndices,
-            optimizedRelics,
-            deferredSimStats,
-            deferredSimIgnoredSkills,
-            damageType,
-            attackMode,
-            selectedDoll
-        );
+        setIsCalculatingDps(true);
 
-        const indicesWithDps = new Int32Array(filteredIndices.length);
-        for (let i = 0; i < filteredIndices.length; i++) indicesWithDps[i] = i;
-
-        indicesWithDps.sort((a, b) => dpsArray[b] - dpsArray[a]);
-
-        const result = new Uint32Array(filteredIndices.length);
-        for (let i = 0; i < filteredIndices.length; i++) {
-            result[i] = filteredIndices[indicesWithDps[i]];
+        if (dpsWorkerPoolRef.current.length > 0) {
+            dpsWorkerPoolRef.current.forEach(w => w.terminate());
+            dpsWorkerPoolRef.current = [];
         }
-        return result;
-    }, [filteredIndices, showDamageSimulation, rawResults, optimizedRelics, deferredSimStats, deferredSimIgnoredSkills, damageType, attackMode]);
+
+        const concurrency = threads;
+        const workers: Worker[] = [];
+        dpsWorkerPoolRef.current = workers;
+        const dpsStartTime = performance.now();
+
+        let completedWorkers = 0;
+        let dpsArrays: { buffer: Float64Array, startIndex: number, count: number }[] = [];
+        let hasError = false;
+
+        // Partition filteredIndices
+        const baseSize = Math.floor(filteredIndices.length / concurrency);
+        const remainder = filteredIndices.length % concurrency;
+        
+        let currentIndex = 0;
+        for (let i = 0; i < concurrency; i++) {
+            const count = baseSize + (i < remainder ? 1 : 0);
+            if (count === 0) continue; // It's possible for threads > items
+
+            const chunk = filteredIndices.slice(currentIndex, currentIndex + count);
+            const startIndex = currentIndex;
+            currentIndex += count;
+            
+            const worker = new DpsWorker();
+            
+            worker.onmessage = (e) => {
+                if (hasError) return;
+
+                if (e.data.type === 'DONE') {
+                    dpsArrays.push({ buffer: e.data.dpsArray as Float64Array, startIndex, count });
+                    completedWorkers++;
+
+                    if (completedWorkers === workers.length) {
+                        const mergedDps = new Float64Array(filteredIndices.length);
+                        for (const b of dpsArrays) {
+                            mergedDps.set(b.buffer, b.startIndex);
+                        }
+
+                        // Now perform the sort on the main thread
+                        const indicesWithDps = new Int32Array(filteredIndices.length);
+                        for (let k = 0; k < filteredIndices.length; k++) indicesWithDps[k] = k;
+
+                        indicesWithDps.sort((a, b) => mergedDps[b] - mergedDps[a]);
+
+                        const result = new Uint32Array(filteredIndices.length);
+                        for (let k = 0; k < filteredIndices.length; k++) {
+                            result[k] = filteredIndices[indicesWithDps[k]];
+                        }
+
+                        setSortedIndices(result);
+                        requestAnimationFrame(() => {
+                            setTimeout(() => {
+                                setDpsTime(performance.now() - dpsStartTime);
+                            }, 0);
+                        });
+                        setIsCalculatingDps(false);
+                    }
+                } else {
+                    if (!hasError) {
+                        hasError = true;
+                        console.error("DPS Calculation Error:", e.data.message);
+                        setSortedIndices(filteredIndices);
+                        setIsCalculatingDps(false);
+                        dpsWorkerPoolRef.current.forEach(w => w.terminate());
+                    }
+                }
+            };
+
+            // Delay the expensive structured clone (postMessage) so the browser can paint the loading state
+            // We stagger the clones slightly so the main thread doesn't completely lock up on massive clones
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    worker.postMessage({
+                        rawResults, 
+                        filteredIndices: chunk,
+                        optimizedRelics,
+                        stats: deferredSimStats,
+                        ignoredSkills: deferredSimIgnoredSkills,
+                        ignoredPassives: deferredSimIgnoredPassives,
+                        damageType,
+                        attackMode,
+                        selectedDoll
+                    });
+                }, 5 * i); 
+            });
+            workers.push(worker);
+        }
+
+        return () => {
+            workers.forEach(w => w.terminate());
+            setIsCalculatingDps(false);
+        };
+    }, [filteredIndices, showDamageSimulation, rawResults, optimizedRelics, deferredSimStats, deferredSimIgnoredSkills, deferredSimIgnoredPassives, damageType, attackMode]);
 
     // Reset pagination when filter changes
     useEffect(() => {
@@ -514,10 +603,9 @@ export function Optimizer() {
     }, [postSkillFilters, rawResults, damageType]);
 
     // --- LAZY RECONSTRUCTION OF UI BUILDS VIA PAGINATION ---
-    useEffect(() => {
+    const results = useMemo(() => {
         if (!rawResults || rawResults.length === 0) {
-            setResults([]);
-            return;
+            return [];
         }
 
         const buildObjects: BuildResult[] = [];
@@ -586,7 +674,7 @@ export function Optimizer() {
             });
         }
 
-        setResults(buildObjects);
+        return buildObjects;
     }, [rawResults, sortedIndices, resultPage, optimizedRelics, categorizedSkills, skillsData]);
 
 
@@ -706,6 +794,7 @@ export function Optimizer() {
                                 showDamageSimulation={showDamageSimulation}
                                 simStats={simStats}
                                 simIgnoredSkills={simIgnoredSkills}
+                                simIgnoredPassives={simIgnoredPassives}
                                 skillSortBy={skillSortBy}
                                 setSkillSortBy={setSkillSortBy}
                                 damageType={damageType}
@@ -718,10 +807,11 @@ export function Optimizer() {
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <div className="action-row" style={{ justifyContent: 'flex-start', gap: '1rem', marginTop: '2rem' }}>
                             <button
-                                className={`glow-btn ${isOptimizing ? 'loading' : ''}`}
+                                className={`glow-btn ${isOptimizing || isCalculatingDps ? 'loading' : ''}`}
                                 onClick={startOptimization}
+                                disabled={isOptimizing || isCalculatingDps}
                             >
-                                {isOptimizing ? 'Optimizing...' : 'Run Optimizer'}
+                                {isOptimizing ? 'Optimizing...' : isCalculatingDps ? 'Calculating Damage...' : 'Run Optimizer'}
                             </button>
                             <button
                                 className="glow-btn"
@@ -731,9 +821,9 @@ export function Optimizer() {
                             >
                                 ⚙️
                             </button>
-                            {optimizationTime !== null && hasOptimized && (
+                            {optimizationTime !== null && hasOptimized && !isCalculatingDps && (
                                 <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-color)', opacity: 0.8, fontSize: '0.9rem', marginLeft: '1rem' }}>
-                                    Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(optimizationTime / 1000).toFixed(2)}s using {threads} threads
+                                    Calculated {(rawResults.length / 7).toLocaleString()} valid builds in {(((optimizationTime || 0) + (showDamageSimulation ? (dpsTime || 0) : 0)) / 1000).toFixed(2)}s using {threads} threads
                                 </div>
                             )}
                             <button
@@ -798,10 +888,13 @@ export function Optimizer() {
                             setSimStats={setSimStats}
                             simIgnoredSkills={simIgnoredSkills}
                             setSimIgnoredSkills={setSimIgnoredSkills}
+                            simIgnoredPassives={simIgnoredPassives}
+                            setSimIgnoredPassives={setSimIgnoredPassives}
+                            selectedDollData={selectedDollData}
                         />
                     )}
 
-                    {rawResults.length > 0 && (
+                    {rawResults.length > 0 && !isCalculatingDps && (
                         <OptimizationResults
                             results={results}
                             resultPage={resultPage}
@@ -811,6 +904,7 @@ export function Optimizer() {
                             showDamageSimulation={showDamageSimulation}
                             simStats={simStats}
                             simIgnoredSkills={simIgnoredSkills}
+                            simIgnoredPassives={simIgnoredPassives}
                             handleExportJSON={handleExportJSON}
                             onEquipBuild={handleEquipBuild}
                             selectedDoll={selectedDoll}
@@ -827,7 +921,7 @@ export function Optimizer() {
                         />
                     )}
 
-                    {hasOptimized && rawResults.length === 0 && !errorMsg && (
+                    {hasOptimized && rawResults.length === 0 && !errorMsg && !isCalculatingDps && (
                         <section className="results-section result-empty glassmorphism" style={{ marginTop: '2rem' }}>
                             <h2>No Builds Found</h2>
                             <p>No valid combination of 6 relics matched your exact constraints.</p>

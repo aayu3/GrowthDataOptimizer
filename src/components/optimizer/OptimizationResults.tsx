@@ -15,6 +15,7 @@ interface OptimizationResultsProps {
     showDamageSimulation: boolean;
     simStats: any;
     simIgnoredSkills: string[];
+    simIgnoredPassives: string[];
     handleExportJSON: () => void;
     onEquipBuild: (build: BuildResult) => Promise<void> | void;
     selectedDoll: string;
@@ -52,7 +53,8 @@ export function OptimizationResults({
     damageType,
     setDamageType,
     attackMode,
-    currentDollRelicIds
+    currentDollRelicIds,
+    simIgnoredPassives,
 }: OptimizationResultsProps) {
     const [expandedSkillKeys, setExpandedSkillKeys] = React.useState<Set<string>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
@@ -123,7 +125,7 @@ export function OptimizationResults({
                 <div className="results-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))' }}>
                     {results.map(r => {
                         if (showDamageSimulation) {
-                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType, attackMode, selectedDoll);
+                            r.simulatedDamage = calculateBuildDamage(r, simStats, simIgnoredSkills, false, damageType, attackMode, selectedDoll, simIgnoredPassives);
                         }
                         return r;
                     }).map((res, i) => (

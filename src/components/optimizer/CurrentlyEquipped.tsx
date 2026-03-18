@@ -20,6 +20,7 @@ interface CurrentlyEquippedProps {
     showDamageSimulation: boolean;
     simStats: any;
     simIgnoredSkills: string[];
+    simIgnoredPassives: string[];
     skillSortBy: 'lvl' | 'type';
     setSkillSortBy: (val: 'lvl' | 'type') => void;
     damageType: DamageType;
@@ -39,6 +40,7 @@ export function CurrentlyEquipped({
     showDamageSimulation,
     simStats,
     simIgnoredSkills,
+    simIgnoredPassives,
     skillSortBy,
     setSkillSortBy,
     damageType,
@@ -273,7 +275,8 @@ export function CurrentlyEquipped({
                                                 true,
                                                 damageType,
                                                 attackMode,
-                                                selectedDoll
+                                                selectedDoll,
+                                                simIgnoredPassives
                                             )).toLocaleString()}
                                         </div>
                                     </div>

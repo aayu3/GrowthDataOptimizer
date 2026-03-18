@@ -14,7 +14,7 @@ const tierNames = ['Embryo', 'Seedling', 'Sprout', 'Shoot', 'Bud', 'Blossom'];
 export function CharacterPassives({ selectedDollData, constraints, applyBonusRequirements }: CharacterPassivesProps) {
     return (
         <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Character Passives</h2>
+            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Imago Factor</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {selectedDollData.bonuses && selectedDollData.bonuses.map((bonus: any, idx: number) => {
                     let isActive = true;

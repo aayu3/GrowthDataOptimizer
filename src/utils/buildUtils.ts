@@ -27,7 +27,7 @@ export const calculateBuildStats = (buildRelics: Relic[]) => {
 export type DamageType = 'average' | 'crit' | 'base';
 export type AttackMode = 'both' | 'aoe' | 'single';
 
-export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkills: string[], logDetails: boolean = false, damageType: DamageType = 'average', attackMode: AttackMode = 'both', selectedDoll?: string) => {
+export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkills: string[], logDetails: boolean = false, damageType: DamageType = 'average', attackMode: AttackMode = 'both', selectedDoll?: string, ignoredPassives: string[] = []) => {
     let totalAtkBuff = 0;
     let totalCritRateBuff = 0;
     let totalCritDmgBuff = 0;
@@ -49,15 +49,16 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
                     }
                 }
             }
-            if (isActive && bonus.Buff) {
+            if (isActive && bonus.Buff && !ignoredPassives.includes(bonus.description)) {
                 const buffVal = bonus.Buff.value;
-                if (bonus.Buff.stat.includes("ATK")) totalAtkBuff += buffVal / 100.0;
-                else if (bonus.Buff.stat.includes("DMG")) totalDamageBuff += buffVal / 100.0;
-                else if (bonus.Buff.stat.includes("CRIT_RATE")) totalCritRateBuff += buffVal;
-                else if (bonus.Buff.stat.includes("CRIT_DMG")) totalCritDmgBuff += buffVal;
+                const buffStats: string[] = Array.isArray(bonus.Buff.stat) ? bonus.Buff.stat : [bonus.Buff.stat];
+                if (buffStats.includes("ATK")) totalAtkBuff += buffVal / 100.0;
+                else if (buffStats.includes("DMG")) totalDamageBuff += buffVal / 100.0;
+                else if (buffStats.includes("CRIT_RATE")) totalCritRateBuff += buffVal;
+                else if (buffStats.includes("CRIT_DMG")) totalCritDmgBuff += buffVal;
 
                 if (logDetails) {
-                    activePassivesLog.push(`Tier ${bonus.tier}: ${bonus.Buff.stat.join(", ")} +${buffVal}`);
+                    activePassivesLog.push(`Tier ${bonus.tier}: ${buffStats.join(", ")} +${buffVal}`);
                 }
             }
         }
@@ -99,21 +100,24 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
     }
 
     const externalAtkBuff = (stats.ExternalAtkBuff || 0) / 100.0;
+
     const finalAtk = Math.ceil(stats.ATK * (1 + totalAtkBuff + externalAtkBuff));
-    
+
     const finalCritRate = Math.min(100, stats.CRIT_RATE + totalCritRateBuff) / 100.0;
-    const finalCritDmg = (stats.CRIT_DMG + totalCritDmgBuff) / 100.0;
+    const externalCritDmgBuff = stats.ExternalCritDmgBuff || 0;
+    const finalCritDmg = (stats.CRIT_DMG + totalCritDmgBuff + externalCritDmgBuff) / 100.0;
 
     const externalDmgBuff = (stats.ExternalDmgBuff || 0) / 100.0;
     const skillMultiplier = (stats.SkillMultiplier ?? 100) / 100.0;
-    
+    const weaknessMultiplier = 1 + (stats.WeaknessExploit ?? 1) / 10;
+
     const scaleType = finalAtk; // Defaults to ATK scaling for now
     const defReduction = finalAtk / (finalAtk + stats.EnemyDEF);
 
-    const baseDamage = scaleType * defReduction * skillMultiplier * (1 + totalDamageBuff + externalDmgBuff);
-    const critDamage = baseDamage * (1 + finalCritDmg);
+    const finalDamageMultiplier = 1 + totalDamageBuff + externalDmgBuff;
+    const baseDamage = scaleType * defReduction * skillMultiplier * finalDamageMultiplier * weaknessMultiplier;
+    const critDamage = baseDamage * finalCritDmg;
     const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * critDamage);
-
 
     if (damageType === 'base') return baseDamage;
     if (damageType === 'crit') return critDamage;
@@ -128,7 +132,8 @@ export const evaluateDpsForBuilds = (
     ignoredSkills: string[],
     damageType: DamageType = 'average',
     attackMode: AttackMode = 'both',
-    selectedDoll?: string
+    selectedDoll?: string,
+    ignoredPassives: string[] = []
 ): Float64Array => {
     const numBuilds = filteredIndices.length;
     const dpsArray = new Float64Array(numBuilds);
@@ -162,6 +167,14 @@ export const evaluateDpsForBuilds = (
 
     for (let i = 0; i < numSkills; i++) {
         const name = skillList[i];
+
+        // Always map category so ignored skills still count toward category totals (for doll bonus checks)
+        const cat = getSkillCategory(name);
+        if (cat === "Bulwark") skillToCat[i] = 1;
+        else if (cat === "Support") skillToCat[i] = 2;
+        else if (cat === "Sentinel") skillToCat[i] = 3;
+        else if (cat === "Vanguard") skillToCat[i] = 4;
+
         if (ignoredSkills.includes(name)) continue;
 
         const skillDef = (skillsData as any).Sentinel?.[name] || (skillsData as any).Vanguard?.[name] || (skillsData as any).Support?.[name];
@@ -169,12 +182,6 @@ export const evaluateDpsForBuilds = (
 
         validSkills[i] = 1;
         maxLevels[i] = getSkillMaxLevel(name);
-
-        const cat = getSkillCategory(name);
-        if (cat === "Bulwark") skillToCat[i] = 1;
-        else if (cat === "Support") skillToCat[i] = 2;
-        else if (cat === "Sentinel") skillToCat[i] = 3;
-        else if (cat === "Vanguard") skillToCat[i] = 4;
 
         if (skillDef.stat === "ATK") {
             statTypes[i] = skillDef.scaling === "HP" ? 5 : 1;
@@ -256,7 +263,7 @@ export const evaluateDpsForBuilds = (
                     if (skillIdx >= 0) {
                         const level = relicSkills[rOffset + k * 2 + 1];
                         runningSkillLevels[skillIdx] += level;
-                        
+
                         const cat = skillToCat[skillIdx];
                         if (cat === 1) runBulwark += level;
                         else if (cat === 2) runSupport += level;
@@ -288,12 +295,13 @@ export const evaluateDpsForBuilds = (
                     }
                 }
             }
-            if (isActive && bonus.Buff) {
+            if (isActive && bonus.Buff && !ignoredPassives.includes(bonus.description)) {
                 const buffVal = bonus.Buff.value;
-                if (bonus.Buff.stat.includes("ATK")) totalAtkBuff += buffVal / 100.0;
-                else if (bonus.Buff.stat.includes("DMG")) totalDamageBuff += buffVal / 100.0;
-                else if (bonus.Buff.stat.includes("CRIT_RATE")) totalCritRateBuff += buffVal;
-                else if (bonus.Buff.stat.includes("CRIT_DMG")) totalCritDmgBuff += buffVal;
+                const buffStats: string[] = Array.isArray(bonus.Buff.stat) ? bonus.Buff.stat : [bonus.Buff.stat];
+                if (buffStats.includes("ATK")) totalAtkBuff += buffVal / 100.0;
+                else if (buffStats.includes("DMG")) totalDamageBuff += buffVal / 100.0;
+                else if (buffStats.includes("CRIT_RATE")) totalCritRateBuff += buffVal;
+                else if (buffStats.includes("CRIT_DMG")) totalCritDmgBuff += buffVal;
             }
         }
 
@@ -323,15 +331,17 @@ export const evaluateDpsForBuilds = (
         const finalAtk = Math.ceil(baseAtk * (1 + totalAtkBuff + externalAtkBuff));
 
         const finalCritRate = Math.min(100, baseCritRate + totalCritRateBuff) / 100.0;
-        const finalCritDmg = (baseCritDmg + totalCritDmgBuff) / 100.0;
+        const externalCritDmgBuff = stats.ExternalCritDmgBuff || 0;
+        const finalCritDmg = (baseCritDmg + totalCritDmgBuff + externalCritDmgBuff) / 100.0;
 
         const externalDmgBuff = (stats.ExternalDmgBuff || 0) / 100.0;
         const skillMultiplier = (stats.SkillMultiplier ?? 100) / 100.0;
-        
+        const weaknessMultiplier = 1 + (stats.WeaknessExploit ?? 1) / 10;
+
         const scaleType = finalAtk; // Defaults to ATK scaling for now
         const defReduction = finalAtk / (finalAtk + baseEnemyDef);
 
-        const baseDamage = scaleType * defReduction * skillMultiplier * (1 + totalDamageBuff + externalDmgBuff);
+        const baseDamage = scaleType * defReduction * skillMultiplier * (1 + totalDamageBuff + externalDmgBuff) * weaknessMultiplier;
         const critDamage = baseDamage * (1 + finalCritDmg);
 
         let avgDamage = 0;
