@@ -17,6 +17,7 @@ export interface DollSettings {
     activeSkillFilters?: string[];
     simStats?: { ATK: number; DEF: number; HP: number; CRIT_RATE: number; CRIT_DMG: number; EnemyDEF: number };
     simIgnoredSkills?: string[];
+    simIgnoredPassives?: string[];
     includeOtherEquipped?: boolean;
 }
 
