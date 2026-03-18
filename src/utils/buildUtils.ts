@@ -115,8 +115,8 @@ export const calculateBuildDamage = (build: BuildResult, stats: any, ignoredSkil
     const defReduction = finalAtk / (finalAtk + stats.EnemyDEF);
 
     const finalDamageMultiplier = 1 + totalDamageBuff + externalDmgBuff;
-    const baseDamage = scaleType * defReduction * skillMultiplier * finalDamageMultiplier * weaknessMultiplier;
-    const critDamage = baseDamage * finalCritDmg;
+    const baseDamage = Math.ceil(scaleType * defReduction * skillMultiplier * finalDamageMultiplier * weaknessMultiplier);
+    const critDamage = Math.ceil(scaleType * defReduction * skillMultiplier * finalDamageMultiplier * weaknessMultiplier * finalCritDmg);
     const averageDamage = ((1 - finalCritRate) * baseDamage) + (finalCritRate * critDamage);
 
     if (damageType === 'base') return baseDamage;
@@ -328,7 +328,7 @@ export const evaluateDpsForBuilds = (
         }
 
         const externalAtkBuff = (stats.ExternalAtkBuff || 0) / 100.0;
-        const finalAtk = Math.ceil(baseAtk * (1 + totalAtkBuff + externalAtkBuff));
+        const finalAtk = Math.ceil(baseAtk * (1 + totalAtkBuff + externalAtkBuff))
 
         const finalCritRate = Math.min(100, baseCritRate + totalCritRateBuff) / 100.0;
         const externalCritDmgBuff = stats.ExternalCritDmgBuff || 0;
@@ -341,8 +341,8 @@ export const evaluateDpsForBuilds = (
         const scaleType = finalAtk; // Defaults to ATK scaling for now
         const defReduction = finalAtk / (finalAtk + baseEnemyDef);
 
-        const baseDamage = scaleType * defReduction * skillMultiplier * (1 + totalDamageBuff + externalDmgBuff) * weaknessMultiplier;
-        const critDamage = baseDamage * (1 + finalCritDmg);
+        const baseDamage = Math.ceil(scaleType * defReduction * skillMultiplier * (1 + totalDamageBuff + externalDmgBuff) * weaknessMultiplier);
+        const critDamage = Math.ceil(scaleType * defReduction * skillMultiplier * (1 + totalDamageBuff + externalDmgBuff) * weaknessMultiplier * finalCritDmg);
 
         let avgDamage = 0;
         if (damageType === 'base') {
