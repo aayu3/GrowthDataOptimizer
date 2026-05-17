@@ -256,7 +256,7 @@ export function Home() {
 
                     {/* Doll gallery */}
                     <div className="doll-gallery" style={activeFormation
-                        ? { display: 'grid', gridTemplateColumns: 'repeat(5, 160px)', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }
+                        ? { display: 'grid', gridTemplateColumns: 'repeat(5, auto)', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }
                         : { display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }
                     }>
 
