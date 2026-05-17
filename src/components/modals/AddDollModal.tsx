@@ -15,20 +15,10 @@ interface AddDollModalProps {
 
 export function AddDollModal({ formation, relics, onAdd, onClose }: AddDollModalProps) {
     const [search, setSearch] = useState('');
-    const [importEnabled, setImportEnabled] = useState<Set<string>>(new Set());
 
     const available = ALL_DOLLS.filter(
         d => !formation.dolls.includes(d) && d.toLowerCase().includes(search.toLowerCase())
     );
-
-    const toggleImport = (e: React.MouseEvent, doll: string) => {
-        e.stopPropagation();
-        setImportEnabled(prev => {
-            const next = new Set(prev);
-            next.has(doll) ? next.delete(doll) : next.add(doll);
-            return next;
-        });
-    };
 
     const content = (
         <div
@@ -69,33 +59,37 @@ export function AddDollModal({ formation, relics, onAdd, onClose }: AddDollModal
                         available.map(doll => {
                             const imgPath = new URL(`../../assets/doll_images/${doll}.webp`, import.meta.url).href;
                             const equippedCount = relics.filter(r => r.equipped === doll).length;
-                            const checked = importEnabled.has(doll);
                             return (
                                 <div
                                     key={doll}
-                                    onClick={async () => { await onAdd(doll, importEnabled.has(doll)); onClose(); }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.4rem 0.5rem', borderRadius: 'var(--radius)', cursor: 'pointer' }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.4rem 0.5rem', borderRadius: 'var(--radius)' }}
                                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
                                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                                 >
-                                    <img
-                                        src={imgPath}
-                                        alt={doll}
-                                        style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '50%', flexShrink: 0 }}
-                                        onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
-                                    />
-                                    <span style={{ fontSize: '0.9rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doll}</span>
+                                    <div
+                                        onClick={async () => { await onAdd(doll); onClose(); }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, cursor: 'pointer', minWidth: 0 }}
+                                    >
+                                        <img
+                                            src={imgPath}
+                                            alt={doll}
+                                            style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '50%', flexShrink: 0 }}
+                                            onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }}
+                                        />
+                                        <span style={{ fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doll}</span>
+                                    </div>
                                     <button
-                                        onClick={e => equippedCount > 0 && toggleImport(e, doll)}
-                                        title={equippedCount > 0 ? `${checked ? 'Disable' : 'Enable'} import of ${equippedCount} equipped relic${equippedCount !== 1 ? 's' : ''}` : 'No relics equipped in general view'}
+                                        onClick={async (e) => { e.stopPropagation(); await onAdd(doll, true); onClose(); }}
+                                        disabled={equippedCount === 0}
+                                        title={equippedCount > 0 ? `Add and import ${equippedCount} equipped relic${equippedCount !== 1 ? 's' : ''}` : 'No relics equipped in general view'}
                                         style={{
                                             flexShrink: 0,
                                             width: '32px',
                                             height: '28px',
-                                            background: checked ? 'rgba(242,108,21,0.25)' : 'transparent',
-                                            border: `1px solid ${equippedCount > 0 ? 'var(--accent-color)' : 'rgba(255,255,255,0.15)'}`,
+                                            background: equippedCount > 0 ? 'rgb(242,108,21)' : 'transparent',
+                                            border: `1px solid ${equippedCount > 0 ? 'rgb(242,108,21)' : 'rgba(255,255,255,0.15)'}`,
                                             borderRadius: 'var(--radius)',
-                                            color: equippedCount > 0 ? 'var(--accent-color)' : 'rgba(255,255,255,0.2)',
+                                            color: equippedCount > 0 ? '#fff' : 'rgba(255,255,255,0.2)',
                                             cursor: equippedCount > 0 ? 'pointer' : 'default',
                                             fontSize: '0.85rem',
                                             display: 'flex',
