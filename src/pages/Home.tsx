@@ -157,6 +157,17 @@ export function Home() {
         await db.formations.update(activeFormation.id, { dolls: [...activeFormation.dolls, dollName] });
     };
 
+    const handleRemoveDoll = async (e: React.MouseEvent, dollName: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!activeFormation) return;
+        const newDolls = activeFormation.dolls.filter(d => d !== dollName);
+        const newAssignments = Object.fromEntries(
+            Object.entries(activeFormation.relicAssignments).filter(([, doll]) => doll !== dollName)
+        );
+        await db.formations.update(activeFormation.id, { dolls: newDolls, relicAssignments: newAssignments });
+    };
+
     // General view: all dolls sorted favorites-first then alphabetically
     const generalDolls = Object.keys(dollsData)
         .filter(d => d.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -291,15 +302,24 @@ export function Home() {
                                     onClick={e => { if (isEditMode) e.preventDefault(); }}
                                     style={{ textDecoration: 'none', transform: `translateY(${activeFormation ? '0px' : offsetY})`, width: '160px', padding: '1.5rem', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative', opacity: draggedDoll === doll ? 0.3 : 1 }}
                                 >
-                                    <div
-                                        onClick={e => toggleFavorite(e, doll)}
-                                        style={{ position: 'absolute', top: '8px', right: '12px', zIndex: 10, cursor: 'pointer', color: '#ffffff', filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                        draggable={false}
-                                    >
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                                        </svg>
-                                    </div>
+                                    {activeFormation ? (
+                                        <div
+                                            onClick={e => handleRemoveDoll(e, doll)}
+                                            style={{ position: 'absolute', top: '4px', right: '8px', zIndex: 10, cursor: 'pointer', color: 'rgba(255,100,100,0.8)', filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', fontWeight: 'bold', lineHeight: 1 }}
+                                            draggable={false}
+                                            title="Remove from formation"
+                                        >×</div>
+                                    ) : (
+                                        <div
+                                            onClick={e => toggleFavorite(e, doll)}
+                                            style={{ position: 'absolute', top: '8px', right: '12px', zIndex: 10, cursor: 'pointer', color: '#ffffff', filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                            draggable={false}
+                                        >
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                            </svg>
+                                        </div>
+                                    )}
                                     <div className="doll-img-container" style={{ width: '100px', height: '100px', marginBottom: '1rem' }}>
                                         <img src={imgPath} alt={doll} draggable={false} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                     </div>
