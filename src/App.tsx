@@ -5,7 +5,8 @@ import './index.css';
 const Landing = lazy(() => import('./pages/Landing').then((module) => ({ default: module.Landing })));
 const Home = lazy(() => import('./pages/Home').then((module) => ({ default: module.Home })));
 const Database = lazy(() => import('./pages/Database').then((module) => ({ default: module.Database })));
-const Optimizer = lazy(() => import('./pages/Optimizer').then((module) => ({ default: module.Optimizer })));
+const GeneralOptimizerPage = lazy(() => import('./pages/GeneralOptimizerPage').then((module) => ({ default: module.GeneralOptimizerPage })));
+const FormationOptimizerPage = lazy(() => import('./pages/FormationOptimizerPage').then((module) => ({ default: module.FormationOptimizerPage })));
 
 function App() {
     return (
@@ -14,7 +15,8 @@ function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/characters" element={<Home />} />
                 <Route path="/database" element={<Database />} />
-                <Route path="/doll/:dollName" element={<Optimizer />} />
+                <Route path="/doll/:dollName" element={<GeneralOptimizerPage />} />
+                <Route path="/formation/:formationId/doll/:dollName" element={<FormationOptimizerPage />} />
             </Routes>
         </Suspense>
     );
