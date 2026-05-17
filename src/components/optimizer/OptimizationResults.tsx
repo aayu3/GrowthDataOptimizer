@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BuildResult, Relic } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
+import { EquippedStateContext } from '../../contexts/EquippedStateContext';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildDamage, DamageType, AttackMode } from '../../utils/buildUtils';
 import { PostGenerationFilter } from './PostGenerationFilter';
@@ -59,6 +60,7 @@ export function OptimizationResults({
     const [expandedSkillKeys, setExpandedSkillKeys] = React.useState<Set<string>>(new Set());
     const [isFilterOpen, setIsFilterOpen] = React.useState<boolean>(false);
     const { showNotification } = useToast();
+    const equippedCtx = useContext(EquippedStateContext);
     const [equippingBuilds, setEquippingBuilds] = React.useState<Set<number>>(new Set());
 
     const handleEquip = async (res: BuildResult, buildNumber: number) => {
@@ -245,6 +247,7 @@ export function OptimizationResults({
                                             relic={r}
                                             isSelected={selectedRelicInResults?.id === r.id && selectedRelicInResults?.id !== undefined}
                                             onClick={() => setSelectedRelicInResults(r)}
+                                            equippedDoll={equippedCtx && r.id != null ? (equippedCtx.getEquippedDoll(r.id) ?? null) : (r.equipped ?? null)}
                                         />
                                     </div>
                                 ))}

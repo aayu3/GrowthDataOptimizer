@@ -1,26 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../db/database';
+import { db, MAX_FORMATION_DOLLS } from '../db/database';
 import dollsData from '../data/dolls.json';
 import { SelectionRelicIcon } from '../components/SelectionRelicIcon';
 import { ImportInventoryModal } from '../components/modals/ImportInventoryModal';
 import { ExportInventoryModal } from '../components/modals/ExportInventoryModal';
 import { GoogleDriveSyncModal } from '../components/modals/GoogleDriveSyncModal';
+import { AddDollModal } from '../components/modals/AddDollModal';
+import { FormationDropdown } from '../components/formations/FormationDropdown';
+
+const ACTIVE_FORMATION_KEY = 'activeFormationId';
 
 export function Home() {
     const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
     const characters = useLiveQuery(() => db.characters.toArray(), []) || [];
+    const formations = useLiveQuery(() => db.formations.orderBy('order').toArray(), []) || [];
     const [searchQuery, setSearchQuery] = useState('');
     const [showImportModal, setShowImportModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
+    const [showAddDollModal, setShowAddDollModal] = useState(false);
+    const [activeFormationId, setActiveFormationId] = useState<string | null>(
+        () => localStorage.getItem(ACTIVE_FORMATION_KEY)
+    );
     const [isExiting, setIsExiting] = useState(false);
     const [draggedDoll, setDraggedDoll] = useState<string | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [liveFavorites, setLiveFavorites] = useState<string[]>([]);
     const pressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
     const navigate = useNavigate();
+
+    const activeFormation = formations.find(f => f.id === activeFormationId) ?? null;
+
+    const handleSetActiveFormation = (id: string | null) => {
+        setActiveFormationId(id);
+        if (id) localStorage.setItem(ACTIVE_FORMATION_KEY, id);
+        else localStorage.removeItem(ACTIVE_FORMATION_KEY);
+    };
+
+    // Clear stale activeFormationId if formation was deleted
+    useEffect(() => {
+        if (activeFormationId && formations.length > 0 && !formations.find(f => f.id === activeFormationId)) {
+            handleSetActiveFormation(null);
+        }
+    }, [formations, activeFormationId]);
+
+    // Exit favorites edit mode when switching to formation view
+    useEffect(() => {
+        if (activeFormation) setIsEditMode(false);
+    }, [activeFormation?.id]);
 
     useEffect(() => {
         if (!draggedDoll) {
@@ -34,7 +63,6 @@ export function Home() {
                 })
                 .map(c => c.dollName);
 
-            // Only update if different to avoid infinite loops
             if (JSON.stringify(sorted) !== JSON.stringify(liveFavorites)) {
                 setLiveFavorites(sorted);
             }
@@ -44,7 +72,6 @@ export function Home() {
     const toggleFavorite = async (e: React.MouseEvent, dollName: string) => {
         e.preventDefault();
         e.stopPropagation();
-
         const character = characters.find(c => c.dollName === dollName);
         if (character?.isFavorite) {
             await db.characters.update(dollName, { isFavorite: false, favoriteOrder: undefined });
@@ -60,60 +87,36 @@ export function Home() {
 
     const handlePressStart = (doll: string) => {
         if (!liveFavorites.includes(doll)) return;
-
-        pressTimer.current = setTimeout(() => {
-            setIsEditMode(true);
-        }, 500); // 500ms long press
+        pressTimer.current = setTimeout(() => setIsEditMode(true), 500);
     };
 
     const handlePressEnd = () => {
-        if (pressTimer.current) {
-            clearTimeout(pressTimer.current);
-            pressTimer.current = null;
-        }
+        if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
     };
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            // If they click on empty space (not a doll button), exit edit mode
             const target = e.target as HTMLElement;
             if (!target.closest('.doll-btn') && !target.closest('.delete-favorite-btn')) {
                 setIsEditMode(false);
             }
         };
-
-        if (isEditMode) {
-            document.addEventListener('click', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
+        if (isEditMode) document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
     }, [isEditMode]);
 
     const handleDragStart = (e: React.DragEvent, doll: string) => {
-        // Only allow dragging favorite dolls in edit mode
-        if (!liveFavorites.includes(doll) || !isEditMode) {
-            e.preventDefault();
-            return;
-        }
+        if (!liveFavorites.includes(doll) || !isEditMode) { e.preventDefault(); return; }
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', doll);
-
-        // Delay setting state so the drag ghost image is captured *before* opacity drops
         setTimeout(() => setDraggedDoll(doll), 0);
     };
 
     const handleDragEnter = (targetDoll: string) => {
-        if (!draggedDoll || draggedDoll === targetDoll || !liveFavorites.includes(targetDoll)) {
-            return;
-        }
-
+        if (!draggedDoll || draggedDoll === targetDoll || !liveFavorites.includes(targetDoll)) return;
         const draggedIdx = liveFavorites.indexOf(draggedDoll);
         const targetIdx = liveFavorites.indexOf(targetDoll);
-
         if (draggedIdx === -1 || targetIdx === -1) return;
-
         const newFavorites = [...liveFavorites];
         newFavorites.splice(draggedIdx, 1);
         newFavorites.splice(targetIdx, 0, draggedDoll);
@@ -127,61 +130,57 @@ export function Home() {
 
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault();
-
         if (!draggedDoll) return;
-
-        // Commit all live favorites changes
-        const updates = liveFavorites.map((name, index) => {
-            return db.characters.update(name, { favoriteOrder: index });
-        });
-
-        await Promise.all(updates);
+        await Promise.all(liveFavorites.map((name, index) => db.characters.update(name, { favoriteOrder: index })));
         setDraggedDoll(null);
     };
 
-    const handleDragEnd = () => {
-        setDraggedDoll(null);
-    };
+    const handleDragEnd = () => setDraggedDoll(null);
 
     useEffect(() => {
         const handleWheel = (e: WheelEvent) => {
-            // Don't navigate while a modal is open
-            if (showImportModal || showExportModal || showGoogleDriveModal) return;
-            // If scrolling UP and we are at the top of the page
+            if (showImportModal || showExportModal || showGoogleDriveModal || showAddDollModal) return;
             if (e.deltaY < -50 && window.scrollY <= 0) {
                 if (!isExiting) {
                     setIsExiting(true);
-                    setTimeout(() => {
-                        navigate('/');
-                    }, 500);
+                    setTimeout(() => navigate('/'), 500);
                 }
             }
         };
-
         window.addEventListener('wheel', handleWheel);
         return () => window.removeEventListener('wheel', handleWheel);
-    }, [isExiting, navigate, showGoogleDriveModal, showImportModal, showExportModal]);
+    }, [isExiting, navigate, showGoogleDriveModal, showImportModal, showExportModal, showAddDollModal]);
 
-    const availableDolls = Object.keys(dollsData).filter(doll =>
-        doll.toLowerCase().includes(searchQuery.toLowerCase())
-    ).sort((a, b) => {
-        const aFavIdx = liveFavorites.indexOf(a);
-        const bFavIdx = liveFavorites.indexOf(b);
-        if (aFavIdx !== -1 && bFavIdx === -1) return -1;
-        if (aFavIdx === -1 && bFavIdx !== -1) return 1;
-        if (aFavIdx !== -1 && bFavIdx !== -1) return aFavIdx - bFavIdx;
-        return a.localeCompare(b);
-    });
+    const handleAddDoll = async (dollName: string) => {
+        if (!activeFormation) return;
+        if (activeFormation.dolls.includes(dollName) || activeFormation.dolls.length >= MAX_FORMATION_DOLLS) return;
+        await db.formations.update(activeFormation.id, { dolls: [...activeFormation.dolls, dollName] });
+    };
+
+    // General view: all dolls sorted favorites-first then alphabetically
+    const generalDolls = Object.keys(dollsData)
+        .filter(d => d.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => {
+            const aIdx = liveFavorites.indexOf(a);
+            const bIdx = liveFavorites.indexOf(b);
+            if (aIdx !== -1 && bIdx === -1) return -1;
+            if (aIdx === -1 && bIdx !== -1) return 1;
+            if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+            return a.localeCompare(b);
+        });
+
+    // Formation view: only the formation's dolls, in their added order
+    const formationDolls = activeFormation
+        ? activeFormation.dolls.filter(d => d.toLowerCase().includes(searchQuery.toLowerCase()))
+        : [];
+
+    const displayDolls = activeFormation ? formationDolls : generalDolls;
 
     return (
         <div className={`app-container ${isExiting ? 'page-exit-down' : 'page-enter-down'}`}>
             <style>{`
-                .page-exit-down {
-                    animation: slide-down-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-                }
-                .page-enter-down {
-                    animation: slide-up-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-                }
+                .page-exit-down { animation: slide-down-fade 0.5s cubic-bezier(0.4,0,0.2,1) forwards !important; }
+                .page-enter-down { animation: slide-up-fade-in 0.5s cubic-bezier(0.4,0,0.2,1) forwards; }
                 @keyframes slide-down-fade {
                     0% { transform: translateY(0); opacity: 1; }
                     100% { transform: translateY(20vh); opacity: 0; filter: blur(10px); }
@@ -195,29 +194,16 @@ export function Home() {
                     50% { transform: rotate(1.5deg); }
                     100% { transform: rotate(-1deg); }
                 }
-                .jiggling {
-                    animation: jiggle 0.3s infinite linear;
-                    z-index: 10;
-                }
-                .jiggling:nth-child(even) {
-                    animation-direction: reverse;
-                    animation-duration: 0.35s;
-                }
-                .jiggling:nth-child(3n) {
-                    animation-duration: 0.25s;
-                }
+                .jiggling { animation: jiggle 0.3s infinite linear; z-index: 10; }
+                .jiggling:nth-child(even) { animation-direction: reverse; animation-duration: 0.35s; }
+                .jiggling:nth-child(3n) { animation-duration: 0.25s; }
             `}</style>
+
             <header className="header-glow" style={{ position: 'sticky', top: 0, zIndex: 100, padding: '1.5rem', background: 'var(--bg-panel)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--bg-panel-border)', marginBottom: '3rem' }}>
                 <div className="nav-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
-                    <Link to="/database" className="back-btn" style={{ position: 'relative', textDecoration: 'none' }}>
-                        Browse Database
-                    </Link>
-                    <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowImportModal(true)}>
-                        Import Data
-                    </button>
-                    <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowExportModal(true)}>
-                        Export Data
-                    </button>
+                    <Link to="/database" className="back-btn" style={{ position: 'relative', textDecoration: 'none' }}>Browse Database</Link>
+                    <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowImportModal(true)}>Import Data</button>
+                    <button className="glow-btn" style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }} onClick={() => setShowExportModal(true)}>Export Data</button>
                     <button
                         className="glow-btn"
                         style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)', display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}
@@ -231,13 +217,10 @@ export function Home() {
                         </svg>
                         Sync
                     </button>
-                    {liveFavorites.length > 0 && (
+                    {liveFavorites.length > 0 && !activeFormation && (
                         <button
                             className="glow-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsEditMode(!isEditMode);
-                            }}
+                            onClick={(e) => { e.stopPropagation(); setIsEditMode(!isEditMode); }}
                             style={{ position: 'relative', cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: 'var(--radius-button)' }}
                         >
                             {isEditMode ? 'Done' : 'Edit Favorites'}
@@ -251,89 +234,79 @@ export function Home() {
 
             <main className="main-content">
                 <section className="glass-panel" style={{ position: 'relative', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '3rem', marginTop: '1rem', position: 'relative' }}>
+
+                    {/* Search + Formation dropdown row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '3rem', marginTop: '1rem', padding: '0 1rem' }}>
+                        <FormationDropdown
+                            formations={formations}
+                            activeFormationId={activeFormationId}
+                            onSelect={handleSetActiveFormation}
+                        />
                         <input
                             type="text"
                             className="search-dolls-input"
                             placeholder="Search Dolls..."
-                            onFocus={(e) => e.target.placeholder = ''}
-                            onBlur={(e) => e.target.placeholder = 'Search Dolls...'}
+                            onFocus={e => e.target.placeholder = ''}
+                            onBlur={e => e.target.placeholder = 'Search Dolls...'}
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            style={{ flex: '1 1 auto', minWidth: 0 }}
                         />
                     </div>
-                    <div className="doll-gallery" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }}>
-                        {availableDolls.map((doll, index) => {
+
+                    {/* Doll gallery */}
+                    <div className="doll-gallery" style={activeFormation
+                        ? { display: 'grid', gridTemplateColumns: 'repeat(5, 160px)', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }
+                        : { display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem' }
+                    }>
+
+                        {displayDolls.map((doll, index) => {
                             const imgPath = new URL(`../assets/doll_images/${doll}.webp`, import.meta.url).href;
                             const offsetY = index % 2 === 0 ? '20px' : '-20px';
                             const isFavorite = liveFavorites.includes(doll);
-                            const shouldJiggle = isFavorite && isEditMode;
+                            const shouldJiggle = isFavorite && isEditMode && !activeFormation;
+                            const dollRelics = activeFormation
+                                ? relics.filter(r => r.id != null && activeFormation.relicAssignments[r.id!] === doll)
+                                : relics.filter(r => r.equipped === doll);
+                            const linkTarget = activeFormation
+                                ? (isEditMode ? '#' : `/formation/${activeFormation.id}/doll/${doll}`)
+                                : (isEditMode ? '#' : `/doll/${doll}`);
 
                             return (
                                 <Link
                                     key={doll}
                                     className={`doll-btn glass-panel ${draggedDoll === doll ? 'dragging' : ''} ${shouldJiggle ? 'jiggling' : ''}`}
-                                    to={isEditMode ? '#' : `/doll/${doll}`}
-                                    draggable={isFavorite && isEditMode}
-                                    onMouseDown={() => handlePressStart(doll)}
-                                    onTouchStart={() => handlePressStart(doll)}
+                                    to={linkTarget}
+                                    draggable={isFavorite && isEditMode && !activeFormation}
+                                    onMouseDown={() => !activeFormation && handlePressStart(doll)}
+                                    onTouchStart={() => !activeFormation && handlePressStart(doll)}
                                     onMouseUp={handlePressEnd}
                                     onMouseLeave={handlePressEnd}
                                     onTouchEnd={handlePressEnd}
-                                    onDragStart={(e) => handleDragStart(e, doll)}
-                                    onDragEnter={() => handleDragEnter(doll)}
+                                    onDragStart={e => !activeFormation && handleDragStart(e, doll)}
+                                    onDragEnter={() => !activeFormation && handleDragEnter(doll)}
                                     onDragOver={handleDragOver}
                                     onDrop={handleDrop}
                                     onDragEnd={handleDragEnd}
-                                    onClick={(e) => {
-                                        if (isEditMode) e.preventDefault();
-                                    }}
-                                    style={{
-                                        textDecoration: 'none',
-                                        transform: `translateY(${offsetY})`,
-                                        width: '160px',
-                                        padding: '1.5rem',
-                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                                        position: 'relative',
-                                        opacity: draggedDoll === doll ? 0.3 : 1
-                                    }}
+                                    onClick={e => { if (isEditMode) e.preventDefault(); }}
+                                    style={{ textDecoration: 'none', transform: `translateY(${activeFormation ? '0px' : offsetY})`, width: '160px', padding: '1.5rem', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative', opacity: draggedDoll === doll ? 0.3 : 1 }}
                                 >
                                     <div
-                                        onClick={(e) => toggleFavorite(e, doll)}
-                                        style={{
-                                            position: 'absolute',
-                                            top: '8px',
-                                            right: '12px',
-                                            zIndex: 10,
-                                            cursor: 'pointer',
-                                            color: '#ffffff',
-                                            filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}
+                                        onClick={e => toggleFavorite(e, doll)}
+                                        style={{ position: 'absolute', top: '8px', right: '12px', zIndex: 10, cursor: 'pointer', color: '#ffffff', filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         draggable={false}
                                     >
-                                        <svg
-                                            width="28"
-                                            height="28"
-                                            viewBox="0 0 24 24"
-                                            fill={liveFavorites.includes(doll) ? "currentColor" : "none"}
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                                         </svg>
                                     </div>
                                     <div className="doll-img-container" style={{ width: '100px', height: '100px', marginBottom: '1rem' }}>
-                                        <img src={imgPath} alt={doll} draggable={false} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                        <img src={imgPath} alt={doll} draggable={false} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                     </div>
                                     <span style={{ fontSize: '1.1rem', letterSpacing: '0.5px' }}>{doll}</span>
-                                    {relics.filter(r => r.equipped === doll).length > 0 && (
+                                    {dollRelics.length > 0 && (
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', justifyContent: 'center', marginTop: '1rem' }}>
-                                            {relics.filter(r => r.equipped === doll).map(r => (
+                                            {dollRelics.map(r => (
                                                 <div key={r.id} style={{ width: '24px', height: '24px' }}>
                                                     <SelectionRelicIcon relic={r} />
                                                 </div>
@@ -343,26 +316,37 @@ export function Home() {
                                 </Link>
                             );
                         })}
+
+                        {/* Add Doll placeholder — only shown in formation view */}
+                        {activeFormation && activeFormation.dolls.length < MAX_FORMATION_DOLLS && (
+                            <div
+                                className="doll-btn glass-panel"
+                                onClick={() => setShowAddDollModal(true)}
+                                style={{ textDecoration: 'none', transform: 'translateY(0px)', width: '160px', padding: '1.5rem', transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', position: 'relative', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.6 }}
+                            >
+                                <div style={{ width: '100px', height: '100px', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <svg viewBox="0 0 100 100" width="100" height="100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="50" cy="36" r="22" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" fill="rgba(255,255,255,0.07)" />
+                                        <path d="M 8 92 Q 12 62 50 62 Q 88 62 92 92" stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" fill="rgba(255,255,255,0.07)" strokeLinecap="round" />
+                                    </svg>
+                                </div>
+                                <span style={{ fontSize: '1rem', letterSpacing: '0.5px', color: 'rgba(255,255,255,0.6)' }}>Add Doll</span>
+                            </div>
+                        )}
                     </div>
                 </section>
             </main>
 
-            {
-                showImportModal && (
-                    <ImportInventoryModal onClose={() => setShowImportModal(false)} />
-                )
-            }
-            {
-                showExportModal && (
-                    <ExportInventoryModal relics={relics} onClose={() => setShowExportModal(false)} />
-                )
-            }
-            {
-                showGoogleDriveModal && (
-                    <GoogleDriveSyncModal onClose={() => setShowGoogleDriveModal(false)} />
-                )
-            }
-        </div >
+            {showImportModal && <ImportInventoryModal onClose={() => setShowImportModal(false)} />}
+            {showExportModal && <ExportInventoryModal relics={relics} onClose={() => setShowExportModal(false)} />}
+            {showGoogleDriveModal && <GoogleDriveSyncModal onClose={() => setShowGoogleDriveModal(false)} />}
+            {showAddDollModal && activeFormation && (
+                <AddDollModal
+                    formation={activeFormation}
+                    onAdd={handleAddDoll}
+                    onClose={() => setShowAddDollModal(false)}
+                />
+            )}
+        </div>
     );
 }
-
