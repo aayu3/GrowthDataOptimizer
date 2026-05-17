@@ -151,10 +151,20 @@ export function Home() {
         return () => window.removeEventListener('wheel', handleWheel);
     }, [isExiting, navigate, showGoogleDriveModal, showImportModal, showExportModal, showAddDollModal]);
 
-    const handleAddDoll = async (dollName: string) => {
+    const handleAddDoll = async (dollName: string, importRelics?: boolean) => {
         if (!activeFormation) return;
         if (activeFormation.dolls.includes(dollName) || activeFormation.dolls.length >= MAX_FORMATION_DOLLS) return;
-        await db.formations.update(activeFormation.id, { dolls: [...activeFormation.dolls, dollName] });
+        const newDolls = [...activeFormation.dolls, dollName];
+        const newAssignments = { ...activeFormation.relicAssignments };
+        if (importRelics) {
+            for (const relic of relics.filter(r => r.equipped === dollName && r.id != null)) {
+                // Only import if not already claimed by another doll in this formation
+                if (!newAssignments[relic.id!]) {
+                    newAssignments[relic.id!] = dollName;
+                }
+            }
+        }
+        await db.formations.update(activeFormation.id, { dolls: newDolls, relicAssignments: newAssignments });
     };
 
     const handleRemoveDoll = async (e: React.MouseEvent, dollName: string) => {
@@ -363,6 +373,7 @@ export function Home() {
             {showAddDollModal && activeFormation && (
                 <AddDollModal
                     formation={activeFormation}
+                    relics={relics}
                     onAdd={handleAddDoll}
                     onClose={() => setShowAddDollModal(false)}
                 />
