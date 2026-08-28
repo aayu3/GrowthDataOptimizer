@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "sync:dolls": "node scripts/sync-dandegate-dolls.mjs"
     },
     "dependencies": {
         "dexie": "^4.3.0",
