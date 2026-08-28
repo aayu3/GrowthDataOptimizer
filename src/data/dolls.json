@@ -1568,7 +1568,7 @@
         "bonuses": [
             {
                 "tier": 1,
-                "description": "damage dealt to enemy units with Burn debuffs is increased by 5%.",
+                "description": "Damage dealt to enemy units with Burn debuffs is increased by 5%.",
                 "Vanguard": 5,
                 "Sentinel": 1,
                 "Buff": {
@@ -2947,6 +2947,55 @@
             }
         ]
     },
+    "Nemesis Gnosis": {
+        "element": "Corrosion",
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Vanguard": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt by Support Attacks is increased by 5%.",
+                "Sentinel": 5,
+                "Vanguard": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Sentinel": 8,
+                "Vanguard": 3
+            },
+            {
+                "tier": 3,
+                "description": "Corrosion damage dealt is increased by 5%.",
+                "Bulwark": 1,
+                "Sentinel": 9,
+                "Vanguard": 4
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 2,
+                "Sentinel": 11,
+                "Vanguard": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 2,
+                "Sentinel": 15,
+                "Vanguard": 7
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt against enemy units that are more than 5 tiles away is increased by 12%.",
+                "Bulwark": 3,
+                "Sentinel": 18,
+                "Vanguard": 8
+            }
+        ]
+    },
     "Nikketa": {
         "allowed_slots": {
             "Sentinel": 4,
@@ -3029,6 +3078,55 @@
                     ],
                     "value": 12
                 }
+            }
+        ]
+    },
+    "OTs-14": {
+        "element": "Omni",
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Vanguard": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt by active attacks is increased by 8%.",
+                "Sentinel": 5,
+                "Vanguard": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Sentinel": 8,
+                "Vanguard": 3
+            },
+            {
+                "tier": 3,
+                "description": "Omni damage dealt is increased by 5%.",
+                "Bulwark": 1,
+                "Sentinel": 9,
+                "Vanguard": 4
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+                "Bulwark": 2,
+                "Sentinel": 11,
+                "Vanguard": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+                "Bulwark": 2,
+                "Sentinel": 15,
+                "Vanguard": 7
+            },
+            {
+                "tier": 6,
+                "description": "The damage of attacks which hit 2 or more enemy units is increased by 12%.",
+                "Bulwark": 3,
+                "Sentinel": 18,
+                "Vanguard": 8
             }
         ]
     },
@@ -3810,6 +3908,55 @@
                     ],
                     "value": 12
                 }
+            }
+        ]
+    },
+    "Sextans": {
+        "element": "Electric",
+        "allowed_slots": {
+            "Support": 4,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "For every instance of Electric damage dealt by this unit, Electric damage dealt by all allied units is increased by 1%, maximum of 3%. Does not stack.",
+                "Support": 5,
+                "Sentinel": 2
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+                "Support": 8,
+                "Sentinel": 3
+            },
+            {
+                "tier": 3,
+                "description": "Electric damage dealt is increased by 5%.",
+                "Bulwark": 1,
+                "Support": 9,
+                "Sentinel": 4
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt by all allied units is increased by 4%, maximum of 3 stacks. The effect's potency is progressively reduced by 1% each time a new stack is applied.",
+                "Bulwark": 2,
+                "Support": 11,
+                "Sentinel": 6
+            },
+            {
+                "tier": 5,
+                "description": "Attack and max HP is increased by 4%.",
+                "Bulwark": 2,
+                "Support": 15,
+                "Sentinel": 7
+            },
+            {
+                "tier": 6,
+                "description": "At the start of the battle, the 2 allied units with the highest attack have their attack increased by 3%. Does not stack.",
+                "Bulwark": 3,
+                "Support": 18,
+                "Sentinel": 8
             }
         ]
     },
@@ -4675,6 +4822,395 @@
                     ],
                     "value": 3
                 }
+            }
+        ]
+    },
+    "Asteria": {
+        "element": "Physical",
+        "allowed_slots": {
+            "Support": 4,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+            "description": "When allied units deal ammo type Physical damage, damage dealt is increased by 5%. Cannot stack.",
+            "Support": 5,
+            "Sentinel": 2,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 2,
+            "description": "Physical and phase damage taken is reduced by 5%.",
+            "Support": 8,
+            "Sentinel": 3,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Physical damage dealt is increased by 5%.",
+            "Bulwark": 1,
+            "Support": 9,
+            "Sentinel": 4,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt by all allied units is increased by 4%, maximum of 3 stacks. The effect's potency is progressively reduced by 1% each time a new stack is applied.",
+            "Bulwark": 2,
+            "Support": 11,
+            "Sentinel": 6,
+            "Buff": { "stat": ["DMG"], "value": 4 }
+            },
+            {
+                "tier": 5,
+                "description": "Attack and max HP is increased by 4%.",
+            "Bulwark": 2,
+            "Support": 15,
+            "Sentinel": 7,
+            "Buff": { "stat": ["ATK", "HP"], "value": 4 }
+            },
+            {
+                "tier": 6,
+                "description": "At the start of the battle, the 2 allied units with the highest attack have their attack increased by 3%. Does not stack.",
+            "Bulwark": 3,
+            "Support": 18,
+            "Sentinel": 8,
+            "Buff": { "stat": ["ATK"], "value": 3 }
+            }
+        ]
+    },
+    "Eagletta": {
+        "element": "Freeze",
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Vanguard": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+            "description": "Damage dealt to enemy units with Freeze debuffs is increased by 5%.",
+            "Sentinel": 5,
+            "Vanguard": 2,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 2,
+            "description": "Physical and phase damage taken is reduced by 5%.",
+            "Sentinel": 8,
+            "Vanguard": 3,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Freeze damage dealt is increased by 5%.",
+            "Bulwark": 1,
+            "Sentinel": 9,
+            "Vanguard": 4,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+            "Bulwark": 2,
+            "Sentinel": 11,
+            "Vanguard": 6,
+            "Buff": { "stat": ["DMG"], "value": 10 }
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+            "Bulwark": 2,
+            "Sentinel": 15,
+            "Vanguard": 7,
+            "Buff": { "stat": ["ATK"], "value": 8 }
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+            "Bulwark": 3,
+            "Sentinel": 18,
+            "Vanguard": 8,
+            "Buff": { "stat": ["DMG"], "value": 12 }
+            }
+        ]
+    },
+    "Faelynn": {
+        "element": "Corrosion",
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Vanguard": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+            "description": "For every instance of Corrosion damage dealt by this unit, Corrosion damage dealt by all allied units is increased by 1%, maximum of 3%. Does not stack.",
+            "Sentinel": 5,
+            "Vanguard": 2,
+            "Buff": { "stat": ["DMG"], "value": 3 }
+            },
+            {
+                "tier": 2,
+            "description": "Physical and phase damage taken is reduced by 5%.",
+            "Sentinel": 8,
+            "Vanguard": 3,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Corrosion damage dealt is increased by 5%.",
+            "Bulwark": 1,
+            "Sentinel": 9,
+            "Vanguard": 4,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+            "Bulwark": 2,
+            "Sentinel": 11,
+            "Vanguard": 6,
+            "Buff": { "stat": ["DMG"], "value": 10 }
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+            "Bulwark": 2,
+            "Sentinel": 15,
+            "Vanguard": 7,
+            "Buff": { "stat": ["ATK"], "value": 8 }
+            },
+            {
+                "tier": 6,
+                "description": "The damage of attacks which hit 2 or more enemy units is increased by 12%.",
+            "Bulwark": 3,
+            "Sentinel": 18,
+            "Vanguard": 8,
+            "Buff": { "stat": ["DMG"], "value": 12 }
+            }
+        ]
+    },
+    "Koleda": {
+        "element": "Hydro",
+        "allowed_slots": {
+            "Sentinel": 2,
+            "Vanguard": 4
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+                "description": "Damage dealt by this unit's Physical Summon is increased by 8%.",
+                "Sentinel": 2,
+                "Vanguard": 5,
+                "Buff": { "stat": ["DMG"], "value": 8 }
+            },
+            {
+                "tier": 2,
+            "description": "Physical and phase damage taken is reduced by 5%.",
+            "Sentinel": 3,
+            "Vanguard": 8,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Hydro damage dealt is increased by 5%.",
+            "Bulwark": 1,
+            "Sentinel": 4,
+            "Vanguard": 9,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets with 50% or lower HP is increased by 10%.",
+            "Bulwark": 2,
+            "Sentinel": 6,
+            "Vanguard": 11,
+            "Buff": { "stat": ["DMG"], "value": 10 }
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+            "Bulwark": 2,
+            "Sentinel": 7,
+            "Vanguard": 15,
+            "Buff": { "stat": ["ATK"], "value": 8 }
+            },
+            {
+                "tier": 6,
+                "description": "The damage of attacks which hit 2 or more enemy units is increased by 12%.",
+            "Bulwark": 3,
+            "Sentinel": 8,
+            "Vanguard": 18,
+            "Buff": { "stat": ["DMG"], "value": 12 }
+            }
+        ]
+    },
+    "Mityl": {
+        "element": "Hydro",
+        "allowed_slots": {
+            "Bulwark": 1,
+            "Sentinel": 4,
+            "Vanguard": 1
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+            "description": "Damage dealt to enemy units standing on Hydro tiles is increased by 5%.",
+            "Sentinel": 5,
+            "Vanguard": 1,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+            "Bulwark": 1,
+            "Sentinel": 7,
+            "Vanguard": 2,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Hydro damage dealt is increased by 5%.",
+            "Bulwark": 2,
+            "Sentinel": 8,
+            "Vanguard": 3,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+            "Bulwark": 3,
+            "Sentinel": 11,
+            "Vanguard": 4,
+            "Buff": { "stat": ["DMG"], "value": 10 }
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+            "Bulwark": 4,
+            "Sentinel": 15,
+            "Vanguard": 4,
+            "Buff": { "stat": ["ATK"], "value": 8 }
+            },
+            {
+                "tier": 6,
+                "description": "Damage dealt by attacks that only hit 1 enemy unit is increased by 12%.",
+            "Bulwark": 5,
+            "Sentinel": 18,
+            "Vanguard": 6,
+            "Buff": { "stat": ["DMG"], "value": 12 }
+            }
+        ]
+    },
+    "Soppo": {
+        "element": "Freeze",
+        "allowed_slots": {
+            "Sentinel": 4,
+            "Vanguard": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+            "description": "Damage dealt by active attacks increases by 8%.",
+            "Sentinel": 5,
+            "Vanguard": 2,
+            "Buff": { "stat": ["DMG"], "value": 8 }
+            },
+            {
+                "tier": 2,
+            "description": "Physical and phase damage taken is reduced by 5%.",
+            "Sentinel": 8,
+            "Vanguard": 3,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Phase damage dealt increased by 5%.",
+            "Bulwark": 1,
+            "Sentinel": 9,
+            "Vanguard": 4,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "Damage dealt to enemy targets in Stability Break is increased by 10%.",
+            "Bulwark": 2,
+            "Sentinel": 11,
+            "Vanguard": 6,
+            "Buff": { "stat": ["DMG"], "value": 10 }
+            },
+            {
+                "tier": 5,
+                "description": "Attack is increased by 8%.",
+            "Bulwark": 2,
+            "Sentinel": 15,
+            "Vanguard": 7,
+            "Buff": { "stat": ["ATK"], "value": 8 }
+            },
+            {
+                "tier": 6,
+                "description": "The damage of attacks which hit 2 or more enemy units is increased by 12%.",
+            "Bulwark": 3,
+            "Sentinel": 18,
+            "Vanguard": 8,
+            "Buff": { "stat": ["DMG"], "value": 12 }
+            }
+        ]
+    },
+    "Welrod": {
+        "element": "Corrosion",
+        "allowed_slots": {
+            "Bulwark": 3,
+            "Support": 1,
+            "Sentinel": 2
+        },
+        "bonuses": [
+            {
+                "tier": 1,
+            "description": "Damage dealt to enemy units with Corrosion debuffs is increased by 5%.",
+            "Bulwark": 4,
+            "Sentinel": 2,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 2,
+                "description": "Physical and phase damage taken is reduced by 5%.",
+            "Bulwark": 6,
+            "Support": 1,
+            "Sentinel": 3,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 3,
+                "description": "Corrosion damage dealt is increased by 5%.",
+            "Bulwark": 7,
+            "Support": 2,
+            "Sentinel": 5,
+            "Buff": { "stat": ["DMG"], "value": 5 }
+            },
+            {
+                "tier": 4,
+                "description": "When not protected by cover, damage taken is reduced by 5%.",
+            "Bulwark": 9,
+            "Support": 3,
+            "Sentinel": 6,
+            "Buff": { "stat": ["DMG_REDUCTION"], "value": 5 }
+            },
+            {
+                "tier": 5,
+                "description": "Defense is increased by 8%.",
+            "Bulwark": 13,
+            "Support": 4,
+            "Sentinel": 6,
+            "Buff": { "stat": ["DEF"], "value": 8 }
+            },
+            {
+                "tier": 6,
+                "description": "When stability is greater than 0, damage dealt is increased by 12%.",
+            "Bulwark": 15,
+            "Support": 5,
+            "Sentinel": 9,
+            "Buff": { "stat": ["DMG"], "value": 12 }
             }
         ]
     }
