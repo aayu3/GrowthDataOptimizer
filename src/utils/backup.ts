@@ -1,10 +1,11 @@
-import { db, type CharacterLoadout, type DollSettings } from '../db/database';
+import { db, type CharacterLoadout, type DollSettings, type Formation } from '../db/database';
 import type { Relic } from '../optimizer/types';
 
 export interface AppBackupData {
     relics: Relic[];
     characters: CharacterLoadout[];
     dollSettings: DollSettings[];
+    formations: Formation[];
 }
 
 export interface AppBackupFile {
@@ -36,10 +37,11 @@ export function isAppBackupFile(value: unknown): value is AppBackupFile {
 }
 
 export async function createAppBackup(): Promise<AppBackupFile> {
-    const [relics, characters, dollSettings] = await Promise.all([
+    const [relics, characters, dollSettings, formations] = await Promise.all([
         db.relics.toArray(),
         db.characters.toArray(),
-        db.dollSettings.toArray()
+        db.dollSettings.toArray(),
+        db.formations.toArray(),
     ]);
 
     return {
@@ -49,16 +51,18 @@ export async function createAppBackup(): Promise<AppBackupFile> {
         data: {
             relics,
             characters,
-            dollSettings
+            dollSettings,
+            formations,
         }
     };
 }
 
 export async function restoreAppBackup(backup: AppBackupFile) {
-    await db.transaction('rw', db.relics, db.characters, db.dollSettings, async () => {
+    await db.transaction('rw', db.relics, db.characters, db.dollSettings, db.formations, async () => {
         await db.relics.clear();
         await db.characters.clear();
         await db.dollSettings.clear();
+        await db.formations.clear();
 
         if (backup.data.relics.length > 0) {
             await db.relics.bulkAdd(backup.data.relics);
@@ -68,6 +72,10 @@ export async function restoreAppBackup(backup: AppBackupFile) {
         }
         if (backup.data.dollSettings.length > 0) {
             await db.dollSettings.bulkAdd(backup.data.dollSettings);
+        }
+        // formations may be absent in older backups
+        if (backup.data.formations?.length > 0) {
+            await db.formations.bulkAdd(backup.data.formations);
         }
     });
 }

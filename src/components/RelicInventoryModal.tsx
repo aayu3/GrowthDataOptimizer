@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { DollDefinition } from '../optimizer/types';
 import dollsData from '../data/dolls.json';
 import { RelicDatabaseViewer } from './RelicDatabaseViewer';
+import { EquippedStateContext } from '../contexts/EquippedStateContext';
 
 interface RelicInventoryModalProps {
     selectedDoll: string;
@@ -13,23 +13,24 @@ interface RelicInventoryModalProps {
 }
 
 export const RelicInventoryModal: React.FC<RelicInventoryModalProps> = ({ selectedDoll, onClose, onEquip }) => {
+    const equippedCtx = useContext(EquippedStateContext);
     const [equipError, setEquipError] = useState<string | null>(null);
-    const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
 
     const handleSelect = async (r: any) => {
         if (r.id && selectedDoll && dollsData) {
             const dollData = (dollsData as unknown as Record<string, DollDefinition>)[selectedDoll];
-            if (dollData && dollData.allowed_slots) {
+            if (dollData && dollData.allowed_slots && equippedCtx) {
                 const maxAllowed = dollData.allowed_slots[r.type] || 0;
-                const currentEquippedTyped = relics.filter(er => er.equipped === selectedDoll && er.type === r.type).length;
-
-                if (currentEquippedTyped >= maxAllowed) {
+                const currentCount = equippedCtx.getEquipped(selectedDoll).filter(er => er.type === r.type).length;
+                if (currentCount >= maxAllowed) {
                     setEquipError(`Cannot equip. ${selectedDoll} can only hold ${maxAllowed} ${r.type} relics.`);
                     return;
                 }
             }
             if (onEquip) {
                 await onEquip(r);
+            } else if (equippedCtx) {
+                await equippedCtx.equip(r.id, selectedDoll);
             } else {
                 await db.relics.update(r.id, { equipped: selectedDoll });
             }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { Relic } from '../optimizer/types';
@@ -7,6 +7,7 @@ import { RelicThumbnail } from './RelicThumbnail';
 import { RelicInspector } from './RelicInspector';
 import { RelicEditorModal } from './RelicEditorModal';
 import { ConfirmationModal } from './modals/ConfirmationModal';
+import { EquippedStateContext } from '../contexts/EquippedStateContext';
 
 export interface RelicDatabaseViewerProps {
     mode?: 'view' | 'select';
@@ -15,6 +16,7 @@ export interface RelicDatabaseViewerProps {
 }
 
 export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode = 'view', onSelect, excludeEquippedBy }) => {
+    const equippedCtx = useContext(EquippedStateContext);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState<string>('All');
     const [filterRarity, setFilterRarity] = useState<string>('All');
@@ -75,7 +77,11 @@ export const RelicDatabaseViewer: React.FC<RelicDatabaseViewerProps> = ({ mode =
         }
 
         if (excludeEquippedBy) {
-            filtered = filtered.filter(r => r.equipped !== excludeEquippedBy);
+            if (equippedCtx) {
+                filtered = filtered.filter(r => r.id ? equippedCtx.getEquippedDoll(r.id) !== excludeEquippedBy : true);
+            } else {
+                filtered = filtered.filter(r => r.equipped !== excludeEquippedBy);
+            }
         }
 
         if (filterRarity !== 'All') {

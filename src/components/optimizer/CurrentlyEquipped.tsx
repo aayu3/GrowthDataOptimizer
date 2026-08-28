@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { db } from '../../db/database';
 import { Relic, HistoryAction, BuildResult } from '../../optimizer/types';
 import { RelicThumbnail } from '../RelicThumbnail';
 import { RelicModal } from '../RelicModal';
@@ -7,10 +6,10 @@ import { RelicInventoryModal } from '../RelicInventoryModal';
 import { getCatBadgeIconUrl, getSkillCategory, getSkillDescription } from '../../utils/relicUtils';
 import { calculateBuildStats, calculateBuildDamage, DamageType, AttackMode } from '../../utils/buildUtils';
 import { ElementalText } from '../ElementalText';
+import { useEquippedState } from '../../contexts/EquippedStateContext';
 
 interface CurrentlyEquippedProps {
     selectedDoll: string;
-    relics: Relic[];
     undoStack: HistoryAction[];
     redoStack: HistoryAction[];
     handleUndo: () => void;
@@ -30,7 +29,6 @@ interface CurrentlyEquippedProps {
 
 export function CurrentlyEquipped({
     selectedDoll,
-    relics,
     undoStack,
     redoStack,
     handleUndo,
@@ -47,6 +45,7 @@ export function CurrentlyEquipped({
     setDamageType,
     attackMode,
 }: CurrentlyEquippedProps) {
+    const equippedState = useEquippedState();
     const [selectedEquippedRelic, setSelectedEquippedRelic] = useState<Relic | null>(null);
     const [isEditingEquip, setIsEditingEquip] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -60,7 +59,7 @@ export function CurrentlyEquipped({
 
     const dmgLabel = damageType === 'average' ? 'Simulated Avg DMG' : damageType === 'crit' ? 'Simulated Crit DMG' : 'Simulated Non-Crit DMG';
 
-    const equippedRelics = relics.filter(r => r.equipped === selectedDoll);
+    const equippedRelics = equippedState.getEquipped(selectedDoll);
 
     return (
         <section className="card glassmorphism" style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
@@ -304,12 +303,12 @@ export function CurrentlyEquipped({
                     onClose={() => setIsEditingEquip(false)}
                     onEquip={async (r) => {
                         if (r.id) {
-                            const fullRelic = relics.find(x => x.id === r.id);
+                            const prevDoll = equippedState.getEquippedDoll(r.id);
                             pushAction({
                                 type: 'EQUIP',
-                                changes: [{ relicId: r.id, prevEquipped: fullRelic?.equipped, newEquipped: selectedDoll }]
+                                changes: [{ relicId: r.id, prevEquipped: prevDoll, newEquipped: selectedDoll }]
                             });
-                            await db.relics.update(r.id, { equipped: selectedDoll });
+                            await equippedState.equip(r.id, selectedDoll);
                         }
                     }}
                 />

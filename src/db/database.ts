@@ -21,10 +21,23 @@ export interface DollSettings {
     includeOtherEquipped?: boolean;
 }
 
+export interface Formation {
+    id: string;                                  // UUID primary key
+    name: string;
+    order: number;                               // display order
+    dolls: string[];                             // up to 10 doll names
+    relicAssignments: Record<string, string>;   // relicId -> dollName (within this formation)
+    createdAt: number;
+}
+
+export const MAX_FORMATIONS = 10;
+export const MAX_FORMATION_DOLLS = 10;
+
 export const db = new Dexie('GrowthDataOptimizerDB') as Dexie & {
     relics: EntityTable<Relic, 'id'>;
     characters: EntityTable<CharacterLoadout, 'dollName'>;
     dollSettings: EntityTable<DollSettings, 'dollName'>;
+    formations: EntityTable<Formation, 'id'>;
 };
 
 db.version(1).stores({
@@ -36,6 +49,10 @@ db.version(2).stores({
     dollSettings: 'dollName'
 });
 
+db.version(3).stores({
+    formations: 'id, order'
+});
+
 function hookDirty(table: { hook: any }) {
     table.hook('creating', markDirty);
     table.hook('updating', markDirty);
@@ -45,3 +62,4 @@ function hookDirty(table: { hook: any }) {
 hookDirty(db.relics);
 hookDirty(db.characters);
 hookDirty(db.dollSettings);
+hookDirty(db.formations);

@@ -8,9 +8,11 @@ interface RelicThumbnailProps {
     onClick?: () => void;
     onUnequip?: () => void;
     hideEquippedIcon?: boolean;
+    equippedDoll?: string | null;
 }
 
-export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelected = false, onClick, onUnequip, hideEquippedIcon = false }) => {
+export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelected = false, onClick, onUnequip, hideEquippedIcon = false, equippedDoll }) => {
+    const displayEquipped = equippedDoll !== undefined ? equippedDoll : relic.equipped;
     // Aggregate category totals for the thumbnail badge
     const catTotals: Record<string, number> = {};
     const allSkills = [relic.main_skill, ...relic.aux_skills];
@@ -40,9 +42,9 @@ export const RelicThumbnail: React.FC<RelicThumbnailProps> = ({ relic, isSelecte
                 ))}
             </div>
 
-            {!hideEquippedIcon && relic.equipped && (
-                <div className="relic-thumb-equipped" title={`Equipped by ${relic.equipped}`}>
-                    <img src={getDollImageUrl(relic.equipped)} alt={relic.equipped} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            {!hideEquippedIcon && displayEquipped && (
+                <div className="relic-thumb-equipped" title={`Equipped by ${displayEquipped}`}>
+                    <img src={getDollImageUrl(displayEquipped)} alt={displayEquipped} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
             )}
 

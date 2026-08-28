@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import OptimizerWorker from '../worker/optimizer.worker?worker';
 import DpsWorker from '../worker/dps.worker?worker';
@@ -19,13 +18,19 @@ import { OptimizationResults } from '../components/optimizer/OptimizationResults
 import { useLocalStorage } from '../utils/useLocalStorage';
 import { DamageType, AttackMode } from '../utils/buildUtils';
 import { getSkillMaxLevel } from '../utils/relicUtils';
+import { useEquippedState } from '../contexts/EquippedStateContext';
 
 const defaultConstraints: OptimizerConstraints = { targetCategoryLevels: {}, targetSkillLevels: {} };
 
-export function Optimizer() {
+interface OptimizerProps {
+    formationName?: string;
+}
+
+export function Optimizer({ formationName }: OptimizerProps = {}) {
     const { dollName } = useParams<{ dollName: string }>();
     const selectedDoll = dollName || '';
-    const relics = useLiveQuery(() => db.relics.toArray(), []) || [];
+    const equippedState = useEquippedState();
+    const relics = equippedState.allRelics;
 
     const selectedDollData = (dollsData as unknown as Record<string, DollDefinition>)[selectedDoll];
 
@@ -192,7 +197,7 @@ export function Optimizer() {
 
         if (action.type === 'EQUIP') {
             for (const change of action.changes) {
-                await db.relics.update(change.relicId, { equipped: change.prevEquipped });
+                await equippedState.setEquipped(change.relicId, change.prevEquipped);
             }
         }
         setRedoStack(prev => [...prev, action]);
@@ -205,7 +210,7 @@ export function Optimizer() {
 
         if (action.type === 'EQUIP') {
             for (const change of action.changes) {
-                await db.relics.update(change.relicId, { equipped: change.newEquipped });
+                await equippedState.setEquipped(change.relicId, change.newEquipped);
             }
         }
         setUndoStack(prev => [...prev, action]);
@@ -247,7 +252,10 @@ export function Optimizer() {
 
         let filteredRelics = relics;
         if (!includeOtherEquipped) {
-            filteredRelics = relics.filter(r => !r.equipped || r.equipped === selectedDoll);
+            filteredRelics = relics.filter(r => {
+                const assignedTo = r.id ? equippedState.getEquippedDoll(r.id) : undefined;
+                return !assignedTo || assignedTo === selectedDoll;
+            });
         }
         setOptimizedRelics(filteredRelics);
 
@@ -681,34 +689,35 @@ export function Optimizer() {
 
     const handleConfirmUnequip = async (r: Relic) => {
         if (r.id) {
-            const fullRelic = relics.find(x => x.id === r.id);
+            const prevDoll = equippedState.getEquippedDoll(r.id);
             pushAction({
                 type: 'EQUIP',
-                changes: [{ relicId: r.id, prevEquipped: fullRelic?.equipped, newEquipped: undefined }]
+                changes: [{ relicId: r.id, prevEquipped: prevDoll, newEquipped: undefined }]
             });
-            await db.relics.update(r.id, { equipped: undefined });
+            await equippedState.unequip(r.id);
         }
         setRelicToUnequip(null);
     };
 
     const handleEquipBuild = async (res: BuildResult) => {
         const changes: EquipChange[] = [];
-        const currentEquipped = relics.filter(r => r.equipped === selectedDoll);
+        const currentEquipped = equippedState.getEquipped(selectedDoll);
         for (const r of currentEquipped) {
             if (r.id) {
-                await db.relics.update(r.id, { equipped: undefined });
-                changes.push({ relicId: r.id, prevEquipped: r.equipped, newEquipped: undefined });
+                const prevDoll = equippedState.getEquippedDoll(r.id);
+                await equippedState.unequip(r.id);
+                changes.push({ relicId: r.id, prevEquipped: prevDoll, newEquipped: undefined });
             }
         }
         for (const r of res.relics) {
             if (r.id) {
-                const fullRelic = relics.find(x => x.id === r.id);
-                await db.relics.update(r.id, { equipped: selectedDoll });
+                const prevDoll = equippedState.getEquippedDoll(r.id);
+                await equippedState.equip(r.id, selectedDoll);
                 const existingChange = changes.find(c => c.relicId === r.id);
                 if (existingChange) {
                     existingChange.newEquipped = selectedDoll;
                 } else {
-                    changes.push({ relicId: r.id, prevEquipped: fullRelic ? fullRelic.equipped : r.equipped, newEquipped: selectedDoll });
+                    changes.push({ relicId: r.id, prevEquipped: prevDoll, newEquipped: selectedDoll });
                 }
             }
         }
@@ -733,7 +742,18 @@ export function Optimizer() {
         <div className="optimizer-page" style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
             {/* Left Pane: Locked Portrait */}
             <div style={{ width: '20%', minWidth: '200px', position: 'sticky', top: 0, height: '100vh', background: 'var(--bg-panel)', borderRight: '1px solid var(--bg-panel-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                <Link to="/characters" className="back-btn" style={{ position: 'absolute', top: '2rem', left: '2rem', zIndex: 10, textDecoration: 'none' }}>← Back to Selection</Link>
+                <Link
+                    to="/characters"
+                    className="back-btn"
+                    style={{ position: 'absolute', top: '2rem', left: '2rem', zIndex: 10, textDecoration: 'none' }}
+                >
+                    ← Back to Selection
+                </Link>
+                {formationName && (
+                    <div style={{ position: 'absolute', top: '4.5rem', left: '2rem', zIndex: 10, fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'rgba(0,0,0,0.4)', padding: '2px 8px', borderRadius: 'var(--radius)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        Formation: {formationName}
+                    </div>
+                )}
                 <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${imgPath})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.1, filter: 'blur(20px)' }}></div>
                 <img src={imgPath} alt={selectedDoll} style={{ maxWidth: '80%', maxHeight: '80vh', objectFit: 'contain', zIndex: 2, filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' }} />
                 <div style={{ position: 'absolute', bottom: '3rem', left: '3rem', zIndex: 5 }}>
@@ -784,7 +804,6 @@ export function Optimizer() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
                             <CurrentlyEquipped
                                 selectedDoll={selectedDoll}
-                                relics={relics}
                                 undoStack={undoStack}
                                 redoStack={redoStack}
                                 handleUndo={handleUndo}
@@ -917,7 +936,7 @@ export function Optimizer() {
                             damageType={damageType}
                             setDamageType={setDamageType}
                             attackMode={attackMode}
-                            currentDollRelicIds={new Set(relics.filter(r => r.equipped === selectedDoll).map(r => r.id!))}
+                            currentDollRelicIds={new Set(equippedState.getEquipped(selectedDoll).map(r => r.id!))}
                         />
                     )}
 
